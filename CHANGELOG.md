@@ -16,6 +16,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
     area…* on pages) or the new *Translate screen area* button in the toolbar popup, then drag over an area.
   - Text recognition (OCR) runs **on your device** with Tesseract.js 7 (bundled, Apache-2.0); the screenshot is
     never uploaded. The recognized text is editable and translated in a bubble next to the area.
+  - The text language is **detected automatically** from the page around the selected area (e.g. Chinese text is read
+    with the Chinese model even if only English is set — Settings → *Image translation* → *Detect the text language
+    automatically*); when no text is found, one tap on a suggested language retries the same area.
   - Settings → *Image translation*: up to 3 recognition languages in priority order (39 available), and a button to
     delete the downloaded language data. Each language's data (~1.5–3 MB) is downloaded once from jsDelivr on first
     use and cached locally.

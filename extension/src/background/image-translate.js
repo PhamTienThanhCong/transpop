@@ -7,21 +7,25 @@
  *     → start-crop {mode, srcUrl?} to frame 0: the user drags a region / the right-clicked image is used
  *       no receiver (PDF viewer, chrome:// pages, Web Store, tab opened before install) or `started: false`
  *       → src/capture/capture.html?id=<captureId> in a popup window (drag on the screenshot, then `ocr-image`)
- *   ocr-region {rect, viewport, langs?}  → crop the tab's screenshot → OCR (offscreen) → { ocr }
- *   ocr-image  {dataUrl, langs?}         → OCR → { ocr }
+ *   ocr-region {rect, viewport, hints?, langs?, langsSource?}  → crop the tab's screenshot → OCR (offscreen) → { ocr }
+ *   ocr-image  {dataUrl, hints?, langs?, langsSource?}         → OCR → { ocr }
  *   get-capture {id}                     → { dataUrl, width, height, tabTitle? }   (extension pages only)
  *   ocr-clear-cache                      → delete downloaded language data       (extension pages only)
  *
  * Capture failures are reported to the user: an error bubble through `start-crop {error: 'CAPTURE_FAILED'}`, or, when
  * no content script can show it, the capture page with `?error=CAPTURE_FAILED` in a small window.
- * `langs` sent by the crop toolbar / capture page become the new `settings.ocrLanguages` default when they differ.
+ * OCR languages (resolveOcrLanguages): `langs` with `langsSource: 'user'` (the user changed the chips / tapped a
+ * recovery chip) are used as-is and become the new `settings.ocrLanguages` default when they differ; otherwise, with
+ * `settings.ocrAutoDetect`, the languages guessed from `hints` (page text around the area, page `lang`) go first,
+ * followed by the saved ones — never saved. OCR_NO_TEXT errors carry `details: {langs, guessed, autoDetected}` so the
+ * UI can offer one-tap retries in other languages.
  *
  * createImageTranslation(deps) takes its collaborators as parameters (tests inject fakes); the default instance uses
  * the real capture/OCR/storage modules. Pure helpers are exported for unit tests.
  */
 import { ERROR_CODES, MSG } from '../shared/constants.js';
 import { makeError, sendToTab } from '../shared/messaging.js';
-import { normalizeOcrLanguages } from '../shared/ocr-languages.js';
+import { guessOcrLanguages, isOcrLanguage, normalizeOcrLanguages, sanitizeOcrHints } from '../shared/ocr-languages.js';
 import { getSettings, saveSettings } from '../shared/storage.js';
 import { captureTab, cropForOcr, getCapture, getCaptureForTab } from './capture.js';
 import { clearOcrCache, runOcr } from './ocr.js';
@@ -50,6 +54,8 @@ const finite = (v) => Number.isFinite(Number(v));
 /* ------------------------------------------------------------------ */
 
 const NO_SPACE_JOIN = new Set(['ja', 'zh-CN', 'zh-TW', 'th', 'lo', 'km', 'my']);
+/** Scripts written without spaces between words (+ CJK punctuation / full-width forms). */
+const NO_SPACE_CHAR = /[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Thai}\p{sc=Lao}\p{sc=Khmer}\p{sc=Myanmar}\u3000-\u303f\uff00-\uffef]/u;
 const LIST_ITEM = /^\s*(?:[-–—•·*▪◦]|\d{1,3}[.)]|[a-zA-Z][.)])\s+/;
 
 /**
@@ -71,7 +77,8 @@ export function reflowOcrText(text, lang) {
         else if (LIST_ITEM.test(line)) out += `\n${line}`;
         // A trailing hyphen on the web is usually a real compound ("long-" + "term"): join without a space, keep it.
         else if (/[A-Za-zÀ-ÿ]-$/.test(out) && /^[a-zà-ÿ]/.test(line)) out += line;
-        else out += glue + line;
+        // Decide per boundary: mixed-language results (e.g. chi_sim+eng) have no single `lang` hint.
+        else out += NO_SPACE_CHAR.test(out.slice(-1)) || NO_SPACE_CHAR.test(line[0]) ? line : glue + line;
       }
       return out;
     })
@@ -83,6 +90,23 @@ export function reflowOcrText(text, lang) {
 function withReflow(ocr) {
   if (!ocr || typeof ocr.text !== 'string') return ocr;
   return { ...ocr, rawText: ocr.text, text: reflowOcrText(ocr.text, ocr.lang) };
+}
+
+/**
+ * Final OcrResult for the UI: re-flowed text + the languages actually used (`langs`), whether they came from
+ * auto-detection (`autoDetected`) and what was guessed from the page (`guessed`). Pure; exported for tests / dev mock.
+ * @param {object} ocr  runOcr() result
+ * @param {{langs: string[], guessed: string[], autoDetected: boolean}} resolved  resolveOcrLanguages() result
+ */
+export function finishOcrResult(ocr, resolved) {
+  if (!ocr || typeof ocr.text !== 'string') return ocr;
+  const langs = Array.isArray(ocr.langs) && ocr.langs.length ? ocr.langs : resolved?.langs || [];
+  return withReflow({ ...ocr, langs, autoDetected: !!resolved?.autoDetected, guessed: resolved?.guessed || [] });
+}
+
+/** `details` attached to an OCR_NO_TEXT error (→ the "try another language" chips). Pure; exported for tests / dev mock. */
+export function noTextDetails(resolved) {
+  return { langs: resolved?.langs || [], guessed: resolved?.guessed || [], autoDetected: !!resolved?.autoDetected };
 }
 
 /** Validate an `ocr-region` rect (CSS px, any drag direction): finite numbers, at least 1×1. → {x,y,width,height} | null */
@@ -115,6 +139,31 @@ export function pickOcrLanguages(requested, settings) {
   if (!Array.isArray(requested) || !requested.length) return { langs: current, changed: false };
   const langs = normalizeOcrLanguages(requested);
   return { langs, changed: !sameList(langs, current) };
+}
+
+/**
+ * OCR languages for an `ocr-region` / `ocr-image` request (ARCHITECTURE §11):
+ *  1. `langsSource: 'user'` + known `langs` → exactly those (normalized); `save` when they differ from the settings;
+ *  2. else, `settings.ocrAutoDetect` (default on) and a guess from `hints` →
+ *     unique([...guessed, ...settings.ocrLanguages]).slice(0, OCR_MAX_LANGUAGES), `autoDetected: true`, never saved;
+ *  3. else settings.ocrLanguages.
+ * `guessed` is always returned (recovery chips offer the guesses that were not tried). `langs` without
+ * `langsSource: 'user'` are ignored, so nothing but a user's pick can change the saved default.
+ * @param {{langs?: string[], langsSource?: string, hints?: object}} msg
+ * @param {{ocrLanguages?: string[], ocrAutoDetect?: boolean} | null} settings
+ * @returns {{langs: string[], guessed: string[], autoDetected: boolean, source: 'user'|'auto'|'settings', save: boolean}}
+ */
+export function resolveOcrLanguages(msg, settings) {
+  const saved = normalizeOcrLanguages(settings?.ocrLanguages);
+  const guessed = guessOcrLanguages(sanitizeOcrHints(msg?.hints));
+  if (msg?.langsSource === 'user' && Array.isArray(msg.langs) && msg.langs.some(isOcrLanguage)) {
+    const { langs, changed } = pickOcrLanguages(msg.langs, settings);
+    return { langs, guessed, autoDetected: false, source: 'user', save: changed };
+  }
+  if (settings?.ocrAutoDetect !== false && guessed.length) {
+    return { langs: normalizeOcrLanguages([...guessed, ...saved]), guessed, autoDetected: true, source: 'auto', save: false };
+  }
+  return { langs: saved, guessed, autoDetected: false, source: 'settings', save: false };
 }
 
 /**
@@ -313,21 +362,32 @@ export function createImageTranslation(overrides = {}) {
     return {};
   }
 
-  async function resolveLanguages(requested) {
+  async function resolveLanguages(msg) {
     let settings = null;
     try {
       settings = await deps.getSettings();
     } catch {
       settings = null;
     }
-    const { langs, changed } = pickOcrLanguages(requested, settings);
-    if (changed) {
-      // Remember the crop toolbar's choice as the new default (fire-and-forget: never delays OCR).
+    const resolved = resolveOcrLanguages(msg, settings);
+    if (resolved.save) {
+      // Remember the user's choice as the new default (fire-and-forget: never delays OCR). Auto-detected
+      // languages are never saved.
       Promise.resolve()
-        .then(() => deps.saveSettings({ ocrLanguages: langs }))
+        .then(() => deps.saveSettings({ ocrLanguages: resolved.langs }))
         .catch((err) => warn('save ocrLanguages', err));
     }
-    return langs;
+    return resolved;
+  }
+
+  /** OCR with the resolved languages; OCR_NO_TEXT gets `details` for the recovery chips. */
+  async function recognize(dataUrl, resolved) {
+    try {
+      return finishOcrResult(await deps.runOcr(dataUrl, resolved.langs), resolved);
+    } catch (err) {
+      if (err && typeof err === 'object' && err.code === ERROR_CODES.OCR_NO_TEXT) err.details = noTextDetails(resolved);
+      throw err;
+    }
   }
 
   /** `ocr-region` from the content script: crop the tab's screenshot and recognize it. */
@@ -339,16 +399,15 @@ export function createImageTranslation(overrides = {}) {
     const rect = sanitizeRect(msg.rect);
     const viewport = sanitizeViewport(msg.viewport);
     if (!rect || !viewport) throw makeError(ERROR_CODES.OCR_FAILED, 'Invalid area');
-    const langs = await resolveLanguages(msg.langs);
+    const resolved = await resolveLanguages(msg);
     const png = await deps.cropForOcr(capture.dataUrl, rect, viewport);
-    return { ocr: withReflow(await deps.runOcr(png, langs)) };
+    return { ocr: await recognize(png, resolved) };
   }
 
   /** `ocr-image` from the capture page (already cropped client-side). */
   async function handleOcrImage(msg = {}) {
     if (typeof msg.dataUrl !== 'string' || !msg.dataUrl.startsWith('data:image/')) throw makeError(ERROR_CODES.OCR_FAILED, 'Not an image');
-    const langs = await resolveLanguages(msg.langs);
-    return { ocr: withReflow(await deps.runOcr(msg.dataUrl, langs)) };
+    return { ocr: await recognize(msg.dataUrl, await resolveLanguages(msg)) };
   }
 
   /** `get-capture {id}` from the capture page. */

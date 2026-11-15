@@ -84,6 +84,7 @@
     closeOnClickOutside: true,
     uiLanguage: 'auto',
     ocrLanguages: ['eng'],
+    ocrAutoDetect: true,
   });
 
   const G = {
@@ -228,7 +229,12 @@
             return;
           }
           if (!res || typeof res !== 'object') finish(reject, makeError('UNKNOWN', 'No response'));
-          else if (res.ok === false) finish(reject, makeError(res.error?.code || 'UNKNOWN', res.error?.message));
+          else if (res.ok === false) {
+            const err = makeError(res.error?.code || 'UNKNOWN', res.error?.message);
+            // e.g. OCR_NO_TEXT → { langs, guessed, autoDetected } (ARCHITECTURE §11)
+            if (res.error?.details && typeof res.error.details === 'object') err.details = res.error.details;
+            finish(reject, err);
+          }
           else finish(resolve, res);
         });
       } catch (err) {

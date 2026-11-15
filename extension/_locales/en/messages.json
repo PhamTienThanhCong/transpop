@@ -61,6 +61,14 @@
     "message": "Copy translation",
     "description": "Copy button under the translation"
   },
+  "bubble_crop_auto": {
+    "message": "Auto",
+    "description": "Small pill before the OCR language chips: the text language is detected automatically"
+  },
+  "bubble_crop_auto_title": {
+    "message": "The text language is detected from the page automatically — the languages shown are tried too.",
+    "description": "Tooltip of the Auto pill"
+  },
   "bubble_crop_copy_text": {
     "message": "Copy recognized text",
     "description": "Copy button under the recognized text"
@@ -68,6 +76,10 @@
   "bubble_crop_dialog_label": {
     "message": "TransPop — text in image",
     "description": "Accessible name of the image-translation results bubble"
+  },
+  "bubble_crop_downloading": {
+    "message": "Downloading language data the first time…",
+    "description": "Shown while OCR retries with a newly chosen language"
   },
   "bubble_crop_full": {
     "message": "Use the whole visible page",
@@ -106,6 +118,23 @@
     "message": "The text may not be recognized accurately — check it and edit if needed.",
     "description": "Note under the recognized text when OCR confidence is low"
   },
+  "bubble_crop_more_langs": {
+    "message": "More…",
+    "description": "Dropdown after the quick language buttons: pick any other OCR language"
+  },
+  "bubble_crop_more_langs_label": {
+    "message": "Choose another text language",
+    "description": "Accessible name / tooltip of the More… dropdown"
+  },
+  "bubble_crop_no_text_with": {
+    "message": "No text found with: $P1$. Is the text in another language?",
+    "description": "OCR found nothing; $1 = the languages that were tried, e.g. \"English\" or \"Chinese (Simplified) and English\". Followed by one-tap language buttons",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "bubble_crop_overlay_label": {
     "message": "Select an area to translate",
     "description": "Accessible name of the full-screen area-selection overlay (image translation)"
@@ -137,6 +166,19 @@
   "bubble_crop_translate_again_hint": {
     "message": "Translate the edited text ($P1$)",
     "description": "Tooltip of \"Translate again\"; $1 = keyboard shortcut, e.g. Ctrl + Enter",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bubble_crop_try_label": {
+    "message": "Try another text language",
+    "description": "Accessible name of the group of language buttons shown after \"No text found\""
+  },
+  "bubble_crop_try_lang": {
+    "message": "Try again with $P1$",
+    "description": "Tooltip of a language button after \"No text found\"; the button shows the language's own name, $1 = its name in the UI language",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -592,6 +634,13 @@
   "options_nav_trigger": {
     "message": "Trigger",
     "description": "Section: how the bubble is triggered"
+  },
+  "options_ocr_auto_desc": {
+    "message": "Guesses the language from the page around the area you select — e.g. Chinese text on a Chinese page. The languages below are still used, as a fallback and extra."
+  },
+  "options_ocr_auto_title": {
+    "message": "Detect the text language automatically",
+    "description": "Image translation: toggle for ocrAutoDetect"
   },
   "options_ocr_cache_cleared": {
     "message": "Downloaded language data deleted"

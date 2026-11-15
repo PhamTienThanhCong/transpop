@@ -304,7 +304,7 @@ test('ocr-region: needs the tab capture; ocr-image runs OCR and remembers change
   assert.equal(noCapture.error.code, 'CAPTURE_FAILED');
 
   behaviour.offscreenResponse = { ok: true, ocr: { text: 'Hello', confidence: 91, langs: ['eng', 'vie'] } };
-  const r = await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10), langs: ['vie', 'eng', 'zzz'] }, EXT_SENDER);
+  const r = await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10), langs: ['vie', 'eng', 'zzz'], langsSource: 'user' }, EXT_SENDER);
   assert.equal(r.ok, true);
   assert.equal(r.ocr.text, 'Hello');
   const msg = log.runtimeMessages.at(-1);
@@ -315,6 +315,18 @@ test('ocr-region: needs the tab capture; ocr-image runs OCR and remembers change
 
   await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10) }, EXT_SENDER);
   assert.deepEqual(log.runtimeMessages.at(-1).langs, ['vie', 'eng'], 'no langs → settings.ocrLanguages');
+
+  // Auto-detection: a Chinese page title → chi_sim first; the saved default is not touched.
+  await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10), hints: { pageText: '机器翻译的进步' } }, EXT_SENDER);
+  assert.deepEqual(log.runtimeMessages.at(-1).langs, ['chi_sim', 'vie', 'eng']);
+  await flush(10);
+  assert.deepEqual(areas.sync.settings.ocrLanguages, ['vie', 'eng']);
+
+  // No text → the error envelope carries what was tried and guessed (for the "try another language" chips).
+  behaviour.offscreenResponse = { ok: false, error: { code: 'OCR_NO_TEXT', message: 'No text found in the image' } };
+  const none = await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10), hints: { text: 'Привет мир' } }, EXT_SENDER);
+  assert.equal(none.error.code, 'OCR_NO_TEXT');
+  assert.deepEqual(none.error.details, { langs: ['rus', 'vie', 'eng'], guessed: ['rus'], autoDetected: true });
   assert.equal((await send({ type: 'ocr-image', dataUrl: 'nope' }, EXT_SENDER)).error.code, 'OCR_FAILED');
 });
 

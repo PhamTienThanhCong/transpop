@@ -104,6 +104,46 @@
     "vi": "Lần đầu dùng một ngôn ngữ cần tải dữ liệu của nó (vài MB) — có thể mất một lúc.",
     "description": "Extra hint when OCR takes more than a few seconds"
   },
+  "bubble_crop_auto": {
+    "en": "Auto",
+    "vi": "Tự động",
+    "description": "Small pill before the OCR language chips: the text language is detected automatically"
+  },
+  "bubble_crop_auto_title": {
+    "en": "The text language is detected from the page automatically — the languages shown are tried too.",
+    "vi": "Ngôn ngữ của chữ được tự nhận diện từ trang — các ngôn ngữ hiển thị ở đây cũng được thử.",
+    "description": "Tooltip of the Auto pill"
+  },
+  "bubble_crop_no_text_with": {
+    "en": "No text found with: $1. Is the text in another language?",
+    "vi": "Không tìm thấy chữ khi đọc bằng: $1. Chữ có phải là ngôn ngữ khác không?",
+    "description": "OCR found nothing; $1 = the languages that were tried, e.g. \"English\" or \"Chinese (Simplified) and English\". Followed by one-tap language buttons"
+  },
+  "bubble_crop_try_label": {
+    "en": "Try another text language",
+    "vi": "Thử ngôn ngữ khác",
+    "description": "Accessible name of the group of language buttons shown after \"No text found\""
+  },
+  "bubble_crop_try_lang": {
+    "en": "Try again with $1",
+    "vi": "Thử lại với $1",
+    "description": "Tooltip of a language button after \"No text found\"; the button shows the language's own name, $1 = its name in the UI language"
+  },
+  "bubble_crop_more_langs": {
+    "en": "More…",
+    "vi": "Khác…",
+    "description": "Dropdown after the quick language buttons: pick any other OCR language"
+  },
+  "bubble_crop_more_langs_label": {
+    "en": "Choose another text language",
+    "vi": "Chọn ngôn ngữ khác của chữ",
+    "description": "Accessible name / tooltip of the More… dropdown"
+  },
+  "bubble_crop_downloading": {
+    "en": "Downloading language data the first time…",
+    "vi": "Đang tải dữ liệu ngôn ngữ (chỉ lần đầu)…",
+    "description": "Shown while OCR retries with a newly chosen language"
+  },
   "bubble_crop_recognized_label": {
     "en": "Recognized text (editable)",
     "vi": "Chữ nhận dạng được (có thể sửa)",

@@ -7,14 +7,26 @@
  *                      pre-processing as the service worker (cropForOcr) → `ocr-image` → recognized text (editable)
  *                      + translation (`translate`), copy / speak, "Select again".
  *   ?error=<CODE>    → nothing could be captured: explain why.
- * The OCR language picker sends `langs` once changed; the service worker remembers them as the new default.
+ * OCR languages: the page title goes as `hints.pageText` (the service worker guesses the text language when
+ * settings.ocrAutoDetect is on); once the user changes the chips — or taps a "try another language" chip after
+ * "no text found" — `langs` + `langsSource: 'user'` are sent and remembered as the new default.
  * Recognized / translated text only goes through textContent / .value.
  */
 import { MSG } from '../shared/constants.js';
 import { send } from '../shared/messaging.js';
 import { initI18n, localizeDocument, reloadOnUiLanguageChange, t } from '../shared/i18n.js';
 import { getLanguageName, getLanguageOptions, isRtl } from '../shared/languages.js';
-import { OCR_MAX_LANGUAGES, getOcrLanguageOptions, normalizeOcrLanguages, ocrToLang } from '../shared/ocr-languages.js';
+import {
+  OCR_MAX_LANGUAGES,
+  getOcrEndonym,
+  getOcrLanguageOptions,
+  isOcrLanguage,
+  normalizeOcrLanguages,
+  ocrBcp47,
+  ocrToLang,
+  suggestRetryLanguages,
+} from '../shared/ocr-languages.js';
+import { getUiLocale } from '../shared/languages.js';
 import { getSettings } from '../shared/storage.js';
 import { applyTheme } from '../ui/theme.js';
 import { hydrateIcons, icon } from '../ui/icons.js';
@@ -56,6 +68,7 @@ const els = {
   busySlow: $('busy-slow'),
   paneError: $('pane-error'),
   errorMsg: $('error-msg'),
+  retryLangs: $('retry-langs'),
   retry: $('btn-retry'),
   again: $('btn-again'),
   whole: $('btn-whole'),
@@ -89,6 +102,11 @@ const state = {
   drag: null,
   langs: ['eng'],
   langsTouched: false,
+  hints: null, // { pageText } — the source tab's title
+  tried: [], // languages of the last attempt
+  guessed: [], // languages guessed by the service worker
+  autoDetected: false,
+  recovering: false, // retrying from a "try another language" chip
   phase: 'empty', // 'empty' | 'busy' | 'error' | 'result'
   ocr: null,
   ocrError: null,
@@ -136,9 +154,19 @@ function showStageMessage(text, { sub = '', spinner = false, error = false } = {
 /* OCR language picker                                                 */
 /* ------------------------------------------------------------------ */
 
+const autoOn = () => state.settings?.ocrAutoDetect !== false && !state.langsTouched;
+
 function renderLangPicker(keepFocus = false) {
   const hadFocus = keepFocus && els.langs.contains(document.activeElement);
   const nodes = [icon('languages', { size: 16 })];
+  // "Auto": the text language is guessed too (before a result: setting on; after: the service worker used a guess).
+  if (state.phase === 'empty' || state.phase === 'busy' ? autoOn() : !state.langsTouched && state.autoDetected) {
+    const pill = document.createElement('span');
+    pill.className = 'lauto';
+    pill.title = t('bubble_crop_auto_title');
+    pill.textContent = t('bubble_crop_auto');
+    nodes.push(pill);
+  }
   const several = state.langs.length > 1;
   for (const code of state.langs) {
     const name = getLanguageName(ocrToLang(code)) || code;
@@ -178,6 +206,7 @@ function setLangs(list) {
   if (next.join('+') === state.langs.join('+')) return;
   state.langs = next;
   state.langsTouched = true;
+  state.recovering = false;
   renderLangPicker(true);
   clearTimeout(state.relangTimer);
   if (state.sel && state.phase !== 'empty') state.relangTimer = setTimeout(recognize, RELANG_DEBOUNCE_MS);
@@ -289,8 +318,10 @@ function selectAgain() {
   state.sel = null;
   state.ocr = null;
   state.result = null;
+  state.recovering = false;
   setPhase('empty');
   renderSel();
+  renderLangPicker();
   els.whole.focus();
 }
 els.again.addEventListener('click', selectAgain);
@@ -326,38 +357,102 @@ async function recognize() {
   state.text = '';
   setPhase('busy');
   clearTimeout(state.slowTimer);
+  els.busySlow.textContent = t(state.recovering ? 'bubble_crop_downloading' : 'bubble_crop_slow');
+  els.busySlow.hidden = !state.recovering;
   state.slowTimer = setTimeout(() => {
     if (req === state.ocrReq && state.phase === 'busy') els.busySlow.hidden = false;
   }, SLOW_HINT_MS);
   let ocr = null;
   let error = null;
+  let details = null;
   try {
     const dataUrl = await cropForOcr(state.shot.dataUrl, state.sel, { width: state.shot.width, height: state.shot.height });
     const payload = { dataUrl };
-    if (state.langsTouched) payload.langs = state.langs; // otherwise the service worker uses settings.ocrLanguages
+    if (state.hints) payload.hints = state.hints;
+    if (state.langsTouched) {
+      // The user's choice; otherwise the service worker guesses (hints) and/or uses settings.ocrLanguages.
+      payload.langs = state.langs;
+      payload.langsSource = 'user';
+    }
     ({ ocr } = await send(MSG.OCR_IMAGE, payload));
     if (!ocr || typeof ocr.text !== 'string' || !ocr.text.trim()) error = 'OCR_NO_TEXT';
   } catch (err) {
     error = codeOf(err, 'OCR_FAILED');
+    details = err?.details && typeof err.details === 'object' ? err.details : null;
   }
   if (req !== state.ocrReq) return; // superseded
   clearTimeout(state.slowTimer);
+  state.recovering = false;
+  const used = details?.langs || ocr?.langs;
+  state.tried = Array.isArray(used) && used.length ? normalizeOcrLanguages(used) : [...state.langs];
+  state.guessed = Array.isArray(details?.guessed) ? details.guessed.filter(isOcrLanguage) : [];
+  state.autoDetected = !!(details?.autoDetected || ocr?.autoDetected);
+  if (!state.langsTouched) state.langs = [...state.tried]; // what the service worker actually used
   if (error) {
     state.ocrError = error;
-    els.errorMsg.textContent = errorText(error);
     els.retry.hidden = error === 'OCR_NO_TEXT';
+    if (error === 'OCR_NO_TEXT') renderNoText();
+    else {
+      els.errorMsg.textContent = errorText(error);
+      els.retryLangs.hidden = true;
+    }
     setPhase('error');
+    renderLangPicker();
     return;
   }
   state.ocr = { ...ocr, text: ocr.text.trim() };
-  if (!state.langsTouched && Array.isArray(ocr.langs) && ocr.langs.length) {
-    state.langs = normalizeOcrLanguages(ocr.langs);
-    renderLangPicker();
-  }
   showResult();
+  renderLangPicker();
   translate(state.ocr.text);
 }
 els.retry.addEventListener('click', recognize);
+
+/** "No text found with: English. Is the text in another language?" + one-tap language chips + More…. */
+function renderNoText() {
+  const tried = state.tried.length ? state.tried : state.langs;
+  const names = tried.map((code) => getLanguageName(ocrToLang(code)) || code);
+  let list;
+  try {
+    list = new Intl.ListFormat(getUiLocale(), { style: 'long', type: 'conjunction' }).format(names);
+  } catch {
+    list = names.join(', ');
+  }
+  els.errorMsg.textContent = t('bubble_crop_no_text_with', list);
+  const codes = suggestRetryLanguages({ tried, guessed: state.guessed });
+  const nodes = codes.map((code) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rchip';
+    btn.lang = ocrBcp47(code);
+    btn.title = t('bubble_crop_try_lang', getLanguageName(ocrToLang(code)) || code);
+    btn.textContent = getOcrEndonym(code);
+    btn.addEventListener('click', () => retryWith(code));
+    return btn;
+  });
+  const more = document.createElement('select');
+  more.className = 'rmore';
+  more.setAttribute('aria-label', t('bubble_crop_more_langs_label'));
+  more.title = t('bubble_crop_more_langs_label');
+  const placeholder = new Option(t('bubble_crop_more_langs'), '', true, true);
+  placeholder.hidden = true;
+  more.append(placeholder);
+  for (const o of getOcrLanguageOptions()) if (!tried.includes(o.code) && !codes.includes(o.code)) more.append(new Option(o.name, o.code));
+  more.addEventListener('change', () => more.value && retryWith(more.value));
+  els.retryLangs.replaceChildren(...nodes, more);
+  els.retryLangs.hidden = false;
+}
+
+/** Recognize the same selection again with `[code, ...tried]` as the user's choice (saved as the new default). */
+function retryWith(code) {
+  if (!isOcrLanguage(code) || !state.sel) return;
+  state.langs = normalizeOcrLanguages([code, ...(state.tried.length ? state.tried : state.langs)]);
+  state.langsTouched = true;
+  state.recovering = true;
+  clearTimeout(state.relangTimer);
+  renderLangPicker();
+  recognize(); // shows the busy pane synchronously
+  els.paneBusy.focus({ preventScroll: true }); // the tapped chip is gone
+}
 
 function autosize() {
   els.text.style.height = 'auto';
@@ -522,6 +617,7 @@ if (!CAPTURE_ID) {
     showStageMessage(t('capture_expired'), { error: true });
   } else {
     state.shot = shot;
+    if (typeof shot.tabTitle === 'string' && shot.tabTitle.trim()) state.hints = { pageText: shot.tabTitle.trim().slice(0, 300) };
     els.shot.addEventListener(
       'load',
       () => {

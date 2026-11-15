@@ -133,6 +133,67 @@ body {
   color: var(--text);
   background: var(--surface);
 }
+/* "Auto": the text language is guessed from the page title too */
+.lauto {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-full);
+  color: var(--primary);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* "No text found with …" → one-tap retry in another language */
+.retry-langs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 320px;
+}
+.rchip,
+.rmore {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.rchip:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.rmore {
+  appearance: none;
+  max-width: 160px;
+  border-style: dashed;
+  border-color: var(--border-strong);
+  color: var(--text-2);
+}
+.rmore:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.rmore option {
+  color: var(--text);
+  background: var(--surface);
+}
+.rchip:focus-visible,
+.rmore:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 
 /* Layout */
 .layout {
@@ -264,6 +325,9 @@ body {
   width: 28px;
   height: 28px;
   color: var(--primary);
+}
+#pane-busy:focus {
+  outline: none;
 }
 .pane-error .error-icon {
   color: var(--danger);

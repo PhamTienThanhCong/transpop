@@ -8,14 +8,21 @@ import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { OCR_LANGUAGES, normalizeOcrLanguages } from '../../extension/src/shared/ocr-languages.js';
+import {
+  OCR_LANGUAGES,
+  OCR_RETRY_COMMON,
+  OCR_RETRY_MAX,
+  normalizeOcrLanguages,
+  suggestRetryLanguages,
+} from '../../extension/src/shared/ocr-languages.js';
+import { DEFAULT_SETTINGS } from '../../extension/src/shared/constants.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (f) => readFileSync(path.join(ROOT, 'extension/src/content', f), 'utf8');
 
-function load() {
+function load(runtime = {}) {
   const ctx = vm.createContext({
-    chrome: { runtime: { id: 'test-extension' }, i18n: { getUILanguage: () => 'en', getMessage: () => '' } },
+    chrome: { runtime: { id: 'test-extension', ...runtime }, i18n: { getUILanguage: () => 'en', getMessage: () => '' } },
   });
   for (const f of ['core.js', 'languages.js', 'crop.js']) vm.runInContext(read(f), ctx, { filename: f });
   return ctx.__transpopContent;
@@ -34,6 +41,62 @@ test('crop.js registers its API without touching the DOM at load', () => {
   assert.equal(G.MSG.OCR_REGION, 'ocr-region');
   assert.ok(G.ERROR_CODES.includes('OCR_NO_TEXT'));
   assert.deepEqual(plain(G.DEFAULT_SETTINGS.ocrLanguages), ['eng']);
+  assert.equal(G.DEFAULT_SETTINGS.ocrAutoDetect, DEFAULT_SETTINGS.ocrAutoDetect, 'mirrors DEFAULT_SETTINGS');
+});
+
+test('recovery chips mirror suggestRetryLanguages (keep-in-sync guard)', () => {
+  assert.deepEqual(plain(CU.RETRY_COMMON), [...OCR_RETRY_COMMON]);
+  const cases = [
+    {},
+    { tried: ['eng'] },
+    { tried: ['eng'], guessed: ['chi_sim'] },
+    { tried: ['chi_sim', 'eng'], guessed: ['chi_sim', 'ukr'] },
+    { tried: ['vie'], guessed: ['xx', 'kor'] },
+    { tried: ['eng'], guessed: ['jpn'], max: 2 },
+    { tried: 'eng', guessed: 'jpn' },
+  ];
+  for (const c of cases) assert.deepEqual(plain(CU.retryLangs(c)), suggestRetryLanguages(c), JSON.stringify(c));
+  assert.equal(CU.retryLangs({ tried: [] }).length, OCR_RETRY_MAX);
+});
+
+test('hint helpers: cleanText, intersects, textBag (capped), cleanLang', () => {
+  assert.equal(CU.cleanText('  机器\n\t翻译   test '), '机器 翻译 test');
+  assert.equal(CU.cleanText(null), '');
+  assert.equal(CU.cleanText(42), '');
+
+  const box = { left: 10, top: 10, right: 110, bottom: 60 };
+  assert.equal(CU.intersects({ left: 100, top: 50, right: 200, bottom: 80 }, box), true);
+  assert.equal(CU.intersects({ left: 110, top: 10, right: 200, bottom: 60 }, box), false, 'touching edges only');
+  assert.equal(CU.intersects({ left: 0, top: 70, right: 300, bottom: 90 }, box), false);
+  assert.equal(CU.intersects(null, box), false);
+
+  const bag = CU.textBag(10);
+  assert.equal(bag.add('  hello  '), true);
+  assert.equal(bag.add(''), true, 'empty strings are skipped');
+  assert.equal(bag.add('wonderful world'), false, 'full');
+  assert.equal(bag.add('more'), false);
+  assert.equal(bag.text(), 'hello wond');
+  assert.equal(bag.text().length, 10);
+
+  assert.equal(CU.cleanLang(' zh-Hant-TW '), 'zh-Hant-TW');
+  assert.equal(CU.cleanLang('pt_BR'), 'pt_BR');
+  assert.equal(CU.cleanLang(''), '');
+  assert.equal(CU.cleanLang('english'), '');
+  assert.equal(CU.cleanLang('<b>'), '');
+  assert.equal(CU.cleanLang(null), '');
+});
+
+test('G.send keeps error details (OCR_NO_TEXT → languages tried / guessed)', async () => {
+  const details = { langs: ['eng'], guessed: ['chi_sim'], autoDetected: false };
+  const G2 = load({
+    lastError: undefined,
+    sendMessage: (msg, cb) => cb({ ok: false, error: { code: 'OCR_NO_TEXT', message: 'none', details } }),
+  });
+  await assert.rejects(G2.send('ocr-region', {}), (err) => {
+    assert.equal(err.code, 'OCR_NO_TEXT');
+    assert.deepEqual(plain(err.details), details);
+    return true;
+  });
 });
 
 test('OCR language list matches src/shared/ocr-languages.js (keep-in-sync guard)', () => {

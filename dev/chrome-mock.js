@@ -7,7 +7,9 @@
  * - runtime.sendMessage → emulates the background service worker (translate via /__dev/translate)
  * - image translation (ARCHITECTURE §11): there is no captureVisibleTab here, so a "screenshot" is faked by drawing
  *   the page's same-origin <img> elements where they are (page TEXT is not in it — select over images). OCR runs the
- *   real engine (/extension/src/offscreen/ocr-engine.js) in the page, after the real crop (background/capture.js).
+ *   real engine (/extension/src/offscreen/ocr-engine.js) in the page, after the real crop (background/capture.js),
+ *   with the real language resolution (background/image-translate.js → resolveOcrLanguages: `hints` from the content
+ *   script → auto-detected languages first, `langsSource: 'user'` picks saved) and OCR_NO_TEXT `details`.
  *   Dev triggers: Alt+Shift+A (= the crop-translate command), Alt+right-click on an image (= "Translate text in
  *   image"), buttons with data-dev-crop="region|image|error|fallback" (dev/demo.html), window.__transpopDev.
  */
@@ -201,9 +203,9 @@
     return canvas.toDataURL('image/png');
   }
 
-  /** For the capture page opened in its own window (no page to "screenshot"): the three OCR fixtures stacked, 2×. */
+  /** For the capture page opened in its own window (no page to "screenshot"): the OCR fixtures stacked, 2×. */
   async function fixtureScreenshot() {
-    const imgs = await Promise.all(['en-paragraph', 'vi-sentence', 'ja-line'].map((n) => loadImage(`/dev/fixtures/${n}.png`)));
+    const imgs = await Promise.all(['en-paragraph', 'zh-paragraph', 'vi-sentence', 'ja-line'].map((n) => loadImage(`/dev/fixtures/${n}.png`)));
     const k = 2;
     const pad = 40 * k;
     const width = Math.max(...imgs.map((i) => i.naturalWidth)) * k + pad * 2;
@@ -257,19 +259,25 @@
     return { ok: true };
   }
 
-  /** settings.ocrLanguages, or the toolbar's list (saved as the new default when it differs) — like the SW. */
-  // Same post-processing as the real background (image-translate.js → reflowOcrText).
-  const devReflow = async (ocr) => {
-    const { reflowOcrText } = await import(`${EXT}src/background/image-translate.js`);
-    return ocr && typeof ocr.text === 'string' ? { ...ocr, rawText: ocr.text, text: reflowOcrText(ocr.text, ocr.lang) } : ocr;
-  };
-  async function devOcrLangs(requested) {
+  /**
+   * Same language resolution as the service worker (image-translate.js → resolveOcrLanguages): the user's pick
+   * (`langsSource: 'user'`, saved when it differs), else the guess from `hints` + settings.ocrLanguages when
+   * settings.ocrAutoDetect is on, else settings.ocrLanguages. Then the real OCR + the same post-processing
+   * (finishOcrResult) and OCR_NO_TEXT `details` (noTextDetails).
+   */
+  async function devOcr(msg, image) {
     const s = await loadShared();
-    const settings = await s.getSettings();
-    if (!Array.isArray(requested) || !requested.length) return settings.ocrLanguages;
-    const langs = s.normalizeOcrLanguages(requested);
-    if (langs.join('+') !== settings.ocrLanguages.join('+')) await s.saveSettings({ ocrLanguages: langs });
-    return langs;
+    const bg = await import(`${EXT}src/background/image-translate.js`);
+    const resolved = bg.resolveOcrLanguages(msg, await s.getSettings());
+    if (resolved.save) await s.saveSettings({ ocrLanguages: resolved.langs });
+    log('ocr langs', resolved, 'hints', msg.hints);
+    const { recognize } = await loadOcr();
+    try {
+      return { ok: true, ocr: bg.finishOcrResult(await recognize(await image(), resolved.langs), resolved) };
+    } catch (e) {
+      if (e && e.code === 'OCR_NO_TEXT') e.details = bg.noTextDetails(resolved);
+      throw e;
+    }
   }
 
   const background = {
@@ -277,17 +285,13 @@
       return devStartCrop(msg.mode === 'image' ? 'image' : 'region', msg.srcUrl || '');
     },
     async 'ocr-region'(msg) {
-      const langs = await devOcrLangs(msg.langs);
       if (!devCapture) throw devError('CAPTURE_FAILED', 'No dev screenshot — start the crop with a dev trigger');
       const { cropForOcr } = await loadCaptureModule();
-      const png = await cropForOcr(devCapture, msg.rect, msg.viewport);
-      const { recognize } = await loadOcr();
-      return { ok: true, ocr: await devReflow(await recognize(png, langs)) };
+      const shot = devCapture;
+      return devOcr(msg, () => cropForOcr(shot, msg.rect, msg.viewport));
     },
     async 'ocr-image'(msg) {
-      const langs = await devOcrLangs(msg.langs);
-      const { recognize } = await loadOcr();
-      return { ok: true, ocr: await devReflow(await recognize(msg.dataUrl, langs)) };
+      return devOcr(msg, async () => msg.dataUrl);
     },
     async 'get-capture'() {
       if (devCapture) {
@@ -370,7 +374,10 @@
       try {
         return await handler(msg);
       } catch (e) {
-        return { ok: false, error: { code: e.code || 'UNKNOWN', message: String(e.message || e) } };
+        return {
+          ok: false,
+          error: { code: e.code || 'UNKNOWN', message: String(e.message || e), ...(e && e.details ? { details: e.details } : {}) },
+        };
       }
     })();
     if (typeof maybeCb === 'function') p.then(maybeCb);

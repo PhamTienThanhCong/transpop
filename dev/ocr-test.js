@@ -26,6 +26,13 @@ const FIXTURES = [
     expected: 'Tiếng Việt có sáu thanh điệu: ngang, huyền, sắc,\nhỏi, ngã và nặng. Chúc bạn một ngày tốt lành!',
   },
   { id: 'ja', label: 'Japanese line', src: './fixtures/ja-line.png', langs: ['jpn'], expected: '今日はとても良い天気ですね。' },
+  {
+    id: 'zh',
+    label: 'Chinese paragraph (Simplified)',
+    src: './fixtures/zh-paragraph.png',
+    langs: ['chi_sim'],
+    expected: '机器翻译在过去十年里取得了巨大的进步。\n然而，在文学、法律和市场营销等领域，\n人工翻译仍然是不可或缺的。',
+  },
 ];
 
 const $ = (id) => document.getElementById(id);

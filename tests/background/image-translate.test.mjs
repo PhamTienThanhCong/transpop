@@ -10,11 +10,17 @@ import {
   computeCaptureWindow,
   computeErrorWindow,
   createImageTranslation,
+  finishOcrResult,
   isExtensionPage,
+  noTextDetails,
   pickOcrLanguages,
+  resolveOcrLanguages,
   sanitizeRect,
   sanitizeViewport,
 } from '../../extension/src/background/image-translate.js';
+import { makeError, serializeError } from '../../extension/src/shared/messaging.js';
+import { DEFAULT_SETTINGS } from '../../extension/src/shared/constants.js';
+import { normalizeSettings } from '../../extension/src/shared/storage.js';
 
 const ORIGIN = 'chrome-extension://abc/';
 const NO_RECEIVER = new Error('Could not establish connection. Receiving end does not exist.');
@@ -46,6 +52,60 @@ test('pickOcrLanguages: explicit list (normalized) vs settings; `changed` only w
   assert.deepEqual(pickOcrLanguages(['jpn', 'eng', 'jpn', 'xx'], settings), { langs: ['jpn', 'eng'], changed: true });
   assert.deepEqual(pickOcrLanguages(['a', 'b'], settings), { langs: ['eng'], changed: false }, 'unknown codes → default');
   assert.deepEqual(pickOcrLanguages(['vie', 'eng', 'jpn', 'kor'], null).langs, ['vie', 'eng', 'jpn'], 'max 3');
+});
+
+const ZH_HINTS = { text: '机器翻译在过去十年里取得了巨大的进步。', pageLang: 'zh-CN' };
+
+test('resolveOcrLanguages: the user pick (langsSource "user") is used and saved when it differs', () => {
+  const settings = { ocrLanguages: ['eng'], ocrAutoDetect: true };
+  const r = resolveOcrLanguages({ langs: ['jpn', 'eng'], langsSource: 'user', hints: ZH_HINTS }, settings);
+  assert.deepEqual(r, { langs: ['jpn', 'eng'], guessed: ['chi_sim'], autoDetected: false, source: 'user', save: true });
+  assert.equal(resolveOcrLanguages({ langs: ['eng'], langsSource: 'user' }, settings).save, false, 'same as saved → no write');
+  // Unknown codes only → not a usable pick: falls through to auto-detection.
+  assert.equal(resolveOcrLanguages({ langs: ['xx'], langsSource: 'user', hints: ZH_HINTS }, settings).source, 'auto');
+});
+
+test('resolveOcrLanguages: auto-detected languages go first, then the saved ones — never saved', () => {
+  const r = resolveOcrLanguages({ hints: ZH_HINTS }, { ocrLanguages: ['eng'], ocrAutoDetect: true });
+  assert.deepEqual(r, { langs: ['chi_sim', 'eng'], guessed: ['chi_sim'], autoDetected: true, source: 'auto', save: false });
+  // `langs` without langsSource 'user' can't change anything (nor be saved).
+  const sneaky = resolveOcrLanguages({ langs: ['kor'], hints: ZH_HINTS }, { ocrLanguages: ['eng'] });
+  assert.deepEqual(sneaky.langs, ['chi_sim', 'eng']);
+  assert.equal(sneaky.save, false);
+  // Unique + capped at 3, guess first.
+  assert.deepEqual(resolveOcrLanguages({ hints: ZH_HINTS }, { ocrLanguages: ['vie', 'eng', 'jpn'] }).langs, ['chi_sim', 'vie', 'eng']);
+  assert.deepEqual(resolveOcrLanguages({ hints: { text: 'Hello world' } }, { ocrLanguages: ['eng', 'vie'] }).langs, ['eng', 'vie']);
+  // Default settings (and unreadable settings) have auto-detection on.
+  assert.equal(DEFAULT_SETTINGS.ocrAutoDetect, true);
+  assert.deepEqual(resolveOcrLanguages({ hints: ZH_HINTS }, normalizeSettings({})).langs, ['chi_sim', 'eng']);
+  assert.deepEqual(resolveOcrLanguages({ hints: ZH_HINTS }, null).langs, ['chi_sim', 'eng']);
+});
+
+test('resolveOcrLanguages: no guess, or auto-detection off → settings.ocrLanguages (guess still reported)', () => {
+  assert.deepEqual(resolveOcrLanguages({}, { ocrLanguages: ['vie'] }), { langs: ['vie'], guessed: [], autoDetected: false, source: 'settings', save: false });
+  const off = resolveOcrLanguages({ hints: ZH_HINTS }, { ocrLanguages: ['eng'], ocrAutoDetect: false });
+  assert.deepEqual(off, { langs: ['eng'], guessed: ['chi_sim'], autoDetected: false, source: 'settings', save: false });
+  assert.deepEqual(resolveOcrLanguages({ hints: 'nope' }, { ocrLanguages: ['eng'] }).langs, ['eng'], 'garbage hints');
+});
+
+test('normalizeSettings: ocrAutoDetect is a boolean, default true', () => {
+  assert.equal(normalizeSettings({}).ocrAutoDetect, true);
+  assert.equal(normalizeSettings({ ocrAutoDetect: false }).ocrAutoDetect, false);
+  assert.equal(normalizeSettings({ ocrAutoDetect: 'no' }).ocrAutoDetect, true);
+});
+
+test('finishOcrResult / noTextDetails / serializeError carry the languages for the UI', () => {
+  const resolved = { langs: ['chi_sim', 'eng'], guessed: ['chi_sim'], autoDetected: true };
+  const ocr = finishOcrResult({ text: '机器\n翻译', confidence: 80, langs: ['chi_sim', 'eng'] }, resolved);
+  assert.deepEqual(ocr.langs, ['chi_sim', 'eng']);
+  assert.equal(ocr.autoDetected, true);
+  assert.deepEqual(ocr.guessed, ['chi_sim']);
+  assert.equal(ocr.rawText, '机器\n翻译');
+  assert.equal(finishOcrResult({ text: 'x', confidence: 1 }, resolved).langs.join('+'), 'chi_sim+eng', 'engine without langs');
+  assert.deepEqual(noTextDetails(resolved), { langs: ['chi_sim', 'eng'], guessed: ['chi_sim'], autoDetected: true });
+  const err = Object.assign(makeError('OCR_NO_TEXT', 'none'), { details: noTextDetails(resolved) });
+  assert.deepEqual(serializeError(err), { code: 'OCR_NO_TEXT', message: 'none', details: noTextDetails(resolved) });
+  assert.deepEqual(serializeError(makeError('OCR_FAILED', 'x')), { code: 'OCR_FAILED', message: 'x' }, 'no details');
 });
 
 test('computeCaptureWindow: screenshot CSS size + panel, capped to the source window, centered', () => {
@@ -85,7 +145,7 @@ test('computeErrorWindow / capturePagePath / isExtensionPage', () => {
 
 /* ---------------- handlers with fakes ---------------- */
 
-function setup({ capture = null, sendToTab, captureTab, inject, settings = { ocrLanguages: ['eng'] } } = {}) {
+function setup({ capture = null, sendToTab, captureTab, inject, runOcr, settings = { ocrLanguages: ['eng'] } } = {}) {
   const calls = { crop: [], ocr: [], saved: [], tab: [], windows: [], tabsCreated: [], captureTab: 0, injected: [] };
   const fakeChrome = {
     runtime: { getURL: (p) => `${ORIGIN}${p}` },
@@ -115,7 +175,7 @@ function setup({ capture = null, sendToTab, captureTab, inject, settings = { ocr
     },
     runOcr: async (dataUrl, langs) => {
       calls.ocr.push({ dataUrl, langs });
-      return { text: 'Hi', confidence: 90, langs };
+      return runOcr ? runOcr(dataUrl, langs) : { text: 'Hi', confidence: 90, langs };
     },
     clearOcrCache: async () => ({}),
     captureTab:
@@ -150,7 +210,10 @@ test('ocr-region: crops the sender tab screenshot with the given rect/viewport, 
 
 test('ocr-region: toolbar languages are used and remembered; errors are coded', async () => {
   const { it, calls } = setup({ capture: CAPTURE });
-  await it.handleOcrRegion({ rect: { x: 0, y: 0, width: 50, height: 50 }, viewport: { width: 800, height: 600 }, langs: ['jpn', 'eng'] }, fromTab(5));
+  await it.handleOcrRegion(
+    { rect: { x: 0, y: 0, width: 50, height: 50 }, viewport: { width: 800, height: 600 }, langs: ['jpn', 'eng'], langsSource: 'user' },
+    fromTab(5),
+  );
   assert.deepEqual(calls.ocr[0].langs, ['jpn', 'eng']);
   await new Promise((r) => setTimeout(r, 0));
   assert.deepEqual(calls.saved, [{ ocrLanguages: ['jpn', 'eng'] }]);
@@ -161,6 +224,51 @@ test('ocr-region: toolbar languages are used and remembered; errors are coded', 
   await assert.rejects(it.handleOcrRegion({ rect: {}, viewport: { width: 1, height: 1 } }, fromTab(5)), { code: 'OCR_FAILED' });
   await assert.rejects(it.handleOcrRegion({ rect: { x: 0, y: 0, width: 5, height: 5 }, viewport: {} }, fromTab(5)), { code: 'OCR_FAILED' });
   await assert.rejects(it.handleOcrRegion({}, { url: 'chrome-extension://abc/x' }), { code: 'CAPTURE_FAILED' });
+});
+
+const AREA = { rect: { x: 0, y: 0, width: 300, height: 90 }, viewport: { width: 1280, height: 800 } };
+
+test('ocr-region: Chinese hints with default settings → chi_sim first, reported as auto-detected, nothing saved', async () => {
+  const { it, calls } = setup({ capture: CAPTURE, settings: normalizeSettings({}) });
+  const res = await it.handleOcrRegion({ ...AREA, hints: ZH_HINTS }, fromTab(5));
+  assert.deepEqual(calls.ocr[0].langs, ['chi_sim', 'eng']);
+  assert.deepEqual(res.ocr.langs, ['chi_sim', 'eng'], 'the UI chips show what was used');
+  assert.equal(res.ocr.autoDetected, true);
+  assert.deepEqual(res.ocr.guessed, ['chi_sim']);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(calls.saved, [], 'auto-detected languages never overwrite settings.ocrLanguages');
+});
+
+test('ocr-region / ocr-image: auto-detection off → settings languages; OCR_NO_TEXT carries details for retries', async () => {
+  const noText = async () => {
+    throw makeError('OCR_NO_TEXT', 'No text found in the image');
+  };
+  const off = setup({ capture: CAPTURE, settings: { ocrLanguages: ['eng'], ocrAutoDetect: false }, runOcr: noText });
+  await assert.rejects(off.it.handleOcrRegion({ ...AREA, hints: ZH_HINTS }, fromTab(5)), (err) => {
+    assert.equal(err.code, 'OCR_NO_TEXT');
+    assert.deepEqual(err.details, { langs: ['eng'], guessed: ['chi_sim'], autoDetected: false });
+    return true;
+  });
+  assert.deepEqual(off.calls.ocr[0].langs, ['eng']);
+
+  const auto = setup({ settings: { ocrLanguages: ['eng'] }, runOcr: noText });
+  await assert.rejects(auto.it.handleOcrImage({ dataUrl: 'data:image/png;base64,AAAA', hints: { pageText: 'Привет мир, это пример' } }), (err) => {
+    assert.deepEqual(err.details, { langs: ['rus', 'eng'], guessed: ['rus'], autoDetected: true });
+    return true;
+  });
+
+  // Other errors pass through untouched.
+  const failing = setup({ runOcr: async () => Promise.reject(makeError('NETWORK', 'offline')) });
+  await assert.rejects(failing.it.handleOcrImage({ dataUrl: 'data:image/png;base64,AAAA' }), (err) => err.code === 'NETWORK' && !err.details);
+});
+
+test('ocr-image: a recovery chip (user pick) is used as-is and becomes the new default', async () => {
+  const { it, calls } = setup({ settings: { ocrLanguages: ['eng'], ocrAutoDetect: true } });
+  const res = await it.handleOcrImage({ dataUrl: 'data:image/png;base64,AAAA', langs: ['chi_sim', 'eng'], langsSource: 'user', hints: { pageText: 'Hello' } });
+  assert.deepEqual(calls.ocr[0].langs, ['chi_sim', 'eng']);
+  assert.equal(res.ocr.autoDetected, false);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(calls.saved, [{ ocrLanguages: ['chi_sim', 'eng'] }]);
 });
 
 test('get-capture / ocr-clear-cache are for extension pages only', async () => {
@@ -282,4 +390,13 @@ test('reflowOcrText joins wrapped lines, keeps paragraphs and list items', async
   assert.equal(reflowOcrText('Shopping list:\n- milk\n- eggs', 'en'), 'Shopping list:\n- milk\n- eggs');
   assert.equal(reflowOcrText('今日はとても\n良い天気ですね。', 'ja'), '今日はとても良い天気ですね。');
   assert.equal(reflowOcrText('', 'en'), '');
+});
+
+test('reflowOcrText joins CJK lines without spaces even without a language hint', async () => {
+  const { reflowOcrText } = await import('../../extension/src/background/image-translate.js');
+  assert.equal(
+    reflowOcrText('机器翻译在过去十年里取得了巨大的进步。\n然而，在文学、法律和市场营销等领域，\n人工翻译仍然是不可或缺的。'),
+    '机器翻译在过去十年里取得了巨大的进步。然而，在文学、法律和市场营销等领域，人工翻译仍然是不可或缺的。',
+  );
+  assert.equal(reflowOcrText('Hello world\nagain'), 'Hello world again');
 });

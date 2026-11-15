@@ -6,8 +6,10 @@
  *   mode 'image'  → the box of the right-clicked <img> (matching `srcUrl`) is used directly, no drag;
  *   `error`       → the capture failed: an error bubble with Retry;
  *   `prepare`     → (sent before the screenshot) hide every TransPop UI so it is never in the image.
- * The rectangle (CSS px, viewport-relative) goes back as `ocr-region`; the recognized text is shown in an editable
- * textarea and translated with the normal `translate` message (`from` = the OCR language hint).
+ * The rectangle (CSS px, viewport-relative) goes back as `ocr-region` with `hints` (visible page text inside it, the
+ * nearest `lang`, a page-text sample when the area has no text) so the background can guess the text language; the
+ * recognized text is shown in an editable textarea and translated with the normal `translate` message (`from` = the
+ * OCR language hint). "No text found" offers one-tap retries in other languages on the same screenshot.
  *
  * Everything lives in the bubble's closed shadow root (G.uiKit from bubble.js) and is rebuilt on every open.
  * Top frame only. The pure helpers (G.cropUtil) are unit-tested in tests/content/crop.test.mjs, so nothing here
@@ -42,6 +44,14 @@
   const LOW_CONFIDENCE = 60; // Tesseract mean confidence (0..100) below which we suggest checking the text
   const CONTEXT_TARGET_MAX_AGE_MS = 60000;
   const RELANG_DEBOUNCE_MS = 700;
+  const HINT_MAX = 1500; // chars of page text sent as `hints.text`
+  const PAGE_SAMPLE_MAX = 500; // chars of `hints.pageText`
+  const HINT_BUDGET_MS = 12; // stop walking the DOM after this long (typical: 1–3 ms)
+  const HINT_MAX_NODES = 4000;
+  const HINT_SKIP = new Set(['script', 'style', 'noscript', 'template', 'textarea', 'select', 'option', 'iframe', 'frame', 'object', 'embed', 'canvas', 'video', 'audio', 'head']);
+  /** Recovery chips after "no text found" — KEEP IN SYNC with OCR_RETRY_COMMON / OCR_RETRY_MAX (tested). */
+  const RETRY_COMMON = ['eng', 'chi_sim', 'chi_tra', 'jpn', 'kor', 'vie', 'rus', 'tha', 'ara'];
+  const RETRY_MAX = 6;
   const SCROLL_KEYS = new Set([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
   const IS_MAC =
     typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '');
@@ -184,6 +194,53 @@
   /** Size label of the selection, e.g. "320 × 48". */
   CU.sizeLabel = (rect) => `${Math.round(num(rect && rect.width))} × ${Math.round(num(rect && rect.height))}`;
 
+  /** Collapse whitespace; '' for anything but a string. */
+  CU.cleanText = (v) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '');
+
+  /** Do two {left, top, right, bottom} rects overlap with a positive area? */
+  CU.intersects = (a, b) =>
+    !!a && !!b && num(a.left) < num(b.right) && num(a.right) > num(b.left) && num(a.top) < num(b.bottom) && num(a.bottom) > num(b.top);
+
+  /** Text accumulator capped at `max` chars: add(s) returns false once full; text() joins with spaces. */
+  CU.textBag = (max) => {
+    const parts = [];
+    let len = 0;
+    return {
+      add(value) {
+        const v = CU.cleanText(value);
+        if (len >= max) return false;
+        if (v) {
+          const piece = v.slice(0, max - len);
+          parts.push(piece);
+          len += piece.length + 1;
+        }
+        return len < max;
+      },
+      text: () => parts.join(' ').slice(0, max),
+    };
+  };
+
+  /** A `lang` attribute worth sending ("zh-Hant-TW", "pt_BR"); '' when empty or malformed. */
+  CU.cleanLang = (v) => {
+    const s = typeof v === 'string' ? v.trim() : '';
+    return /^[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{1,8})*$/.test(s) && s.length <= 35 ? s : '';
+  };
+
+  CU.RETRY_COMMON = RETRY_COMMON;
+  /**
+   * Quick-retry chips after "no text found": guessed languages not tried yet, then RETRY_COMMON minus the tried ones.
+   * Mirrors suggestRetryLanguages() in src/shared/ocr-languages.js (tested).
+   */
+  CU.retryLangs = ({ tried = [], guessed = [], max = RETRY_MAX } = {}) => {
+    const skip = new Set(Array.isArray(tried) ? tried : []);
+    const out = [];
+    for (const code of [...(Array.isArray(guessed) ? guessed : []), ...RETRY_COMMON]) {
+      if (out.length >= max) break;
+      if (OCR_TO_LANG.has(code) && !skip.has(code) && !out.includes(code)) out.push(code);
+    }
+    return out;
+  };
+
   /** Error code → one of ours ('UNKNOWN' becomes `fallback`). */
   CU.errorCode = (err, fallback = 'UNKNOWN') => {
     const code = err && typeof err.code === 'string' ? err.code : '';
@@ -218,6 +275,22 @@
   }
 
   const langName = (ocrCode) => G.lang.name(CU.ocrToLang(ocrCode) || '') || ocrCode;
+  /** The language's own name ("简体中文", "日本語") — readable even when the UI language isn't. */
+  const endonym = (ocrCode) => {
+    const lang = CU.ocrToLang(ocrCode) || '';
+    return (lang && G.lang.name(lang, G.lang.bcp47(lang))) || langName(ocrCode);
+  };
+  /** "English, Japanese and Korean" in the UI language. */
+  function listNames(codes) {
+    const names = codes.map(langName);
+    try {
+      return new Intl.ListFormat(G.uiLocale(), { style: 'long', type: 'conjunction' }).format(names);
+    } catch {
+      return names.join(', ');
+    }
+  }
+  /** Is the text language guessed automatically for the next request (setting on, chips untouched)? */
+  const autoOn = () => G.settings.ocrAutoDetect !== false && !langsTouched;
 
   let optionsCache = null;
   /** OCR languages [{code, name}] sorted by localized name (cached per UI locale). */
@@ -300,18 +373,21 @@
   /**
    * @param {string[]} initial  Tesseract codes
    * @param {(list: string[]) => void} onChange  called after a user change
-   * @returns {{el: HTMLElement, render: (list: string[]) => void}}
+   * @param {{auto?: boolean}} [opts]  auto: show the "Auto" pill (the text language is also guessed from the page)
+   * @returns {{el: HTMLElement, render: (list: string[]) => void, setAuto: (on: boolean) => void}}
    */
-  function buildPicker(initial, onChange) {
+  function buildPicker(initial, onChange, { auto: autoInitial = false } = {}) {
     const { h, icon } = kit();
     const label = t('bubble_crop_langs_label');
     const el = h('div', { class: 'g-ocr-langs', role: 'group', 'aria-label': label, title: label });
     let current = CU.normalizeOcrLangs(initial);
+    let auto = !!autoInitial;
 
     function paint(keepFocus) {
       const shadow = kit().shadow();
       const hadFocus = keepFocus && shadow && el.contains(shadow.activeElement);
       const nodes = [icon('languages', 16)];
+      if (auto) nodes.push(h('span', { class: 'g-lauto', title: t('bubble_crop_auto_title') }, t('bubble_crop_auto')));
       const several = current.length > 1;
       for (const code of current) {
         const name = langName(code);
@@ -349,6 +425,7 @@
       const next = CU.normalizeOcrLangs(list);
       if (next.join('+') === current.join('+')) return;
       current = next;
+      auto = false; // an explicit choice
       paint(true);
       onChange(current.slice());
     }
@@ -358,6 +435,11 @@
       el,
       render: (list) => {
         current = CU.normalizeOcrLangs(list);
+        paint(true);
+      },
+      setAuto: (on) => {
+        if (auto === !!on) return;
+        auto = !!on;
         paint(true);
       },
     };
@@ -370,11 +452,13 @@
         if (G.dead) return;
         if (kit()) kit().applySettings();
         if (langsTouched) return;
+        if (overlay) overlay.picker.setAuto(autoOn());
+        if (res && res.state === 'ocr') res.els.picker.setAuto(autoOn());
         const next = CU.normalizeOcrLangs(st.ocrLanguages);
         if (next.join('+') === langs.join('+')) return;
         langs = next;
         if (overlay) overlay.picker.render(langs);
-        if (res && res.state !== 'done') {
+        if (res && res.state === 'ocr') {
           res.langs = [...langs];
           res.els.picker.render(res.langs);
         }
@@ -393,10 +477,14 @@
     const wrap = h('div', { class: 'g-crop', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('bubble_crop_overlay_label'), tabindex: '-1' });
     const size = h('span', { class: 'g-crop-size', 'aria-hidden': 'true' });
     const box = h('div', { class: 'g-crop-box', hidden: true }, size);
-    const picker = buildPicker(langs, (list) => {
-      langs = list;
-      langsTouched = true;
-    });
+    const picker = buildPicker(
+      langs,
+      (list) => {
+        langs = list;
+        langsTouched = true;
+      },
+      { auto: autoOn() },
+    );
     const hint = t(imageMissing ? 'bubble_crop_image_missing' : 'bubble_crop_hint');
     const fullBtn = k.iconButton('maximize', t('bubble_crop_full'), () => commitRect(CU.clampRect({ x: 0, y: 0, ...vpSize() }, vpSize())), true);
     const cancelBtn = k.iconButton('x', t('common_cancel'), () => cancel(), true);
@@ -527,12 +615,13 @@
     if (SCROLL_KEYS.has(e.key) && !inControl) e.preventDefault(); // no page scrolling under the overlay
   }
 
-  function commitRect(rect, { flash = false } = {}) {
+  function commitRect(rect, { flash = false, image = null } = {}) {
     if (!rect) return;
     const geometry = CU.toCaptureGeometry(rect, viewInfo());
     const opener = overlay ? overlay.opener : G.deepActiveElement();
     removeOverlay(false);
-    openResults({ rect, geometry, opener, flash });
+    const hints = collectHints(rect, image); // after the overlay is gone (the DOM is still as in the screenshot)
+    openResults({ rect, geometry, opener, flash, hints });
   }
 
   function removeOverlay(restore) {
@@ -556,8 +645,8 @@
   /* Image mode                                                          */
   /* ------------------------------------------------------------------ */
 
-  /** Viewport rect of the right-clicked image (clamped), or null. */
-  function findImageRect(srcUrl) {
+  /** The right-clicked image: {rect (viewport, clamped), node}, or null. */
+  function findImage(srcUrl) {
     const vp = vpSize();
     const candidate = (img) => {
       try {
@@ -580,7 +669,155 @@
     const picked = CU.pickImage({ target, images, srcUrl, viewport: vp });
     if (!picked) return null;
     const rect = CU.clampRect(CU.fromClientRect(picked.rect), vp);
-    return CU.bigEnough(rect, 4) ? rect : null;
+    return CU.bigEnough(rect, 4) ? { rect, node: picked.node || null } : null;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Language hints from the page (→ ocr-region `hints`)                 */
+  /* ------------------------------------------------------------------ */
+
+  const FILTER_ACCEPT = 1;
+  const FILTER_REJECT = 2;
+  const FILTER_SKIP = 3;
+  const SHOW_ELEMENT = 0x1;
+  const SHOW_TEXT = 0x4;
+
+  /** Text node rendered visibly (not visibility:hidden / opacity:0)? Cached per parent element. */
+  function visibleParent(el, cache) {
+    if (!el) return false;
+    if (cache.has(el)) return cache.get(el);
+    let ok = true;
+    try {
+      if (typeof el.checkVisibility === 'function') {
+        ok = el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true, opacityProperty: true, visibilityProperty: true });
+      }
+    } catch {
+      ok = true;
+    }
+    cache.set(el, ok);
+    return ok;
+  }
+
+  /**
+   * Visible text of the page inside `rect` (viewport CSS px) plus alt/title of images there, ≤ HINT_MAX chars.
+   * Only descends into elements whose box intersects the rect (collapsed wrappers — e.g. around floats — and
+   * display:contents are entered anyway); our own host, scripts, styles, form fields and hidden text are skipped.
+   */
+  function regionText(rect, image) {
+    const bag = CU.textBag(HINT_MAX);
+    if (image) {
+      bag.add(image.getAttribute('alt'));
+      bag.add(image.getAttribute('title'));
+    }
+    const root = document.body || document.documentElement;
+    if (!root) return bag.text();
+    const box = { left: rect.x, top: rect.y, right: rect.x + rect.width, bottom: rect.y + rect.height };
+    const host = kit() && kit().host();
+    const started = performance.now();
+    let visited = 0;
+    const over = () => ++visited > HINT_MAX_NODES || performance.now() - started > HINT_BUDGET_MS;
+    const walker = document.createTreeWalker(root, SHOW_ELEMENT | SHOW_TEXT, {
+      acceptNode(node) {
+        if (node.nodeType === 3) return FILTER_ACCEPT;
+        if (over() || node === host || HINT_SKIP.has(String(node.localName).toLowerCase())) return FILTER_REJECT;
+        const r = node.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) {
+          if (node.getClientRects().length) return FILTER_SKIP; // collapsed box (floats inside…): look inside
+          try {
+            return getComputedStyle(node).display === 'contents' ? FILTER_SKIP : FILTER_REJECT; // display:none
+          } catch {
+            return FILTER_REJECT;
+          }
+        }
+        if (!CU.intersects(r, box)) return FILTER_REJECT;
+        if (node !== image && String(node.localName).toLowerCase() === 'img') {
+          bag.add(node.getAttribute('alt'));
+          bag.add(node.getAttribute('title'));
+        }
+        return FILTER_SKIP; // walk its children, never return the element itself
+      },
+    });
+    const range = document.createRange();
+    const visible = new Map();
+    let node;
+    while ((node = walker.nextNode())) {
+      if (over()) break;
+      const value = node.nodeValue;
+      if (!value || !value.trim()) continue;
+      range.selectNodeContents(node);
+      const rects = range.getClientRects();
+      let hit = false;
+      for (let i = 0; i < rects.length && !hit; i++) hit = CU.intersects(rects[i], box);
+      if (!hit || !visibleParent(node.parentElement, visible)) continue;
+      if (!bag.add(value)) break;
+    }
+    return bag.text();
+  }
+
+  /** A short sample of the page's main text (script guess only, when the area itself has no text). */
+  function pageSample() {
+    const bag = CU.textBag(PAGE_SAMPLE_MAX);
+    const root = document.querySelector('main, article, [role="main"]') || document.body;
+    if (!root) return '';
+    const host = kit() && kit().host();
+    let visited = 0;
+    const walker = document.createTreeWalker(root, SHOW_ELEMENT | SHOW_TEXT, {
+      acceptNode(node) {
+        if (node.nodeType === 3) return FILTER_ACCEPT;
+        return node === host || HINT_SKIP.has(String(node.localName).toLowerCase()) ? FILTER_REJECT : FILTER_SKIP;
+      },
+    });
+    let node;
+    while ((node = walker.nextNode()) && ++visited < 3000) if (!bag.add(node.nodeValue)) break;
+    return bag.text();
+  }
+
+  /** Nearest `lang` at the area's center (`local`: set below <html>), else <html lang>. */
+  function langAt(rect, image) {
+    const host = kit() && kit().host();
+    let el = image || null;
+    if (!el) {
+      try {
+        for (const e of document.elementsFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)) {
+          if (e !== host && !(host && host.contains(e))) {
+            el = e;
+            break;
+          }
+        }
+      } catch {
+        el = null;
+      }
+    }
+    const root = document.documentElement;
+    const owner = el && typeof el.closest === 'function' ? el.closest('[lang]:not([lang=""])') : null;
+    const local = owner && owner !== root ? CU.cleanLang(owner.getAttribute('lang')) : '';
+    return { pageLang: local || CU.cleanLang(root && root.getAttribute('lang')), local: !!local };
+  }
+
+  /**
+   * `hints` for ocr-region: { text, pageLang, pageText? } (ARCHITECTURE §11). The page sample is added only when the
+   * area has (almost) no text of its own and no element-level `lang` says otherwise. Never throws.
+   */
+  function collectHints(rect, image) {
+    const hints = { text: '', pageLang: '' };
+    if (!rect) return hints;
+    const img = image && image.isConnected ? image : null;
+    try {
+      hints.text = regionText(rect, img);
+    } catch {
+      /* hints are optional */
+    }
+    try {
+      const lang = langAt(rect, img);
+      hints.pageLang = lang.pageLang;
+      if (hints.text.length < 20 && !lang.local) {
+        const sample = pageSample();
+        if (sample) hints.pageText = sample;
+      }
+    } catch {
+      /* hints are optional */
+    }
+    return hints;
   }
 
   /* ------------------------------------------------------------------ */
@@ -589,11 +826,11 @@
 
   /**
    * @param {{rect?: object|null, geometry?: object|null, opener?: Element|null, flash?: boolean,
-   *   error?: string|null, retry?: {mode: string, srcUrl?: string}|null}} opts
-   *   rect/geometry: the selected region (viewport CSS px) → recognize it; error: show a capture error (retry = how
-   *   to start over)
+   *   error?: string|null, retry?: {mode: string, srcUrl?: string}|null, hints?: object|null}} opts
+   *   rect/geometry: the selected region (viewport CSS px) → recognize it; hints: page text/lang around it;
+   *   error: show a capture error (retry = how to start over)
    */
-  function openResults({ rect = null, geometry = null, opener = null, flash = false, error = null, retry = null }) {
+  function openResults({ rect = null, geometry = null, opener = null, flash = false, error = null, retry = null, hints = null }) {
     const k = kit();
     if (!k || !k.ensureHost()) return false;
     closeResults(false);
@@ -613,6 +850,11 @@
       retry,
       ocr: null,
       ocrReq: 0,
+      hints,
+      tried: [], // languages of the last attempt (shown in "no text found with …")
+      guessed: [], // languages guessed from the page (background)
+      autoDetected: false,
+      recovering: false, // retrying from a "try another language" chip
       slow: false,
       slowTimer: 0,
       relangTimer: 0,
@@ -682,7 +924,7 @@
       }),
     );
     e.body = h('div', { class: 'g-body' });
-    e.picker = buildPicker(s.langs, (list) => onResultLangs(s, list));
+    e.picker = buildPicker(s.langs, (list) => onResultLangs(s, list), { auto: !s.ocrError && autoOn() });
     e.powered = h('span', { class: 'g-ocr-powered' });
     e.foot = h('div', { class: 'g-foot g-ocr-foot' }, e.picker.el, e.powered);
     e.bubble = h('div', { class: 'g-bubble g-ocr', role: 'dialog', 'aria-label': t('bubble_crop_dialog_label'), tabindex: '-1', hidden: true }, e.head, e.body, e.foot);
@@ -713,7 +955,16 @@
         'div',
         { class: 'g-ocr-status' },
         h('span', { class: 'g-spin', 'aria-hidden': 'true' }),
-        h('div', null, h('p', null, t('bubble_crop_recognizing')), s.slow ? h('p', { class: 'g-ocr-slow' }, t('bubble_crop_slow')) : null),
+        h(
+          'div',
+          null,
+          h('p', null, t('bubble_crop_recognizing')),
+          s.recovering
+            ? h('p', { class: 'g-ocr-slow' }, t('bubble_crop_downloading'))
+            : s.slow
+              ? h('p', { class: 'g-ocr-slow' }, t('bubble_crop_slow'))
+              : null,
+        ),
       ),
     );
   }
@@ -725,11 +976,71 @@
     return btn;
   }
 
+  /** "No text found with: English. Is the text in another language?" + one-tap language chips + More… + Select again. */
+  function renderNoText(s) {
+    const { h, icon } = kit();
+    const e = s.els;
+    const tried = s.tried.length ? s.tried : s.langs;
+    const codes = CU.retryLangs({ tried, guessed: s.guessed });
+    const chips = codes.map((code) => {
+      const lang = CU.ocrToLang(code);
+      const btn = h(
+        'button',
+        { class: 'g-rchip', type: 'button', lang: G.lang.bcp47(lang) || null, title: t('bubble_crop_try_lang', [langName(code)]) },
+        endonym(code),
+      );
+      btn.addEventListener('click', () => retryWith(s, code));
+      return btn;
+    });
+    const moreLabel = t('bubble_crop_more_langs_label');
+    const more = h('select', { class: 'g-rmore', 'aria-label': moreLabel, title: moreLabel });
+    more.append(h('option', { value: '', selected: true, hidden: true }, t('bubble_crop_more_langs')));
+    for (const o of ocrOptions()) if (!tried.includes(o.code) && !codes.includes(o.code)) more.append(h('option', { value: o.code }, o.name));
+    more.addEventListener('change', () => more.value && retryWith(s, more.value));
+    e.body.replaceChildren(
+      h(
+        'div',
+        { class: 'g-error g-no-text', role: 'alert' },
+        icon('alert', 20),
+        h(
+          'div',
+          null,
+          h('p', { class: 'g-error-msg' }, t('bubble_crop_no_text_with', [listNames(tried)])),
+          h('div', { class: 'g-retry-langs', role: 'group', 'aria-label': t('bubble_crop_try_label') }, ...chips, more),
+          h('div', { class: 'g-error-actions' }, actionButton('scan-text', 'bubble_crop_select_again', () => selectAgain())),
+        ),
+      ),
+    );
+  }
+
+  /** A recovery chip: OCR the same area again (same screenshot) with `[code, ...tried]` as the user's choice. */
+  function retryWith(s, code) {
+    if (res !== s || !s.geometry || !OCR_TO_LANG.has(code)) return;
+    const list = CU.normalizeOcrLangs([code, ...(s.tried.length ? s.tried : s.langs)]);
+    langs = list;
+    langsTouched = true; // explicit → sent with langsSource 'user', remembered as the new default
+    s.langs = list.slice();
+    s.els.picker.render(s.langs);
+    s.els.picker.setAuto(false);
+    s.recovering = true;
+    G.cancel(s.relangTimer);
+    try {
+      s.els.bubble.focus({ preventScroll: true }); // the chip is about to disappear
+    } catch {
+      /* ignore */
+    }
+    recognize(s);
+  }
+
   function renderOcrError(s) {
     const { h, icon } = kit();
     const e = s.els;
     e.srcFor = null;
     const code = s.ocrError || 'UNKNOWN';
+    if (code === 'OCR_NO_TEXT' && !s.retry && s.geometry) {
+      renderNoText(s);
+      return;
+    }
     const actions = [];
     if (s.retry) {
       // The screenshot itself failed: start over (same trigger mode).
@@ -915,9 +1226,15 @@
     }, SLOW_HINT_MS);
     render(s);
     const payload = { rect: s.geometry.rect, viewport: s.geometry.viewport };
-    if (langsTouched) payload.langs = s.langs.slice(); // otherwise the background uses settings.ocrLanguages
+    if (s.hints) payload.hints = s.hints;
+    if (langsTouched) {
+      // The user's choice; otherwise the background guesses from `hints` and/or uses settings.ocrLanguages.
+      payload.langs = s.langs.slice();
+      payload.langsSource = 'user';
+    }
     let ocr = null;
     let error = null;
+    let details = null;
     try {
       const r = await G.send(MSG.OCR_REGION, payload, { timeout: OCR_TIMEOUT_MS });
       ocr = r.ocr && typeof r.ocr.text === 'string' && r.ocr.text.trim() ? r.ocr : null;
@@ -925,21 +1242,30 @@
     } catch (err) {
       if (G.dead || (err && err.code === 'CONTEXT_INVALIDATED')) return;
       error = CU.errorCode(err, 'OCR_FAILED');
+      details = err && err.details && typeof err.details === 'object' ? err.details : null;
     }
     if (res !== s || s.ocrReq !== req) return; // closed or superseded (e.g. languages changed)
     G.cancel(s.slowTimer);
+    s.recovering = false;
+    const used = (details && details.langs) || (ocr && ocr.langs);
+    s.tried = Array.isArray(used) && used.length ? CU.normalizeOcrLangs(used) : s.langs.slice();
+    s.guessed = details && Array.isArray(details.guessed) ? details.guessed.filter((c) => OCR_TO_LANG.has(c)) : [];
+    s.autoDetected = !!((details && details.autoDetected) || (ocr && ocr.autoDetected));
+    if (!langsTouched) {
+      s.langs = s.tried.slice(); // what the background actually used
+      s.els.picker.render(s.langs);
+    }
+    s.els.picker.setAuto(!langsTouched && s.autoDetected);
     if (error) {
       s.state = 'ocr-error';
       s.ocrError = error;
       render(s);
-      kit().announce(t(`common_error_${error}`) || t('common_error_UNKNOWN'));
+      kit().announce(
+        error === 'OCR_NO_TEXT' && s.geometry ? t('bubble_crop_no_text_with', [listNames(s.tried)]) : t(`common_error_${error}`) || t('common_error_UNKNOWN'),
+      );
       return;
     }
     s.ocr = { ...ocr, text: ocr.text.trim() };
-    if (!langsTouched && Array.isArray(ocr.langs) && ocr.langs.length) {
-      s.langs = CU.normalizeOcrLangs(ocr.langs); // what the background actually used
-      s.els.picker.render(s.langs);
-    }
     s.state = 'done';
     translate(s, s.ocr.text);
   }
@@ -995,6 +1321,7 @@
     langs = list;
     langsTouched = true;
     s.langs = list.slice();
+    s.recovering = false;
     G.cancel(s.relangTimer);
     if (!s.geometry) return; // capture error: nothing to re-recognize yet
     s.relangTimer = G.later(() => res === s && recognize(s), RELANG_DEBOUNCE_MS);
@@ -1109,9 +1436,9 @@
       return openResults({ error: code, retry: image ? { mode: 'image', ...(srcUrl ? { srcUrl } : {}) } : { mode: 'region' } });
     }
     if (image) {
-      const rect = findImageRect(typeof srcUrl === 'string' ? srcUrl : '');
-      if (rect) {
-        commitRect(rect, { flash: true });
+      const found = findImage(typeof srcUrl === 'string' ? srcUrl : '');
+      if (found) {
+        commitRect(found.rect, { flash: true, image: found.node });
         return true;
       }
       startSelect({ imageMissing: true }); // e.g. the image is in an iframe or scrolled away: let the user drag

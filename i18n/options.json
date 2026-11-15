@@ -77,6 +77,8 @@
   "options_ocr_way_menu_desc": {"en": "On an image: “Translate text in image”. Anywhere else: “Translate screen area…”.", "vi": "Trên ảnh: “Dịch chữ trong ảnh”. Chỗ khác: “Dịch vùng màn hình…”.", "description": "Quotes the context-menu item titles (keep them identical to the menu)"},
   "options_ocr_way_popup_title": {"en": "Toolbar popup", "vi": "Cửa sổ TransPop"},
   "options_ocr_way_popup_desc": {"en": "Open TransPop and click “Translate screen area” at the top.", "vi": "Mở TransPop rồi bấm “Dịch vùng màn hình” ở phía trên.", "description": "Quotes the popup button label popup_capture"},
+  "options_ocr_auto_title": {"en": "Detect the text language automatically", "vi": "Tự nhận diện ngôn ngữ của chữ", "description": "Image translation: toggle for ocrAutoDetect"},
+  "options_ocr_auto_desc": {"en": "Guesses the language from the page around the area you select — e.g. Chinese text on a Chinese page. The languages below are still used, as a fallback and extra.", "vi": "Đoán ngôn ngữ dựa vào nội dung trang quanh vùng bạn chọn — ví dụ chữ Trung trên trang tiếng Trung. Các ngôn ngữ bên dưới vẫn được dùng thêm để dự phòng."},
   "options_ocr_langs_title": {"en": "Text languages", "vi": "Ngôn ngữ của chữ trong ảnh", "description": "OCR languages picker title"},
   "options_ocr_langs_desc": {"en": "The languages written in your images, in order of priority — up to 3. Fewer languages give faster, more accurate results.", "vi": "Ngôn ngữ của chữ trong ảnh, theo thứ tự ưu tiên — tối đa 3. Chọn càng ít, nhận dạng càng nhanh và chính xác."},
   "options_ocr_selected_label": {"en": "Selected languages, in priority order", "vi": "Ngôn ngữ đã chọn, theo thứ tự ưu tiên", "description": "aria-label of the selected OCR language chips"},

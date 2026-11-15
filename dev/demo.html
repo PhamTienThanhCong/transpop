@@ -51,17 +51,33 @@
         “Translate text in image”. The dev “screenshot” contains only the images on this page (not the page text), so drag
         over an image. The first OCR run downloads language data from jsDelivr.
       </p>
+      <p class="dev-note">
+        <b>Language auto-detection</b> (Settings → Image translation → “Detect the text language automatically”, on by
+        default): the content script sends <code>hints</code> = the page text inside the selected area (here: the images’
+        <code>alt</code>) + the nearest <code>lang</code> attribute; the background puts the guessed language first, then
+        <code>settings.ocrLanguages</code> (never saved). With default settings (<code>['eng']</code>) the Chinese, Japanese
+        and Vietnamese images below work without adding a language. The last image has no hint at all → OCR runs with
+        English only → “No text found with: English…” + one-tap language chips (tap 简体中文).
+      </p>
       <figure class="ocr-fig">
         <img src="/dev/fixtures/en-paragraph.png" width="760" height="190" alt="English paragraph (OCR sample)" />
         <figcaption>English · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/en-paragraph.png">Translate this image (dev)</button></figcaption>
       </figure>
-      <figure class="ocr-fig">
-        <img src="/dev/fixtures/vi-sentence.png" width="720" height="110" alt="Vietnamese sentence (OCR sample)" />
-        <figcaption>Tiếng Việt (pick “Vietnamese” as text language) · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/vi-sentence.png">Translate this image (dev)</button></figcaption>
+      <figure class="ocr-fig" lang="zh-CN">
+        <img id="ocr-zh" src="/dev/fixtures/zh-paragraph.png" width="560" height="150" alt="示例图片：一段简体中文文字（机器翻译与人工翻译）" />
+        <figcaption>中文（简体）· auto-detected from <code>lang="zh-CN"</code> + Chinese alt · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/zh-paragraph.png">Translate this image (dev)</button></figcaption>
       </figure>
-      <figure class="ocr-fig">
-        <img src="/dev/fixtures/ja-line.png" width="520" height="72" alt="Japanese line (OCR sample)" />
-        <figcaption>日本語 (pick “Japanese”) · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/ja-line.png">Translate this image (dev)</button></figcaption>
+      <figure class="ocr-fig" lang="vi">
+        <img src="/dev/fixtures/vi-sentence.png" width="720" height="110" alt="Câu tiếng Việt có đủ sáu thanh điệu (mẫu OCR)" />
+        <figcaption>Tiếng Việt · auto-detected (Vietnamese alt) · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/vi-sentence.png">Translate this image (dev)</button></figcaption>
+      </figure>
+      <figure class="ocr-fig" lang="ja">
+        <img src="/dev/fixtures/ja-line.png" width="520" height="72" alt="日本語の一文（OCRのサンプル）" />
+        <figcaption>日本語 · auto-detected (Japanese alt) · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/ja-line.png">Translate this image (dev)</button></figcaption>
+      </figure>
+      <figure class="ocr-fig" id="ocr-no-hint">
+        <img src="/dev/fixtures/zh-paragraph.png?nohint" width="560" height="150" alt="" />
+        <figcaption>No hint (empty alt, English page) → English only → “No text found” recovery chips · <button type="button" data-dev-crop="image" data-dev-src="/dev/fixtures/zh-paragraph.png?nohint">Translate this image (dev)</button></figcaption>
       </figure>
 
       <h2>Other languages</h2>

@@ -11,17 +11,27 @@ export function makeError(code, message) {
   return err;
 }
 
-/** Turn any thrown value into a serializable `{ code, message }`. */
+/**
+ * Turn any thrown value into a serializable `{ code, message, details? }`. `details` = the error's plain-object
+ * `.details` (e.g. OCR_NO_TEXT → `{ langs, guessed, autoDetected }`, ARCHITECTURE §11).
+ */
 export function serializeError(err) {
-  return {
+  const out = {
     code: err?.code && ERROR_CODES[err.code] ? err.code : ERROR_CODES.UNKNOWN,
     message: String(err?.message || err || 'Unknown error'),
   };
+  const details = err?.details;
+  if (details && typeof details === 'object' && !Array.isArray(details)) out.details = details;
+  return out;
 }
 
 function unwrap(response) {
   if (!response) throw makeError(ERROR_CODES.UNKNOWN, 'No response');
-  if (response.ok === false) throw makeError(response.error?.code, response.error?.message);
+  if (response.ok === false) {
+    const err = makeError(response.error?.code, response.error?.message);
+    if (response.error?.details && typeof response.error.details === 'object') err.details = response.error.details;
+    throw err;
+  }
   const { ok, ...data } = response;
   return data;
 }

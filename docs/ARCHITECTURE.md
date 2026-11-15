@@ -124,6 +124,8 @@ modules, so they ask the background: `{type: 'get-settings'}` → `{ok, settings
 | `disabledSites` | string[] hostnames | `[]` | no in-page translation on these hostnames (exact host or subdomain match) |
 | `saveHistory` | bool | `true` | record translations in history |
 | `closeOnClickOutside` | bool | `true` | close bubble when clicking elsewhere |
+| `ocrLanguages` | Tesseract codes, 1–3 | `['eng']` | image translation: languages written in images, priority order (§11) |
+| `ocrAutoDetect` | bool | `true` | image translation: guess the text language from the page and try it before `ocrLanguages` (§11) |
 
 Enums and defaults live in `src/shared/constants.js` (`DEFAULT_SETTINGS`, `TRIGGER_MODES`, …).
 
@@ -364,24 +366,34 @@ All are user gestures, so `activeTab` lets the background call `chrome.tabs.capt
 |---|---|---|---|
 | `start-capture` | popup → background | `{ tabId? }` (default: active tab) | `{}` — same as the command |
 | `start-crop` | background → content (frame 0) | `{ mode: 'region' \| 'image', srcUrl? }` | `{ started: boolean }` |
-| `ocr-region` | content → background | `{ rect: {x, y, width, height}, viewport: {width, height}, langs?: string[] }` (CSS px, viewport-relative) | `{ ocr: OcrResult }` |
-| `ocr-image` | extension page → background | `{ dataUrl, langs?: string[] }` | `{ ocr: OcrResult }` |
+| `ocr-region` | content → background | `{ rect: {x, y, width, height}, viewport: {width, height}, hints?: OcrHints, langs?: string[], langsSource?: 'user' }` (CSS px, viewport-relative) | `{ ocr: OcrResult }` |
+| `ocr-image` | extension page → background | `{ dataUrl, hints?: OcrHints, langs?: string[], langsSource?: 'user' }` | `{ ocr: OcrResult }` |
 | `get-capture` | capture page → background | `{ id }` | `{ dataUrl, width, height, tabTitle? }` |
 | `ocr-clear-cache` | options → background | `{}` | `{}` — deletes downloaded traineddata |
 | `get-ui-messages` | content → background | `{}` | `{ locale, messages \| null }` |
 | `offscreen-ocr` / `offscreen-ocr-clear` | background → offscreen (`target: 'offscreen'`) | `{ dataUrl, langs }` / `{}` | `{ ocr }` / `{}` |
 
 ```ts
+type OcrHints = {          // page context for language auto-detection (all optional, capped by the background)
+  text?: string;           // visible page text inside the area + alt/title of images there (≤ ~1500 chars)
+  pageLang?: string;       // nearest `lang` attribute at the area's center, else <html lang>
+  pageText?: string;       // short sample of the page's main text (capture page: the tab title) — fallback only
+}
 type OcrResult = {
-  text: string;            // recognized text, lines joined with \n, trimmed
+  text: string;            // recognized text, re-flowed for translation (rawText = lines joined with \n)
+  rawText?: string;
   confidence: number;      // 0..100 (Tesseract mean confidence)
-  langs: string[];         // Tesseract codes used
+  langs: string[];         // Tesseract codes actually used — the UI chips show these
+  autoDetected: boolean;   // true = langs came from auto-detection (guess + settings.ocrLanguages)
+  guessed: string[];       // languages guessed from `hints` (used or not)
   lang?: string;           // Google-style hint for translate `from` when exactly one OCR language was used
   lines?: Array<{ text: string; confidence: number; bbox: {x0, y0, x1, y1} }>; // in cropped-image pixels
 }
 ```
-Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). Then the UI calls the normal
-`translate` message with `text` (`from`: `ocr.lang` or `auto`).
+Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). `OCR_NO_TEXT` from `ocr-region` / `ocr-image`
+carries `error.details = { langs, guessed, autoDetected }` (what was tried) — the messaging envelope forwards a plain
+`details` object (`serializeError`, `send`, content `G.send`). Then the UI calls the normal `translate` message with
+`text` (`from`: `ocr.lang` or `auto`).
 
 ### Background pipeline
 1. On trigger: `captureVisibleTab(windowId, {format: 'png'})`, keep `{dataUrl, tabId, capturedAt}` in memory
@@ -402,8 +414,38 @@ Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). Then t
    Language data (`<lang>.traineddata`) is downloaded on first use from jsDelivr (`@tesseract.js-data/<lang>`) and cached
    in IndexedDB by Tesseract — data, not code. Keep one worker alive and re-initialize only when `langs` change; if the
    offscreen document was closed, recreate it and retry once.
-5. Default OCR languages: `settings.ocrLanguages` (Tesseract codes, max 3, default `['eng']`); the crop toolbar can
-   override per capture (remembered as the new default). Helpers: `src/shared/ocr-languages.js`.
+5. OCR languages — `resolveOcrLanguages(msg, settings)` in `background/image-translate.js` (helpers:
+   `src/shared/ocr-languages.js`; the dev mock uses the same functions):
+   1. `langsSource: 'user'` + `langs` (the user changed the chips, or tapped a recovery chip) → exactly those,
+      remembered as the new `settings.ocrLanguages` when different. `langs` without `langsSource: 'user'` are ignored.
+   2. else, `settings.ocrAutoDetect` (default on) and `guessOcrLanguages(hints)` found something →
+      `unique([...guessed, ...settings.ocrLanguages]).slice(0, 3)`, `autoDetected: true` — **never saved**.
+   3. else `settings.ocrLanguages` (Tesseract codes, max 3, default `['eng']`).
+
+### Language auto-detection + one-tap recovery
+- **Hints** (content script, `crop.js` → `collectHints`, on commit of a region / image, typically 1–3 ms, 12 ms budget,
+  never throws): TreeWalker over elements whose box intersects the area (collapsed wrappers / `display: contents`
+  entered, our host, `script/style/textarea/select/iframe/canvas/video…` and hidden text skipped), text nodes whose
+  client rects intersect the area, plus `alt`/`title` of images there (and of the right-clicked image in image mode),
+  ≤ 1500 chars; `pageLang` = nearest non-empty `lang` at the area's center (or of the image), else `<html lang>`;
+  `pageText` (≤ 500 chars of `main, article, [role=main]` or `body`) only when the area has < 20 chars of text and no
+  element-level `lang`. The capture page sends the tab title as `pageText`.
+- **Detector** `guessOcrLanguages({text, pageLang, pageText})` (pure, documented rules in `ocr-languages.js`): Unicode
+  script counts (letters only; Han/kana/Hangul weigh 2; minimum weight 3) — Han → `chi_sim` (`chi_tra` when
+  traditional-only characters clearly dominate, or the page is zh-TW/HK/MO/Hant; `jpn` on a `ja` page), any kana →
+  `jpn`, Hangul → `kor`, Cyrillic → `rus` (`ukr` with і ї є ґ / uk page, `bul` on bg), Arabic → `ara` (`fas`/`urd` by
+  page), Hebrew/Thai/Devanagari/Bengali/Tamil/Greek/Khmer/Lao → `heb/tha/hin/ben/tam/ell/khm/lao`, Latin → `vie` with
+  Vietnamese-only letters, else the page's Latin OCR language, else `eng`. Mixed → by weight, another script added at
+  ≥ 15 % (substantial Latin adds `eng`). Too little text → `pageText`, then `pageLang` alone, else `[]`.
+- **Recovery** (results bubble + capture page): `OCR_NO_TEXT` shows "No text found with: English. Is the text in
+  another language?" + up to 6 chips (`suggestRetryLanguages`: guessed-but-untried first, then
+  `eng, chi_sim, chi_tra, jpn, kor, vie, rus, tha, ara` minus tried; label = endonym, tooltip = localized name) +
+  a "More…" dropdown (every other OCR language) + "Select again". A chip re-runs OCR on the **same area of the same
+  screenshot** (kept 2 min; the capture page keeps its crop) with `[chosen, ...tried].slice(0, 3)` as
+  `langsSource: 'user'` (→ saved as the new default) and shows "Downloading language data the first time…".
+- An **"Auto"** pill before the language chips (overlay bar, results footer, capture page) says the text language is
+  guessed too; it disappears once the user picks languages. Strings: `bubble_crop_auto*`, `bubble_crop_no_text_with`,
+  `bubble_crop_try_*`, `bubble_crop_more_langs*`, `bubble_crop_downloading`; option `options_ocr_auto_*`.
 
 ### Contract additions (implemented)
 - `start-crop {prepare: true}` → the page hides all TransPop UI and answers `{ready: true}` *before* the background
