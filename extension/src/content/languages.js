@@ -1,6 +1,8 @@
 /*
  * TransPop content script — languages (file 2/6).
  * Language codes + English names, localized display names, <select> options.
+ * Names use G.uiLocale() — the Display-language setting when set, else the browser language — and the
+ * caches below are keyed by locale, so a display-language change needs no invalidation.
  *
  * KEEP IN SYNC with extension/src/shared/languages.js (LANGUAGES, DISPLAY_CODES, RTL_LANGS) —
  * content scripts cannot import ES modules, so this is a deliberate copy.
@@ -101,7 +103,7 @@
 
   const capitalize = (s, locale) => (s ? s.charAt(0).toLocaleUpperCase(locale) + s.slice(1) : s);
 
-  /** Localized language name in the browser UI language, e.g. name('en') → "Tiếng Anh" for a vi UI. */
+  /** Localized language name in the effective UI language, e.g. name('en') → "Tiếng Anh" for a vi UI. */
   function name(code, locale = G.uiLocale()) {
     if (!code || code === 'auto') return '';
     const norm = normalize(code) || code;
@@ -142,7 +144,7 @@
     isRtl: (code) => RTL_LANGS.has(code),
     /** BCP-47 tag for the `lang` attribute (helps the browser pick CJK glyphs, hyphenation…). */
     bcp47: (code) => DISPLAY_CODES[code] || code || '',
-    /** Default target derived from the browser UI language (mirrors uiLangToTarget()). */
+    /** Default target derived from the effective UI language (mirrors uiLangToTarget()). */
     uiTarget: () => normalize(G.uiLocale()) || 'en',
   };
 })();

@@ -42,6 +42,7 @@
     SHOW_TRANSLATION: 'show-translation',
     GET_SELECTION: 'get-selection',
     PING: 'ping',
+    GET_UI_MESSAGES: 'get-ui-messages',
   });
 
   const LIMITS = Object.freeze({
@@ -74,6 +75,7 @@
     disabledSites: [],
     saveHistory: true,
     closeOnClickOutside: true,
+    uiLanguage: 'auto',
   });
 
   const G = {
@@ -235,8 +237,64 @@
   /* i18n                                                                */
   /* ------------------------------------------------------------------ */
 
-  /** chrome.i18n.getMessage with a safe fallback ('' when missing / context gone). */
+  // Display language (docs/ARCHITECTURE.md §10): content.js asks the background for `get-ui-messages`
+  // → { locale, messages } and hands it to G.setUiMessages(). `messages: null` ('auto') = plain chrome.i18n.
+  let uiDict = null; // Map(lower-cased key → messages.json entry), null = follow the browser language
+  let uiLocaleOverride = null; // e.g. 'vi' while uiDict is active
+  const uiListeners = new Set();
+  const NAMED_PLACEHOLDER_RE = /\$([A-Za-z0-9_@]+)\$/g;
+  const RTL_UI_RE = /^(ar|ckb|dv|fa|he|iw|ps|sd|ug|ur|yi)(?:[-_]|$)/i;
+
+  /**
+   * Chrome's getMessage() substitution rules for one messages.json entry: `$name$` → placeholders[name].content
+   * (case-insensitive), then `$1`…`$9` → subs (missing → ''), `$$` → `$`, other `$x` dropped.
+   * KEEP IN SYNC with formatMessage() in src/shared/i18n.js (tests/shared/i18n.test.mjs compares the two).
+   */
+  function formatMessage(entry, subs) {
+    const raw = typeof entry === 'string' ? entry : entry && typeof entry.message === 'string' ? entry.message : '';
+    if (!raw) return '';
+    const placeholders = {};
+    if (entry && typeof entry === 'object' && entry.placeholders && typeof entry.placeholders === 'object') {
+      for (const name of Object.keys(entry.placeholders)) {
+        const ph = entry.placeholders[name];
+        if (ph && typeof ph.content === 'string') placeholders[name.toLowerCase()] = ph.content;
+      }
+    }
+    const message = raw.replace(NAMED_PLACEHOLDER_RE, (match, name) => placeholders[name.toLowerCase()] ?? match);
+    const values = subs === undefined || subs === null ? [] : [].concat(subs).slice(0, 9).map(String);
+    if (!message.includes('$')) return message;
+    let out = '';
+    for (let i = 0; i < message.length; i++) {
+      const ch = message[i];
+      if (ch !== '$') {
+        out += ch;
+        continue;
+      }
+      const next = message[++i];
+      if (next === undefined) break;
+      if (next === '$') {
+        while (message[i] === '$') {
+          out += '$';
+          i++;
+        }
+        i--;
+      } else if (next >= '1' && next <= '9') {
+        out += values[next.charCodeAt(0) - 49] ?? '';
+      }
+    }
+    return out;
+  }
+  G.formatMessage = formatMessage;
+
+  /**
+   * Message lookup: Display-language dictionary first, then chrome.i18n.getMessage; '' when missing / context gone.
+   * Callers may keep a reference to G.t — it always reads the current dictionary.
+   */
   G.t = (key, subs) => {
+    if (uiDict && typeof key === 'string') {
+      const entry = uiDict.get(key.toLowerCase());
+      if (entry) return formatMessage(entry, subs);
+    }
     try {
       return chrome.i18n.getMessage(key, subs) || '';
     } catch {
@@ -244,8 +302,41 @@
     }
   };
 
-  /** Browser UI locale, e.g. "vi" or "en-US". */
+  /**
+   * Install the `get-ui-messages` answer: `messages` object (Chrome messages.json format) for an explicit display
+   * language, or null to follow the browser. Listeners registered with G.onUiLanguageChange run when it changes.
+   */
+  G.setUiMessages = (locale, messages) => {
+    const active = !!(locale && typeof locale === 'string' && messages && typeof messages === 'object');
+    const nextLocale = active ? locale : null;
+    if (nextLocale === uiLocaleOverride && !!uiDict === active) return;
+    uiLocaleOverride = nextLocale;
+    uiDict = null;
+    if (active) {
+      uiDict = new Map();
+      for (const key of Object.keys(messages)) {
+        const entry = messages[key];
+        if (entry && typeof entry.message === 'string') uiDict.set(key.toLowerCase(), entry);
+      }
+    }
+    for (const fn of [...uiListeners]) {
+      try {
+        fn();
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
+  /** Subscribe to display-language changes. Returns an unsubscribe function. */
+  G.onUiLanguageChange = (fn) => {
+    uiListeners.add(fn);
+    return () => uiListeners.delete(fn);
+  };
+
+  /** Effective UI locale: the Display-language override, else the browser UI locale (e.g. "vi" or "en-US"). */
   G.uiLocale = () => {
+    if (uiLocaleOverride) return uiLocaleOverride;
     try {
       const l = globalThis.chrome?.i18n?.getUILanguage?.();
       if (l) return l;
@@ -255,8 +346,11 @@
     return (typeof navigator !== 'undefined' && navigator.language) || 'en';
   };
 
-  /** Direction of the extension UI locale ('ltr' | 'rtl'). */
-  G.uiDir = () => (G.t('@@bidi_dir') === 'rtl' ? 'rtl' : 'ltr');
+  /** Direction of the effective UI locale ('ltr' | 'rtl'). */
+  G.uiDir = () => {
+    if (uiLocaleOverride) return RTL_UI_RE.test(uiLocaleOverride) ? 'rtl' : 'ltr';
+    return G.t('@@bidi_dir') === 'rtl' ? 'rtl' : 'ltr';
+  };
 
   /** document.activeElement, descending into open shadow roots (web components). */
   G.deepActiveElement = () => {

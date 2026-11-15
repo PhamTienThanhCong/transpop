@@ -62,6 +62,15 @@
               <p class="section-desc" data-i18n="options_general_desc">The basics of how TransPop translates for you.</p>
             </header>
             <div class="card">
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <label class="row-title" for="s-uiLanguage" data-i18n="options_ui_language_title">Display language</label>
+                  <p class="row-desc" id="s-uiLanguage-desc" data-i18n="options_ui_language_desc">Menus, buttons and the translation bubble. Names in chrome://extensions always follow the browser.</p>
+                </div>
+                <div class="row-control">
+                  <select class="select" id="s-uiLanguage" data-setting="uiLanguage" aria-describedby="s-uiLanguage-desc"></select>
+                </div>
+              </div>
               <div class="row">
                 <div class="row-text">
                   <label class="row-title" for="s-enabled" data-i18n="options_enabled_title">Enable in-page translation</label>

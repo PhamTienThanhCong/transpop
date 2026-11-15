@@ -10,7 +10,9 @@ import {
   STORAGE_KEYS,
   THEMES,
   TRIGGER_MODES,
+  UI_LANGUAGES,
 } from './constants.js';
+import { normalizeOcrLanguages } from './ocr-languages.js';
 import { getUiLocale, isSupportedLang, normalizeLangCode, uiLangToTarget } from './languages.js';
 
 /* ------------------------------------------------------------------ */
@@ -70,6 +72,8 @@ export function normalizeSettings(raw) {
       : [],
     saveHistory: pickBool(s.saveHistory, d.saveHistory),
     closeOnClickOutside: pickBool(s.closeOnClickOutside, d.closeOnClickOutside),
+    uiLanguage: pickEnum(s.uiLanguage, UI_LANGUAGES, d.uiLanguage),
+    ocrLanguages: normalizeOcrLanguages(s.ocrLanguages),
   };
 }
 

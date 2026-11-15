@@ -59,10 +59,31 @@
     if (!settingsLoaded && !settingsPromise) G.getSettings().catch(() => {});
   };
 
+  /* ------------------------------------------------------------------ */
+  /* Display language (ARCHITECTURE §10)                                 */
+  /* ------------------------------------------------------------------ */
+
+  let uiMessagesSeq = 0;
+
+  /** Ask the background for the Display-language dictionary; on failure G.t keeps using chrome.i18n. */
+  function loadUiMessages() {
+    const seq = ++uiMessagesSeq;
+    G.send(MSG.GET_UI_MESSAGES).then(
+      (res) => {
+        if (seq !== uiMessagesSeq || G.dead) return;
+        G.setUiMessages(typeof res.locale === 'string' ? res.locale : null, res.messages || null);
+      },
+      () => {},
+    );
+  }
+
+  const uiLanguageOf = (raw) => (raw && typeof raw === 'object' && typeof raw.uiLanguage === 'string' ? raw.uiLanguage : 'auto');
+
   function onStorageChanged(changes, area) {
     if (area !== 'sync' || !changes || !changes.settings) return;
     if (!G.checkAlive()) return;
     settingsLoaded = false;
+    if (uiLanguageOf(changes.settings.oldValue) !== uiLanguageOf(changes.settings.newValue)) loadUiMessages();
     if (!ui.isActive()) return; // lazily re-fetched on the next interaction
     G.getSettings().then(
       (st) => {
@@ -465,6 +486,7 @@
       }
     });
     G.started = true;
+    loadUiMessages(); // before the first trigger builds any UI (strings are read when the UI is built)
   } catch {
     // Extension context already gone (or APIs unavailable): leave the page untouched.
     G.destroy();

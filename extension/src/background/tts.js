@@ -1,17 +1,18 @@
 /**
- * TransPop — text-to-speech. Google TTS audio is played in a single offscreen document
- * (reasons: AUDIO_PLAYBACK); if that fails we fall back to chrome.tts.
- * Chrome closes an AUDIO_PLAYBACK offscreen document by itself after ~30 s without audio,
- * so no idle timer is needed — ensureOffscreen() recreates it on demand.
+ * TransPop — text-to-speech. Google TTS audio is played in the shared offscreen document (offscreen-doc.js,
+ * also used by OCR); if that fails we fall back to chrome.tts.
+ * The document may be closed by Chrome (audio idle) or by itself (idle) at any time —
+ * ensureOffscreen() / sendToOffscreen() recreate it on demand.
  *
  * chunkText() / buildTtsUrls() / ttsLang() are pure (Node-testable); chrome.* is only touched inside functions.
  */
 import { ERROR_CODES, LIMITS, MSG } from '../shared/constants.js';
 import { makeError } from '../shared/messaging.js';
 import { normalizeLangCode } from '../shared/languages.js';
+import { ensureOffscreen, hasOffscreen, OFFSCREEN_PATH, sendToOffscreen } from './offscreen-doc.js';
 
 export const TTS_ENDPOINT = 'https://translate.google.com/translate_tts';
-export const OFFSCREEN_PATH = 'src/offscreen/offscreen.html';
+export { OFFSCREEN_PATH };
 
 const SENTENCE_END = /[.!?…。！？；;\n]/;
 const CLAUSE_END = /[,，、:：)\]）」』]/;
@@ -72,60 +73,10 @@ export const clampRate = (rate) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Offscreen document management                                       */
+/* Playback                                                            */
 /* ------------------------------------------------------------------ */
 
-let creating = null;
 let speakSeq = 0;
-
-const isNoReceiver = (err) => /Receiving end does not exist|Could not establish connection|message port closed/i.test(String(err?.message || err));
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
-
-async function hasOffscreen() {
-  try {
-    if (chrome.runtime.getContexts) {
-      const contexts = await chrome.runtime.getContexts({
-        contextTypes: ['OFFSCREEN_DOCUMENT'],
-        documentUrls: [chrome.runtime.getURL(OFFSCREEN_PATH)],
-      });
-      return contexts.length > 0;
-    }
-    return chrome.offscreen?.hasDocument ? await chrome.offscreen.hasDocument() : false;
-  } catch {
-    return false;
-  }
-}
-
-/** Create the offscreen document once (concurrent callers share the same creation promise). */
-async function ensureOffscreen() {
-  if (creating) return creating;
-  if (await hasOffscreen()) return undefined;
-  if (creating) return creating; // another caller started while we were checking
-  creating = chrome.offscreen
-    .createDocument({
-      url: OFFSCREEN_PATH,
-      reasons: ['AUDIO_PLAYBACK'],
-      justification: 'Play pronunciation audio (text-to-speech) for translations.',
-    })
-    .catch((err) => {
-      if (!/single offscreen|already exists|only a single/i.test(String(err?.message))) throw err;
-    })
-    .finally(() => {
-      creating = null;
-    });
-  return creating;
-}
-
-async function sendToOffscreen(message) {
-  const payload = { target: 'offscreen', ...message };
-  try {
-    return await chrome.runtime.sendMessage(payload);
-  } catch (err) {
-    if (!isNoReceiver(err)) throw err;
-    await delay(150); // document just created and its script not listening yet → retry once
-    return chrome.runtime.sendMessage(payload);
-  }
-}
 
 function stopNative() {
   try {
@@ -180,7 +131,7 @@ export async function stop() {
   stopNative();
   if (!(await hasOffscreen())) return;
   try {
-    await sendToOffscreen({ type: MSG.OFFSCREEN_STOP });
+    await sendToOffscreen({ type: MSG.OFFSCREEN_STOP }, { ensure: false });
   } catch {
     /* document went away — nothing to stop */
   }

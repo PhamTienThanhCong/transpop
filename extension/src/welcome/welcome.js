@@ -5,7 +5,7 @@
  */
 import { MSG } from '../shared/constants.js';
 import { getLanguageName, getUiLocale, isRtl } from '../shared/languages.js';
-import { localizeDocument, t } from '../shared/i18n.js';
+import { initI18n, localizeDocument, reloadOnUiLanguageChange, t } from '../shared/i18n.js';
 import { send } from '../shared/messaging.js';
 import { getSettings, onSettingsChanged, saveSettings } from '../shared/storage.js';
 import { applyTheme } from '../ui/theme.js';
@@ -18,6 +18,7 @@ import {
   errorMessage,
   fillLanguageSelect,
   fillModifierSelect,
+  fillUiLanguageSelect,
   getCommands,
   hydrateExtraIcons,
   kbdGroup,
@@ -37,6 +38,7 @@ const showToast = createToast($('#toast'));
 let trigger = null;
 
 async function init() {
+  await initI18n(); // Display language (ARCHITECTURE §10) — before localizeDocument() and the language lists
   hydrateIcons();
   hydrateExtraIcons();
   localizeDocument();
@@ -45,6 +47,7 @@ async function init() {
   $('#mini-menu-active').prepend(logoImg(12));
   $('#demo-trigger').append(logoImg(18));
 
+  fillUiLanguageSelect($('#w-uiLanguage'));
   fillLanguageSelect($('#w-targetLang'));
   fillModifierSelect($('#w-modifierKey'));
   trigger = buildTriggerCards($('#w-trigger'), {
@@ -52,6 +55,7 @@ async function init() {
     idPrefix: 'w-trigger',
     onChange: (mode) => save({ triggerMode: mode }),
   });
+  $('#w-uiLanguage').addEventListener('change', (e) => save({ uiLanguage: e.target.value })); // → reload below
   $('#w-targetLang').addEventListener('change', (e) => save({ targetLang: e.target.value }));
   $('#w-modifierKey').addEventListener('change', (e) => save({ modifierKey: e.target.value }));
 
@@ -61,6 +65,7 @@ async function init() {
 
   render(await getSettings());
   onSettingsChanged((settings) => render(settings));
+  reloadOnUiLanguageChange();
 }
 
 /* ================================================================== */
@@ -96,6 +101,8 @@ function render(s) {
     applyTheme(s.theme);
   }
 
+  const uiLanguage = $('#w-uiLanguage');
+  if (uiLanguage.value !== s.uiLanguage) uiLanguage.value = s.uiLanguage;
   const target = $('#w-targetLang');
   if (target.value !== s.targetLang) target.value = s.targetLang;
   const modifier = $('#w-modifierKey');

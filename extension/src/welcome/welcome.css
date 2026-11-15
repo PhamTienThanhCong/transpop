@@ -32,6 +32,30 @@ body {
 .hero {
   text-align: center;
 }
+/* Display-language switcher (top end corner) */
+.ui-lang {
+  position: absolute;
+  top: 20px;
+  inset-inline-end: 24px;
+  z-index: 1;
+}
+.ui-lang-icon {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 10px;
+  margin-top: -8px;
+  color: var(--text-2);
+  pointer-events: none;
+}
+.ui-lang .ui-lang-select {
+  width: auto;
+  max-width: 220px;
+  min-height: 34px;
+  padding-block: 5px;
+  padding-inline-start: 32px;
+  font-size: 13px;
+  background-color: color-mix(in srgb, var(--surface) 80%, transparent);
+}
 .hero-logo {
   position: relative;
   display: inline-flex;
@@ -572,6 +596,10 @@ body {
 @media (max-width: 720px) {
   .wrap {
     padding: 44px 16px 56px;
+  }
+  .ui-lang {
+    top: 10px;
+    inset-inline-end: 16px;
   }
   .hero-title {
     font-size: 28px;
