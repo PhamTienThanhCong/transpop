@@ -1,0 +1,38 @@
+# Paths that exist ONLY on the `dev` branch: guides, demos, tests and tooling.
+# `npm run sync:main` (scripts/sync-main.sh) publishes dev → main and deletes these paths from main.
+#
+# One path or bash glob per line, relative to the repo root. Lines starting with # are comments.
+# Never list product files here: extension/, README.md, LICENSE, CHANGELOG.md, docs/PRIVACY.md (the Chrome Web
+# Store privacy-policy URL points at main), the images README.md shows, .github/ISSUE_TEMPLATE, .gitignore.
+
+# Notes for Claude / contributors
+CLAUDE.md
+CONTRIBUTING.md
+.mainignore
+
+# Guides
+docs/ARCHITECTURE.md
+docs/PUBLISHING.md
+docs/STORE_LISTING.md
+store-assets/screenshots/README.md
+
+# Demo / dev harness
+dev
+
+# Tests
+tests
+
+# Tooling (build, check, package, sync, CI)
+scripts
+i18n
+package.json
+.github/workflows
+
+# Store-upload working files (README only uses the promo marquee + screenshots/*.png)
+store-assets/src
+store-assets/render.sh
+store-assets/screenshots/en
+store-assets/screenshots/vi
+store-assets/logo-512.png
+store-assets/promo-small-440x280.png
+store-assets/store-icon-128.png

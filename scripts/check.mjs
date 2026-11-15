@@ -519,9 +519,9 @@ section('Release hygiene');
   const withPlaceholder = [];
   for (const f of placeholderFiles) {
     const txt = await readFile(f, 'utf8');
-    if (/YOUR_GITHUB|EXTENSION_ID/.test(txt)) withPlaceholder.push(rel(f));
+    if (/EXTENSION_ID/.test(txt)) withPlaceholder.push(rel(f));
   }
-  if (withPlaceholder.length) warn(`placeholder URLs (YOUR_GITHUB / EXTENSION_ID) still in: ${withPlaceholder.join(', ')} — replace before publishing (docs/PUBLISHING.md)`);
+  if (withPlaceholder.length) warn(`placeholder EXTENSION_ID (Chrome Web Store ID) still in: ${withPlaceholder.join(', ')} — replace before publishing (docs/PUBLISHING.md)`);
   else ok('no placeholder URLs');
 
   const changelog = path.join(ROOT, 'CHANGELOG.md');

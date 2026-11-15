@@ -20,12 +20,22 @@ TransPop is intentionally simple. Please keep these properties:
 
 The full contract (file layout, messaging, settings, design tokens) is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Branches
+
+- **`dev`** — where all development happens: the extension source plus guides, tests, the dev harness and tooling.
+  Branch off `dev` and open pull requests against `dev`.
+- **`main`** — the product branch: only the extension and the essentials (README, LICENSE, CHANGELOG, privacy
+  policy). It is **generated** from `dev` by `npm run sync:main`, which removes every path listed in `.mainignore`.
+  Never commit to `main` directly.
+
+When you add a guide, demo, test or tooling file, list it in `.mainignore` so it stays off `main`.
+
 ## Getting started
 
 Requirements: **Node.js 22+** and **Chrome 116+**. Nothing to install.
 
 ```bash
-git clone https://github.com/PhamTienThanhCong/transpop.git
+git clone -b dev https://github.com/PhamTienThanhCong/transpop.git
 cd transpop
 npm run check
 npm test

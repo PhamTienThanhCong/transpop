@@ -13,7 +13,7 @@
 1. [Chạy thử trên máy (Load unpacked)](#1-chạy-thử-trên-máy-load-unpacked)
 2. [Tạo tài khoản nhà phát triển Chrome Web Store](#2-tạo-tài-khoản-nhà-phát-triển-chrome-web-store)
 3. [Đưa mã lên GitHub và công bố chính sách quyền riêng tư](#3-đưa-mã-lên-github-và-công-bố-chính-sách-quyền-riêng-tư)
-4. [Thay các giá trị giữ chỗ `YOUR_GITHUB`](#4-thay-các-giá-trị-giữ-chỗ-your_github)
+4. [Liên kết GitHub và ID tiện ích](#4-liên-kết-github-và-id-tiện-ích)
 5. [Tăng phiên bản, kiểm tra và đóng gói](#5-tăng-phiên-bản-kiểm-tra-và-đóng-gói)
 6. [Tải gói lên Developer Dashboard](#6-tải-gói-lên-developer-dashboard)
 7. [Tab **Store listing** (Thông tin cửa hàng)](#7-tab-store-listing)
@@ -154,28 +154,24 @@ ngữ Anh–Việt).
 
 ---
 
-## 4. Thay các giá trị giữ chỗ `YOUR_GITHUB`
+## 4. Liên kết GitHub và ID tiện ích
 
-> ✅ **Đã làm sẵn:** mọi liên kết đã trỏ về `https://github.com/PhamTienThanhCong/transpop`. Chỉ còn `EXTENSION_ID`
-> (trong `APP.storeUrl` và README) — sửa sau khi Chrome Web Store cấp ID ở [bước 6](#6-tải-gói-lên-developer-dashboard).
-> Phần dưới đây dành cho ai fork dự án sang tài khoản GitHub khác.
-
-Tìm và thay `YOUR_GITHUB` (hoặc `PhamTienThanhCong`) bằng tên tài khoản GitHub của bạn trong các file sau:
+Mọi liên kết (mã nguồn, báo lỗi, chính sách quyền riêng tư) đã trỏ sẵn về
+`https://github.com/PhamTienThanhCong/transpop`. Chỉ còn **`EXTENSION_ID`** — mã ID mà Chrome Web Store cấp sau lần
+tải gói đầu tiên ([bước 6](#6-tải-gói-lên-developer-dashboard)). Khi đã có ID, thay nó ở:
 
 | File | Nội dung cần sửa |
 |---|---|
-| `extension/src/shared/constants.js` | `APP.repoUrl`, `APP.issuesUrl`, `APP.privacyUrl` (nếu dùng GitHub Pages thì đổi `privacyUrl` sang URL Pages). `APP.storeUrl` sửa ở [bước 6](#6-tải-gói-lên-developer-dashboard) khi đã có ID tiện ích. |
-| `README.md` | Huy hiệu (badges), liên kết, đường dẫn cửa hàng |
-| `docs/PRIVACY.md`, `docs/STORE_LISTING.md` | Liên kết issues / chính sách |
-| `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/config.yml` | Liên kết repo |
+| `extension/src/shared/constants.js` | `APP.storeUrl` (nút "Đánh giá trên Chrome Web Store" trong Cài đặt → Giới thiệu) |
+| `README.md` | Liên kết tới trang cửa hàng |
 
 Lệnh tìm nhanh (chạy ở thư mục gốc dự án):
 
 ```bash
-grep -rn "YOUR_GITHUB\|EXTENSION_ID" --exclude-dir=.git --exclude=PUBLISHING.md .
+grep -rn "EXTENSION_ID" --exclude-dir=.git --exclude=PUBLISHING.md .
 ```
 
-`npm run check` cũng cảnh báo (⚠) nếu còn sót giá trị giữ chỗ.
+`npm run check` cũng cảnh báo (⚠) nếu còn sót `EXTENSION_ID`.
 
 ---
 
@@ -490,7 +486,7 @@ Edge cũng có API riêng (Edge Add-ons API) nếu muốn tự động hóa sau 
 - [ ] Đã thử Load unpacked: bong bóng (3 chế độ kích hoạt), popup, từ điển, phát âm, lịch sử, yêu thích, cài đặt,
       menu chuột phải, phím tắt `Alt+Shift+S` / `Alt+Shift+T`, giao diện sáng/tối, tiếng Anh/tiếng Việt.
 - [ ] Thử trên vài trang khác nhau (báo, Wikipedia, GitHub, trang nền tối, trang có iframe).
-- [ ] Không còn `YOUR_GITHUB` / `EXTENSION_ID` (lệnh `grep` ở [mục 4](#4-thay-các-giá-trị-giữ-chỗ-your_github)).
+- [ ] Đã thay `EXTENSION_ID` bằng ID thật (lệnh `grep` ở [mục 4](#4-liên-kết-github-và-id-tiện-ích)) — có thể làm ngay sau lần tải gói đầu tiên.
 - [ ] `version` trong manifest đúng và lớn hơn bản trước; `CHANGELOG.md` có mục cho version này.
 - [ ] `npm run check` → ✔ All checks passed.
 - [ ] `npm test` → không có test lỗi.
