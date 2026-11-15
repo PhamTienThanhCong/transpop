@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en" data-i18n-doc-title="popup_page_title">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>TransPop</title>
+    <link rel="stylesheet" href="../ui/tokens.css" />
+    <link rel="stylesheet" href="popup.css" />
+    <script type="module" src="popup.js"></script>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <!-- ============================== Header ============================== -->
+      <header class="app-header">
+        <div class="bar-inner">
+          <div class="brand">
+            <span class="brand-mark" id="brand-mark">
+              <img id="brand-logo" src="../../icons/logo-mark.svg" width="24" height="24" alt="" />
+            </span>
+            <span class="brand-name">TransPop</span>
+          </div>
+          <nav class="header-actions">
+            <button
+              type="button"
+              class="icon-btn"
+              id="btn-library"
+              aria-pressed="false"
+              data-i18n-aria-label="popup_history_favorites"
+              data-i18n-title="popup_history_favorites"
+            >
+              <i data-icon="book"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              id="btn-expand"
+              data-i18n-aria-label="common_open_full_page"
+              data-i18n-title="common_open_full_page"
+            >
+              <i data-icon="expand"></i>
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              id="btn-settings"
+              data-i18n-aria-label="common_settings"
+              data-i18n-title="common_settings"
+            >
+              <i data-icon="settings"></i>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <main class="app-main" id="main">
+        <!-- ============================ Translator ============================ -->
+        <section class="view view-translator" id="view-translator">
+          <div class="lang-row">
+            <select id="from-lang" class="select lang-select" data-i18n-aria-label="common_source_language"></select>
+            <button
+              type="button"
+              class="icon-btn swap-btn"
+              id="btn-swap"
+              data-i18n-aria-label="common_swap_languages"
+              data-i18n-title="common_swap_languages"
+            >
+              <i data-icon="swap"></i>
+            </button>
+            <select id="to-lang" class="select lang-select" data-i18n-aria-label="common_target_language"></select>
+          </div>
+
+          <div class="panes">
+            <!-- Input -->
+            <div class="card pane pane-input" id="input-card">
+              <div class="pane-head">
+                <button
+                  type="button"
+                  class="icon-btn icon-btn-sm"
+                  id="btn-speak-src"
+                  aria-pressed="false"
+                  data-i18n-aria-label="popup_listen_source"
+                  data-i18n-title="popup_listen_source"
+                  disabled
+                >
+                  <i data-icon="volume"></i>
+                </button>
+                <span class="pane-lang" id="src-lang"></span>
+                <span class="pane-phonetic" id="src-phonetic" dir="auto" hidden></span>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn-sm pane-clear is-hidden"
+                  id="btn-clear"
+                  data-i18n-aria-label="popup_clear_text"
+                  data-i18n-title="popup_clear_text"
+                >
+                  <i data-icon="x"></i>
+                </button>
+              </div>
+              <label class="sr-only" for="input" data-i18n="popup_input_placeholder"></label>
+              <textarea
+                id="input"
+                class="pane-textarea"
+                dir="auto"
+                rows="3"
+                maxlength="5000"
+                autocomplete="off"
+                spellcheck="false"
+                autofocus
+                data-i18n-placeholder="popup_input_placeholder"
+              ></textarea>
+              <div class="pane-foot">
+                <span class="kbd-hint" id="kbd-hint" data-i18n-title="popup_translate_now">
+                  <kbd class="kbd" id="kbd-mod">Ctrl</kbd><kbd class="kbd">Enter</kbd>
+                </span>
+                <span class="counter" id="counter">0 / 5000</span>
+              </div>
+            </div>
+
+            <!-- Output -->
+            <div class="card pane pane-output" id="output-card" aria-busy="false">
+              <div class="progress" aria-hidden="true"></div>
+              <div class="pane-head">
+                <span class="pane-lang pane-lang-target" id="dst-lang"></span>
+              </div>
+              <div class="output-body" aria-live="polite">
+                <p class="output-placeholder" id="out-placeholder" data-i18n="popup_output_placeholder"></p>
+                <div class="output-skeleton" id="out-skeleton" hidden>
+                  <span class="sr-only" data-i18n="common_translating"></span>
+                  <div class="skeleton sk-line"></div>
+                  <div class="skeleton sk-line"></div>
+                  <div class="skeleton sk-line"></div>
+                </div>
+                <div class="output-text" id="out-text" dir="auto" hidden></div>
+                <div class="output-translit" id="out-translit" dir="auto" hidden></div>
+                <div class="output-error" id="out-error" role="alert" hidden>
+                  <i data-icon="alert" class="error-icon"></i>
+                  <div class="error-content">
+                    <p class="error-msg" id="error-msg"></p>
+                    <button type="button" class="btn btn-sm" id="btn-retry">
+                      <i data-icon="refresh"></i><span data-i18n="common_retry"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="pane-foot output-actions">
+                <div class="action-group">
+                  <button
+                    type="button"
+                    class="icon-btn icon-btn-sm"
+                    id="btn-speak-dst"
+                    aria-pressed="false"
+                    data-i18n-aria-label="popup_listen_translation"
+                    data-i18n-title="popup_listen_translation"
+                    disabled
+                  >
+                    <i data-icon="volume"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn icon-btn-sm"
+                    id="btn-copy"
+                    data-i18n-aria-label="popup_copy_translation"
+                    data-i18n-title="popup_copy_translation"
+                    disabled
+                  >
+                    <i data-icon="copy"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn icon-btn-sm star-btn"
+                    id="btn-star"
+                    aria-pressed="false"
+                    data-i18n-aria-label="common_add_favorite"
+                    data-i18n-title="common_add_favorite"
+                    disabled
+                  >
+                    <i data-icon="star"></i>
+                  </button>
+                </div>
+                <span class="powered" id="powered"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Details (dictionary, definitions, examples, synonyms, alternatives) -->
+          <section class="card details" id="details" hidden>
+            <button
+              type="button"
+              class="details-toggle"
+              id="details-toggle"
+              aria-expanded="true"
+              aria-controls="details-body"
+            >
+              <span class="details-title" data-i18n="popup_details"></span>
+              <span class="details-summary" id="details-summary"></span>
+              <i data-icon="chevron-down" class="details-chevron"></i>
+            </button>
+            <div class="details-body" id="details-body"></div>
+          </section>
+        </section>
+
+        <!-- ========================= History & Favorites ========================= -->
+        <section class="view view-library" id="view-library" hidden>
+          <div class="lib-head">
+            <button
+              type="button"
+              class="icon-btn"
+              id="btn-back"
+              data-i18n-aria-label="popup_back"
+              data-i18n-title="popup_back"
+            >
+              <i data-icon="chevron-left" class="flip-rtl"></i>
+            </button>
+            <div class="segmented lib-tabs" id="lib-tabs" role="radiogroup" data-i18n-aria-label="popup_history_favorites">
+              <button type="button" role="radio" aria-checked="true" data-tab="history">
+                <i data-icon="history" data-icon-size="15"></i>
+                <span data-i18n="common_history"></span>
+                <span class="seg-count" id="count-history"></span>
+              </button>
+              <button type="button" role="radio" aria-checked="false" data-tab="favorites" tabindex="-1">
+                <i data-icon="star" data-icon-size="15"></i>
+                <span data-i18n="common_favorites"></span>
+                <span class="seg-count" id="count-favorites"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lib-search" id="lib-search-wrap">
+            <i data-icon="search" data-icon-size="16" class="lib-search-icon"></i>
+            <input
+              type="search"
+              id="lib-search"
+              class="input"
+              autocomplete="off"
+              spellcheck="false"
+              data-i18n-placeholder="popup_search_placeholder"
+              data-i18n-aria-label="common_search"
+            />
+            <kbd class="kbd lib-search-kbd" aria-hidden="true">/</kbd>
+          </div>
+
+          <div class="lib-notice" id="lib-notice" hidden>
+            <i data-icon="info" data-icon-size="16"></i>
+            <span data-i18n="popup_history_off"></span>
+            <button type="button" class="btn btn-sm" id="btn-history-on" data-i18n="popup_history_off_action"></button>
+          </div>
+
+          <div class="lib-toolbar" id="lib-toolbar">
+            <span class="lib-count" id="lib-count"></span>
+            <div class="lib-tools">
+              <button type="button" class="btn btn-sm btn-ghost" id="btn-export" hidden>
+                <i data-icon="download"></i><span data-i18n="popup_export_csv"></span>
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost btn-danger-text" id="btn-clear-all">
+                <i data-icon="trash"></i><span data-i18n="popup_clear_all"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="lib-confirm" id="lib-confirm" role="group" aria-labelledby="lib-confirm-text" hidden>
+            <i data-icon="alert" data-icon-size="16"></i>
+            <span class="lib-confirm-text" id="lib-confirm-text"></span>
+            <div class="lib-confirm-actions">
+              <button type="button" class="btn btn-sm" id="btn-confirm-cancel" data-i18n="common_cancel"></button>
+              <button type="button" class="btn btn-sm btn-solid-danger" id="btn-confirm-yes" data-i18n="common_delete"></button>
+            </div>
+          </div>
+
+          <ul class="lib-list" id="lib-list"></ul>
+          <div class="lib-sentinel" id="lib-sentinel" hidden></div>
+
+          <div class="lib-empty" id="lib-empty" hidden>
+            <span class="lib-empty-icon" id="lib-empty-icon"></span>
+            <p class="lib-empty-title" id="lib-empty-title"></p>
+            <p class="lib-empty-hint" id="lib-empty-hint"></p>
+          </div>
+        </section>
+      </main>
+
+      <!-- ============================== Footer ============================== -->
+      <footer class="app-footer" id="footer">
+        <div class="bar-inner">
+          <label class="footer-switch" data-i18n-title="popup_enable_pages_title">
+            <span class="footer-switch-text" data-i18n="popup_enable_pages"></span>
+            <span class="switch"><input type="checkbox" id="sw-enabled" /><span class="switch-track"></span></span>
+          </label>
+          <label class="footer-switch footer-switch-site" id="site-switch" hidden>
+            <span class="footer-switch-text" id="site-switch-text"></span>
+            <span class="switch"><input type="checkbox" id="sw-site" /><span class="switch-track"></span></span>
+          </label>
+        </div>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

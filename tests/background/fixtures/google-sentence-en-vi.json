@@ -1,0 +1,50 @@
+{
+  "sentences": [
+    {
+      "trans": "Thời tiết hôm nay đẹp. ",
+      "orig": "The weather is nice today. ",
+      "backend": 3,
+      "model_specification": [
+        {}
+      ],
+      "translation_engine_debug_info": [
+        {
+          "model_tracking": {
+            "checkpoint_md5": "824257d7a249c58caeea06a2e64a25bd",
+            "launch_doc": "en_vi_2023q1.md"
+          }
+        }
+      ]
+    },
+    {
+      "trans": "Chúng ta hãy đi dạo trong công viên nhé!",
+      "orig": "Let's go for a walk in the park!",
+      "backend": 3,
+      "model_specification": [
+        {}
+      ],
+      "translation_engine_debug_info": [
+        {
+          "model_tracking": {
+            "checkpoint_md5": "824257d7a249c58caeea06a2e64a25bd",
+            "launch_doc": "en_vi_2023q1.md"
+          }
+        }
+      ]
+    }
+  ],
+  "src": "en",
+  "confidence": 1,
+  "spell": {},
+  "ld_result": {
+    "srclangs": [
+      "en"
+    ],
+    "srclangs_confidences": [
+      1
+    ],
+    "extended_srclangs": [
+      "en"
+    ]
+  }
+}

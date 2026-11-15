@@ -1,0 +1,14 @@
+[
+  {
+    "translations": [
+      {
+        "text": "Hello, World",
+        "to": "en"
+      }
+    ],
+    "usedLLM": true,
+    "detectedLanguage": {
+      "language": "zh-Hans"
+    }
+  }
+]

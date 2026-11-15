@@ -1,0 +1,42 @@
+{
+  "bg_ctx_translate": {
+    "en": "Translate “%s”",
+    "vi": "Dịch “%s”",
+    "description": "Context menu item on selected text. Keep %s: Chrome replaces it with the selection."
+  },
+  "bg_ctx_site_off": {
+    "en": "Turn off on $1",
+    "vi": "Tắt trên $1",
+    "description": "Toolbar icon context menu. $1 = website hostname, e.g. example.com"
+  },
+  "bg_ctx_site_on": {
+    "en": "Turn on on $1",
+    "vi": "Bật lại trên $1",
+    "description": "Toolbar icon context menu (site is currently disabled). $1 = website hostname"
+  },
+  "bg_ctx_site_unavailable": {
+    "en": "Turn off on this site",
+    "vi": "Tắt trên trang này",
+    "description": "Toolbar icon context menu, shown greyed out when the current page can't be identified (e.g. chrome:// pages)"
+  },
+  "bg_ctx_pause": {
+    "en": "Pause TransPop everywhere",
+    "vi": "Tạm dừng TransPop trên mọi trang",
+    "description": "Toolbar icon context menu: turn off in-page translation globally"
+  },
+  "bg_ctx_resume": {
+    "en": "Resume TransPop everywhere",
+    "vi": "Bật lại TransPop trên mọi trang",
+    "description": "Toolbar icon context menu: turn in-page translation back on"
+  },
+  "bg_badge_off": {
+    "en": "OFF",
+    "vi": "TẮT",
+    "description": "Toolbar badge while in-page translation is paused (max 4 characters)"
+  },
+  "bg_action_title_paused": {
+    "en": "TransPop — paused (in-page translation is off)",
+    "vi": "TransPop — đang tạm dừng (đã tắt dịch trên trang)",
+    "description": "Toolbar button tooltip while paused"
+  }
+}

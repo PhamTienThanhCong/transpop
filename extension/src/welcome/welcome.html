@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-i18n-doc-title="welcome_doc_title">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>TransPop</title>
+    <link rel="icon" href="../../icons/icon32.png" />
+    <link rel="stylesheet" href="../ui/tokens.css" />
+    <link rel="stylesheet" href="../options/ui-kit.css" />
+    <link rel="stylesheet" href="welcome.css" />
+    <script type="module" src="welcome.js"></script>
+  </head>
+  <body>
+    <div class="glow" aria-hidden="true"></div>
+
+    <main class="wrap">
+      <!-- ------------------------------ Hero ------------------------------ -->
+      <header class="hero">
+        <div class="hero-logo">
+          <img class="logo" src="../../icons/logo-mark.svg" width="64" height="64" alt="" />
+        </div>
+        <h1 class="hero-title" data-i18n="welcome_title">Welcome to TransPop</h1>
+        <p class="hero-lead" data-i18n="welcome_lead">Select any word or sentence on any website to translate it instantly.</p>
+      </header>
+
+      <!-- ------------------------------ Steps ----------------------------- -->
+      <ol class="steps" data-i18n-aria-label="welcome_steps_label" aria-label="Get started">
+        <li class="step card" aria-labelledby="step1-title">
+          <div class="step-head">
+            <span class="step-num" aria-hidden="true">1</span>
+            <div class="step-titles">
+              <h2 class="step-title" id="step1-title" data-i18n="welcome_step1_title">Your language</h2>
+              <p class="step-desc" id="step1-desc" data-i18n="welcome_step1_desc">TransPop translates into this language.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <label class="sr-only" for="w-targetLang" data-i18n="options_target_title">Translate into</label>
+            <div class="lang-select">
+              <i data-icon="languages" data-icon-size="18" class="lang-select-icon"></i>
+              <select class="select" id="w-targetLang" aria-describedby="step1-desc"></select>
+            </div>
+          </div>
+        </li>
+
+        <li class="step card" aria-labelledby="step2-title">
+          <div class="step-head">
+            <span class="step-num" aria-hidden="true">2</span>
+            <div class="step-titles">
+              <h2 class="step-title" id="step2-title" data-i18n="welcome_step2_title">How to translate</h2>
+              <p class="step-desc" data-i18n="welcome_step2_desc">Choose what happens when you select text.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div id="w-trigger" aria-labelledby="step2-title"></div>
+            <div class="modifier-row" id="w-modifier-row" hidden>
+              <label class="modifier-label" for="w-modifierKey" data-i18n="options_modifier_title">Hotkey</label>
+              <select class="select" id="w-modifierKey" aria-describedby="w-modifier-desc"></select>
+              <p class="modifier-desc" id="w-modifier-desc" data-i18n="options_modifier_desc_hotkey">
+                Hold the key while selecting, or tap it after selecting.
+              </p>
+            </div>
+          </div>
+        </li>
+
+        <li class="step card" aria-labelledby="step3-title">
+          <div class="step-head">
+            <span class="step-num" aria-hidden="true">3</span>
+            <div class="step-titles">
+              <h2 class="step-title" id="step3-title" data-i18n="welcome_step3_title">Try it</h2>
+              <p class="step-desc" data-i18n="welcome_step3_desc">Select any word or phrase in the paragraph below.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="demo" id="demo">
+              <p class="demo-text" id="demo-text"></p>
+              <p class="demo-tip">
+                <i data-icon="info" data-icon-size="14"></i><span data-i18n="welcome_demo_tip">Tip: click a highlighted word, or double-click any word.</span>
+              </p>
+              <button type="button" class="demo-trigger" id="demo-trigger" data-i18n-aria-label="welcome_demo_icon_label" aria-label="Translate" hidden></button>
+              <div class="demo-hint" id="demo-hint" role="status" hidden></div>
+              <div class="demo-pop" id="demo-pop" role="region" aria-live="polite" data-i18n-aria-label="common_translation" aria-label="Translation" hidden></div>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <!-- ------------------------------ Tips ------------------------------ -->
+      <section class="tips" aria-labelledby="tips-title">
+        <h2 class="tips-title" id="tips-title" data-i18n="welcome_tips_title">A few more tricks</h2>
+        <div class="tips-grid">
+          <div class="tip card">
+            <div class="tip-illus" aria-hidden="true">
+              <span class="mini-toolbar">
+                <i data-extra-icon="puzzle" data-icon-size="16"></i>
+                <i data-icon="chevron-right" data-icon-size="14" class="mini-arrow"></i>
+                <span class="mini-ext" id="mini-ext-logo"></span>
+                <span class="mini-pin"><i data-extra-icon="pin" data-icon-size="14"></i></span>
+              </span>
+            </div>
+            <h3 class="tip-title" data-i18n="welcome_tip_pin_title">Pin TransPop to the toolbar</h3>
+            <p class="tip-desc" data-i18n="welcome_tip_pin_desc">Click the puzzle icon in Chrome's toolbar, then the pin next to TransPop.</p>
+          </div>
+
+          <div class="tip card">
+            <div class="tip-illus">
+              <span class="tip-keys" id="tip-shortcut-keys"></span>
+            </div>
+            <h3 class="tip-title" data-i18n="welcome_tip_shortcut_title">Keyboard shortcut</h3>
+            <p class="tip-desc" data-i18n="welcome_tip_shortcut_desc">Select text, then press the shortcut to translate it.</p>
+            <button type="button" class="link-btn" id="tip-shortcut-set" hidden>
+              <span data-i18n="welcome_tip_shortcut_set">Set a shortcut</span><i data-icon="external-link" data-icon-size="13"></i>
+            </button>
+          </div>
+
+          <div class="tip card">
+            <div class="tip-illus" aria-hidden="true">
+              <span class="mini-menu">
+                <span class="mini-item"><span data-i18n="common_copy">Copy</span></span>
+                <span class="mini-item is-active" id="mini-menu-active"><span data-i18n="welcome_menu_translate">Translate “…”</span></span>
+                <span class="mini-item mini-item--faint"></span>
+              </span>
+            </div>
+            <h3 class="tip-title" data-i18n="welcome_tip_menu_title">Right-click to translate</h3>
+            <p class="tip-desc" data-i18n="welcome_tip_menu_desc">Select text, right-click and choose Translate “…”.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ----------------------------- Actions ---------------------------- -->
+      <footer class="actions">
+        <p class="actions-note" data-i18n="welcome_footer_note">You can change all of this later in Settings.</p>
+        <div class="actions-buttons">
+          <button type="button" class="btn btn-lg" id="w-open-settings">
+            <i data-icon="settings" data-icon-size="16"></i><span data-i18n="welcome_open_settings">Open settings</span>
+          </button>
+          <button type="button" class="btn btn-gradient btn-lg" id="w-start">
+            <span data-i18n="welcome_start">Start browsing</span><i data-icon="arrow-right" data-icon-size="16"></i>
+          </button>
+        </div>
+      </footer>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

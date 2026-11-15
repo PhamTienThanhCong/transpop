@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en" data-i18n-doc-title="options_doc_title">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>TransPop</title>
+    <link rel="icon" href="../../icons/icon32.png" />
+    <link rel="stylesheet" href="../ui/tokens.css" />
+    <link rel="stylesheet" href="ui-kit.css" />
+    <link rel="stylesheet" href="options.css" />
+    <script type="module" src="options.js"></script>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- ============================== Sidebar ============================== -->
+      <aside class="sidebar">
+        <div class="sidebar-inner">
+          <a class="brand" href="#general" data-section="general">
+            <img class="logo" src="../../icons/logo-mark.svg" width="28" height="28" alt="" />
+            <span class="brand-text">
+              <span class="brand-name">TransPop</span>
+              <span class="brand-version" id="brand-version"></span>
+            </span>
+          </a>
+          <nav class="nav" id="nav" data-i18n-aria-label="options_nav_label" aria-label="Settings sections">
+            <a class="nav-link" href="#general" data-section="general">
+              <i data-icon="settings" data-icon-size="16"></i><span data-i18n="options_nav_general">General</span>
+            </a>
+            <a class="nav-link" href="#trigger" data-section="trigger">
+              <i data-icon="mouse-click" data-icon-size="16"></i><span data-i18n="options_nav_trigger">Trigger</span>
+            </a>
+            <a class="nav-link" href="#appearance" data-section="appearance">
+              <i data-icon="sun" data-icon-size="16"></i><span data-i18n="options_nav_appearance">Appearance</span>
+            </a>
+            <a class="nav-link" href="#bubble" data-section="bubble">
+              <i data-icon="message-square" data-icon-size="16"></i><span data-i18n="options_nav_bubble">Bubble content</span>
+            </a>
+            <a class="nav-link" href="#sites" data-section="sites">
+              <i data-icon="globe" data-icon-size="16"></i><span data-i18n="options_nav_sites">Sites</span>
+            </a>
+            <a class="nav-link" href="#shortcuts" data-section="shortcuts">
+              <i data-icon="keyboard" data-icon-size="16"></i><span data-i18n="options_nav_shortcuts">Keyboard shortcuts</span>
+            </a>
+            <a class="nav-link" href="#data" data-section="data">
+              <i data-icon="shield" data-icon-size="16"></i><span data-i18n="options_nav_data">Data &amp; privacy</span>
+            </a>
+            <a class="nav-link" href="#about" data-section="about">
+              <i data-icon="info" data-icon-size="16"></i><span data-i18n="options_nav_about">About</span>
+            </a>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- ============================== Content ============================== -->
+      <main class="main" id="main">
+        <div class="content">
+          <!-- ---------------------------- General ---------------------------- -->
+          <section class="section" id="general" aria-labelledby="general-title">
+            <header class="section-header">
+              <h2 class="section-title" id="general-title" tabindex="-1" data-i18n="options_nav_general">General</h2>
+              <p class="section-desc" data-i18n="options_general_desc">The basics of how TransPop translates for you.</p>
+            </header>
+            <div class="card">
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-enabled" data-i18n="options_enabled_title">Enable in-page translation</label>
+                  <p class="row-desc" id="s-enabled-desc" data-i18n="options_enabled_desc">Translate text you select on websites.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-enabled" data-setting="enabled" aria-describedby="s-enabled-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <label class="row-title" for="s-targetLang" data-i18n="options_target_title">Translate into</label>
+                  <p class="row-desc" id="s-targetLang-desc" data-i18n="options_target_desc">Selected text is translated into this language.</p>
+                </div>
+                <div class="row-control">
+                  <select class="select" id="s-targetLang" data-setting="targetLang" aria-describedby="s-targetLang-desc"></select>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <label class="row-title" for="s-secondaryLang" data-i18n="options_secondary_title">Secondary language</label>
+                  <p class="row-desc" id="s-secondaryLang-desc" data-i18n="options_secondary_desc">Used when the selected text is already in your language.</p>
+                </div>
+                <div class="row-control">
+                  <select class="select" id="s-secondaryLang" data-setting="secondaryLang" aria-describedby="s-secondaryLang-desc"></select>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <span class="row-title" id="s-provider-label" data-i18n="options_provider_title">Translation service</span>
+                  <p class="row-desc" id="s-provider-desc" data-i18n="options_provider_desc">The other service is used automatically as a fallback.</p>
+                </div>
+                <div class="row-control">
+                  <div class="segmented" role="radiogroup" data-setting="provider" aria-labelledby="s-provider-label" aria-describedby="s-provider-desc">
+                    <button type="button" role="radio" aria-checked="false" data-value="google"><span data-i18n="options_provider_google">Google</span></button>
+                    <button type="button" role="radio" aria-checked="false" data-value="microsoft"><span data-i18n="options_provider_microsoft">Microsoft</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------------------------- Trigger ---------------------------- -->
+          <section class="section" id="trigger" aria-labelledby="trigger-title">
+            <header class="section-header">
+              <h2 class="section-title" id="trigger-title" tabindex="-1" data-i18n="options_nav_trigger">Trigger</h2>
+              <p class="section-desc" data-i18n="options_trigger_desc">Choose what happens when you select text on a page.</p>
+            </header>
+            <div class="card">
+              <div class="card-block">
+                <span class="block-label" id="trigger-mode-label" data-i18n="options_trigger_mode_label">When you select text</span>
+                <div id="trigger-cards" aria-labelledby="trigger-mode-label"></div>
+              </div>
+              <div class="row row--wrap" id="row-modifier">
+                <div class="row-text">
+                  <label class="row-title" for="s-modifierKey" data-i18n="options_modifier_title">Hotkey</label>
+                  <p class="row-desc" id="s-modifierKey-desc"></p>
+                </div>
+                <div class="row-control">
+                  <select class="select select--narrow" id="s-modifierKey" data-setting="modifierKey" aria-describedby="s-modifierKey-desc"></select>
+                </div>
+              </div>
+              <div class="row" id="row-doubleClickOnly">
+                <div class="row-text">
+                  <label class="row-title" for="s-doubleClickOnly" data-i18n="options_double_click_title">Double-click only</label>
+                  <p class="row-desc" id="s-doubleClickOnly-desc" data-i18n="options_double_click_desc">Only translate words you double-click.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-doubleClickOnly" data-setting="doubleClickOnly" aria-describedby="s-doubleClickOnly-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-disableInInputs" data-i18n="options_disable_inputs_title">Ignore text fields</label>
+                  <p class="row-desc" id="s-disableInInputs-desc" data-i18n="options_disable_inputs_desc">Don't translate selections inside inputs and editors.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-disableInInputs" data-setting="disableInInputs" aria-describedby="s-disableInInputs-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-closeOnClickOutside" data-i18n="options_close_outside_title">Close when clicking outside</label>
+                  <p class="row-desc" id="s-closeOnClickOutside-desc" data-i18n="options_close_outside_desc">Dismiss the bubble when you click elsewhere.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-closeOnClickOutside" data-setting="closeOnClickOutside" aria-describedby="s-closeOnClickOutside-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <!-- --------------------------- Appearance -------------------------- -->
+          <section class="section" id="appearance" aria-labelledby="appearance-title">
+            <header class="section-header">
+              <h2 class="section-title" id="appearance-title" tabindex="-1" data-i18n="options_nav_appearance">Appearance</h2>
+              <p class="section-desc" data-i18n="options_appearance_desc">Make the translation bubble feel at home.</p>
+            </header>
+            <div class="card">
+              <div class="card-block card-block--flush">
+                <div class="preview-stage" id="preview" role="img" data-i18n-aria-label="options_preview_alt" aria-label="Preview of the translation bubble">
+                  <span class="preview-tag" data-i18n="options_preview_label">Preview</span>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <span class="row-title" id="s-theme-label" data-i18n="options_theme_title">Theme</span>
+                  <p class="row-desc" id="s-theme-desc" data-i18n="options_theme_desc">Applies to the bubble, the popup and this page.</p>
+                </div>
+                <div class="row-control">
+                  <div class="segmented" role="radiogroup" data-setting="theme" aria-labelledby="s-theme-label" aria-describedby="s-theme-desc">
+                    <button type="button" role="radio" aria-checked="false" data-value="auto">
+                      <i data-icon="monitor" data-icon-size="15"></i><span data-i18n="options_theme_auto">Auto</span>
+                    </button>
+                    <button type="button" role="radio" aria-checked="false" data-value="light">
+                      <i data-icon="sun" data-icon-size="15"></i><span data-i18n="options_theme_light">Light</span>
+                    </button>
+                    <button type="button" role="radio" aria-checked="false" data-value="dark">
+                      <i data-icon="moon" data-icon-size="15"></i><span data-i18n="options_theme_dark">Dark</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <label class="row-title" for="s-fontSize" data-i18n="options_font_size_title">Text size</label>
+                  <p class="row-desc" id="s-fontSize-desc" data-i18n="options_font_size_desc">Base font size of the translation bubble.</p>
+                </div>
+                <div class="row-control range-control">
+                  <span class="range-cap range-cap--sm" aria-hidden="true">A</span>
+                  <input type="range" class="range" id="s-fontSize" min="12" max="20" step="1" data-setting="fontSize" aria-describedby="s-fontSize-desc" />
+                  <span class="range-cap range-cap--lg" aria-hidden="true">A</span>
+                  <output class="range-value" id="s-fontSize-value" for="s-fontSize"></output>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ------------------------- Bubble content ------------------------ -->
+          <section class="section" id="bubble" aria-labelledby="bubble-title">
+            <header class="section-header">
+              <h2 class="section-title" id="bubble-title" tabindex="-1" data-i18n="options_nav_bubble">Bubble content</h2>
+              <p class="section-desc" data-i18n="options_bubble_desc">Choose what the translation bubble shows.</p>
+            </header>
+            <div class="card">
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-showPhonetic" data-i18n="options_show_phonetic_title">Pronunciation</label>
+                  <p class="row-desc" id="s-showPhonetic-desc" data-i18n="options_show_phonetic_desc">Show the phonetic spelling of the original text.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-showPhonetic" data-setting="showPhonetic" aria-describedby="s-showPhonetic-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-showDictionary" data-i18n="common_dictionary">Dictionary</label>
+                  <p class="row-desc" id="s-showDictionary-desc" data-i18n="options_show_dictionary_desc">Parts of speech and other meanings.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-showDictionary" data-setting="showDictionary" aria-describedby="s-showDictionary-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-showDefinitions" data-i18n="common_definitions">Definitions</label>
+                  <p class="row-desc" id="s-showDefinitions-desc" data-i18n="options_show_definitions_desc">Explanations in the original language.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-showDefinitions" data-setting="showDefinitions" aria-describedby="s-showDefinitions-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-showExamples" data-i18n="common_examples">Examples</label>
+                  <p class="row-desc" id="s-showExamples-desc" data-i18n="options_show_examples_desc">Example sentences that use the word.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-showExamples" data-setting="showExamples" aria-describedby="s-showExamples-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-autoSpeak" data-i18n="options_auto_speak_title">Read aloud automatically</label>
+                  <p class="row-desc" id="s-autoSpeak-desc" data-i18n="options_auto_speak_desc">Pronounce single words and short phrases when the bubble opens.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-autoSpeak" data-setting="autoSpeak" aria-describedby="s-autoSpeak-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row row--wrap">
+                <div class="row-text">
+                  <label class="row-title" for="s-speechRate" data-i18n="options_speech_rate_title">Speech speed</label>
+                  <p class="row-desc" id="s-speechRate-desc" data-i18n="options_speech_rate_desc">How fast words are read aloud.</p>
+                </div>
+                <div class="row-control range-control range-control--voice">
+                  <input type="range" class="range" id="s-speechRate" min="0.5" max="1.5" step="0.1" data-setting="speechRate" aria-describedby="s-speechRate-desc" />
+                  <output class="range-value" id="s-speechRate-value" for="s-speechRate"></output>
+                  <button type="button" class="btn btn-sm" id="test-voice">
+                    <i data-icon="volume" data-icon-size="16"></i><span data-i18n="options_test_voice">Test voice</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ------------------------------ Sites ---------------------------- -->
+          <section class="section" id="sites" aria-labelledby="sites-title">
+            <header class="section-header">
+              <h2 class="section-title" id="sites-title" tabindex="-1" data-i18n="options_nav_sites">Sites</h2>
+              <p class="section-desc" data-i18n="options_sites_desc">Turn off in-page translation on specific websites.</p>
+            </header>
+            <div class="card">
+              <div class="card-block">
+                <form class="site-form" id="site-form" novalidate>
+                  <label class="sr-only" for="site-input" data-i18n="options_sites_add_label">Website</label>
+                  <div class="input-icon-wrap">
+                    <i data-icon="globe" data-icon-size="16" class="input-icon"></i>
+                    <input
+                      class="input"
+                      id="site-input"
+                      type="text"
+                      inputmode="url"
+                      autocomplete="off"
+                      autocapitalize="off"
+                      spellcheck="false"
+                      data-i18n-placeholder="options_sites_placeholder"
+                      placeholder="example.com"
+                      aria-describedby="site-error site-hint"
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i data-icon="plus" data-icon-size="16"></i><span data-i18n="options_sites_add">Add</span>
+                  </button>
+                </form>
+                <p class="field-error" id="site-error" aria-live="polite"></p>
+                <p class="field-hint" id="site-hint" data-i18n="options_sites_hint">Subdomains are included automatically.</p>
+              </div>
+              <ul class="site-list" id="site-list" data-i18n-aria-label="options_nav_sites" aria-label="Sites"></ul>
+              <div class="empty" id="site-empty" hidden>
+                <span class="empty-icon"><i data-icon="globe" data-icon-size="20"></i></span>
+                <p class="empty-title" data-i18n="options_sites_empty_title">No sites turned off</p>
+                <p class="empty-desc" data-i18n="options_sites_empty_desc">TransPop works on every website.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ---------------------------- Shortcuts -------------------------- -->
+          <section class="section" id="shortcuts" aria-labelledby="shortcuts-title">
+            <header class="section-header">
+              <h2 class="section-title" id="shortcuts-title" tabindex="-1" data-i18n="options_nav_shortcuts">Keyboard shortcuts</h2>
+              <p class="section-desc" data-i18n="options_shortcuts_desc">Translate faster with your keyboard.</p>
+            </header>
+            <div class="card">
+              <ul class="shortcut-list" id="shortcut-list"></ul>
+              <div class="row row--info">
+                <span class="row-icon"><i data-icon="mouse-click" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" data-i18n="options_context_menu_title">Right-click menu</span>
+                  <p class="row-desc" data-i18n="options_context_menu_desc">Select text, right-click and choose Translate “…”.</p>
+                </div>
+              </div>
+              <div class="card-footer">
+                <p class="card-footer-text" data-i18n="options_shortcuts_hint">Shortcuts are managed by Chrome.</p>
+                <button type="button" class="btn" id="customize-shortcuts">
+                  <i data-icon="keyboard" data-icon-size="16"></i><span data-i18n="options_shortcuts_customize">Customize shortcuts</span>
+                  <i data-icon="external-link" data-icon-size="14" class="btn-trailing"></i>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ------------------------- Data & privacy ------------------------ -->
+          <section class="section" id="data" aria-labelledby="data-title">
+            <header class="section-header">
+              <h2 class="section-title" id="data-title" tabindex="-1" data-i18n="options_nav_data">Data &amp; privacy</h2>
+              <p class="section-desc" data-i18n="options_data_desc">Your data stays in your browser.</p>
+            </header>
+            <div class="card">
+              <div class="row">
+                <div class="row-text">
+                  <label class="row-title" for="s-saveHistory" data-i18n="options_save_history_title">Save translation history</label>
+                  <p class="row-desc" id="s-saveHistory-desc" data-i18n="options_save_history_desc">Keep a list of your recent translations on this device.</p>
+                </div>
+                <label class="switch row-control">
+                  <input type="checkbox" id="s-saveHistory" data-setting="saveHistory" aria-describedby="s-saveHistory-desc" />
+                  <span class="switch-track"></span>
+                </label>
+              </div>
+              <div class="row row--wrap">
+                <span class="row-icon"><i data-icon="history" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" id="history-label" data-i18n="common_history">History</span>
+                  <p class="row-desc" id="history-count"></p>
+                </div>
+                <div class="row-control confirm" id="confirm-history">
+                  <button type="button" class="btn btn-sm" data-confirm-trigger aria-describedby="history-label">
+                    <i data-icon="trash" data-icon-size="16"></i><span data-i18n="common_clear">Clear</span>
+                  </button>
+                  <div class="confirm-actions" data-confirm-actions hidden>
+                    <span class="confirm-prompt" data-i18n="options_confirm_prompt">Are you sure?</span>
+                    <button type="button" class="btn btn-sm btn-ghost" data-confirm-cancel><span data-i18n="common_cancel">Cancel</span></button>
+                    <button type="button" class="btn btn-sm btn-danger-solid" data-confirm-ok><span data-i18n="options_clear_all">Clear all</span></button>
+                  </div>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <span class="row-icon"><i data-icon="star" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" id="favorites-label" data-i18n="common_favorites">Favorites</span>
+                  <p class="row-desc" id="favorites-count"></p>
+                </div>
+                <div class="row-control confirm" id="confirm-favorites">
+                  <button type="button" class="btn btn-sm" data-confirm-trigger aria-describedby="favorites-label">
+                    <i data-icon="trash" data-icon-size="16"></i><span data-i18n="common_clear">Clear</span>
+                  </button>
+                  <div class="confirm-actions" data-confirm-actions hidden>
+                    <span class="confirm-prompt" data-i18n="options_confirm_prompt">Are you sure?</span>
+                    <button type="button" class="btn btn-sm btn-ghost" data-confirm-cancel><span data-i18n="common_cancel">Cancel</span></button>
+                    <button type="button" class="btn btn-sm btn-danger-solid" data-confirm-ok><span data-i18n="options_clear_all">Clear all</span></button>
+                  </div>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <span class="row-icon"><i data-icon="download" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" id="export-label" data-i18n="options_export_title">Export data</span>
+                  <p class="row-desc" data-i18n="options_export_desc">Download a backup of your settings, history and favorites.</p>
+                </div>
+                <div class="row-control">
+                  <button type="button" class="btn btn-sm" id="export-btn" aria-describedby="export-label">
+                    <i data-icon="download" data-icon-size="16"></i><span data-i18n="options_export">Export</span>
+                  </button>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <span class="row-icon"><i data-icon="upload" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" id="import-label" data-i18n="options_import_title">Import data</span>
+                  <p class="row-desc" data-i18n="options_import_desc">Restore from a TransPop backup file.</p>
+                </div>
+                <div class="row-control">
+                  <input type="file" id="import-file" accept="application/json,.json" hidden />
+                  <button type="button" class="btn btn-sm" id="import-btn" aria-describedby="import-label">
+                    <i data-icon="upload" data-icon-size="16"></i><span data-i18n="options_import">Import</span>
+                  </button>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <span class="row-icon row-icon--danger"><i data-icon="reset" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" id="reset-label" data-i18n="options_reset_title">Reset settings</span>
+                  <p class="row-desc" data-i18n="options_reset_desc">Restore all settings to their defaults.</p>
+                </div>
+                <div class="row-control confirm" id="confirm-reset">
+                  <button type="button" class="btn btn-sm btn-danger" data-confirm-trigger aria-describedby="reset-label">
+                    <i data-icon="reset" data-icon-size="16"></i><span data-i18n="options_reset">Reset</span>
+                  </button>
+                  <div class="confirm-actions" data-confirm-actions hidden>
+                    <span class="confirm-prompt" data-i18n="options_confirm_prompt">Are you sure?</span>
+                    <button type="button" class="btn btn-sm btn-ghost" data-confirm-cancel><span data-i18n="common_cancel">Cancel</span></button>
+                    <button type="button" class="btn btn-sm btn-danger-solid" data-confirm-ok><span data-i18n="options_reset_confirm">Reset all</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="privacy-note">
+              <span class="privacy-icon"><i data-icon="shield" data-icon-size="20"></i></span>
+              <div class="privacy-text">
+                <p class="privacy-title" data-i18n="options_privacy_title">Your privacy</p>
+                <p class="privacy-body" data-i18n="options_privacy_text">
+                  TransPop sends the text you choose to translate to the selected translation service. No accounts, no tracking, no analytics.
+                </p>
+                <a class="privacy-link" id="privacy-link" href="#" target="_blank" rel="noopener noreferrer">
+                  <span data-i18n="options_privacy_link">Read the privacy policy</span><i data-icon="external-link" data-icon-size="14"></i>
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- ------------------------------ About ---------------------------- -->
+          <section class="section" id="about" aria-labelledby="about-title">
+            <header class="section-header">
+              <h2 class="section-title" id="about-title" tabindex="-1" data-i18n="options_nav_about">About</h2>
+            </header>
+            <div class="card about">
+              <div class="about-logo">
+                <img class="logo" src="../../icons/logo-mark.svg" width="64" height="64" alt="" />
+              </div>
+              <p class="about-name">TransPop</p>
+              <p class="about-version" id="about-version"></p>
+              <p class="about-tagline" data-i18n="options_about_tagline">Select to translate. Free and open source.</p>
+              <div class="about-actions">
+                <a class="btn" id="link-repo" href="#" target="_blank" rel="noopener noreferrer">
+                  <i data-icon="github" data-icon-size="16"></i><span data-i18n="options_about_github">GitHub</span>
+                </a>
+                <a class="btn" id="link-issues" href="#" target="_blank" rel="noopener noreferrer">
+                  <i data-icon="message-square" data-icon-size="16"></i><span data-i18n="options_about_report">Report a bug</span>
+                </a>
+                <a class="btn" id="link-store" href="#" target="_blank" rel="noopener noreferrer">
+                  <i data-icon="star" data-icon-size="16"></i><span data-i18n="options_about_rate">Rate on Chrome Web Store</span>
+                </a>
+              </div>
+              <p class="about-license" data-i18n="options_about_license">MIT License · Icons: Lucide (ISC)</p>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

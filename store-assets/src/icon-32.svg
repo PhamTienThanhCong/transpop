@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="32" height="32">
+  <!-- TransPop — simplified icon for 32×32. Geometry snapped to a 4-unit grid (= 1px at 32px):
+       1px handle stems, 3px handle dots, no gloss/shadow. -->
+  <defs>
+    <linearGradient id="transpop-bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#transpop-bg)" d="M64 0C118 0 128 10 128 64S118 128 64 128 0 118 0 64 10 0 64 0Z"/>
+  <path fill="#FFFFFF" d="M40 20h48c13.3 0 24 10.7 24 24v24c0 13.3-10.7 24-24 24H58c-7 8-17 14-29 18-1.6.5-2.8-1.2-1.8-2.4 3.6-4.2 5.8-9.6 6.4-16.2C23.4 89.2 16 80 16 68V44c0-13.3 10.7-24 24-24z"/>
+  <g fill="url(#transpop-bg)">
+    <rect x="40" y="44" width="48" height="24"/>
+    <rect x="36" y="36" width="4" height="36"/>
+    <rect x="88" y="40" width="4" height="36"/>
+    <circle cx="38" cy="36" r="6"/>
+    <circle cx="90" cy="76" r="6"/>
+  </g>
+</svg>

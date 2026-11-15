@@ -1,0 +1,50 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem! Please **don't paste private text** you translated — a short public example is enough.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: "I selected a word on https://example.com and the bubble didn't appear…"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open https://…
+        2. Select the word "…"
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: TransPop version
+      description: Shown in Settings → About, or on chrome://extensions
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & OS
+      placeholder: "Chrome 131 on macOS 15 / Edge 131 on Windows 11"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Trigger mode
+      options: [Icon (default), Auto, Hotkey, Popup / context menu only, Not sure]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors (optional)
+      description: chrome://extensions → TransPop → "Errors", or the service worker console
+      render: text

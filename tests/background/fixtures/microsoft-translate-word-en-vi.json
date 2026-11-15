@@ -1,0 +1,14 @@
+[
+  {
+    "translations": [
+      {
+        "text": "rõ ràng",
+        "to": "vi"
+      }
+    ],
+    "usedLLM": true,
+    "detectedLanguage": {
+      "language": "en"
+    }
+  }
+]

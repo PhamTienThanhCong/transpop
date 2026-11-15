@@ -1,0 +1,79 @@
+name: Release
+
+# Push a tag that matches the manifest version to build the zip and publish a GitHub Release:
+#   git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write # create the GitHub Release
+
+jobs:
+  release:
+    name: Package & release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify tag matches manifest version
+        id: version
+        run: |
+          VERSION="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync("extension/manifest.json","utf8")).version)')"
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match extension/manifest.json version $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Package (runs build-locales + checks)
+        run: npm run package
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          awk -v v="${{ steps.version.outputs.version }}" '
+            $0 ~ "^## \\[?" v "\\]?" { on = 1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then echo "See CHANGELOG.md" > RELEASE_NOTES.md; fi
+          cat RELEASE_NOTES.md
+
+      - name: Create GitHub Release with the zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "dist/transpop-v${{ steps.version.outputs.version }}.zip" \
+            --title "TransPop $GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md \
+            --verify-tag
+
+      # ── Optional: upload + publish to the Chrome Web Store automatically ──────────────────
+      # 1. Do the FIRST upload manually in the Developer Dashboard (to get the extension ID).
+      # 2. Create OAuth credentials for the Chrome Web Store API (docs/PUBLISHING.md, section 12).
+      # 3. Add repository secrets: EXTENSION_ID, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN.
+      # 4. Uncomment the step below. Check the chrome-webstore-upload-cli README for the
+      #    current flags before enabling (https://github.com/fregante/chrome-webstore-upload-cli).
+      #
+      # - name: Upload to Chrome Web Store
+      #   env:
+      #     EXTENSION_ID: ${{ secrets.EXTENSION_ID }}
+      #     CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      #     CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      #     REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+      #   run: |
+      #     npx --yes chrome-webstore-upload-cli@3 \
+      #       --source "dist/transpop-v${{ steps.version.outputs.version }}.zip" \
+      #       --extension-id "$EXTENSION_ID" \
+      #       --client-id "$CLIENT_ID" \
+      #       --client-secret "$CLIENT_SECRET" \
+      #       --refresh-token "$REFRESH_TOKEN"
+      #     # Uploads the package and submits it for review (it goes live after review passes).

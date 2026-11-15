@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: ['**'] # branch pushes only — tag pushes are handled by release.yml
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check & test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No dependencies to install: the project has no build step and no npm packages.
+      - name: Static checks (manifest, files, CSP rules, i18n)
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Package (dry run)
+        run: npm run package
+
+      - name: Upload packaged zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: transpop-zip
+          path: dist/*.zip
+          retention-days: 14

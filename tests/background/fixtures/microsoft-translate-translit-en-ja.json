@@ -1,0 +1,18 @@
+[
+  {
+    "translations": [
+      {
+        "text": "おはようございます",
+        "to": "ja",
+        "transliteration": {
+          "text": "O-wa you gozaimasu",
+          "script": "Latn"
+        }
+      }
+    ],
+    "usedLLM": true,
+    "detectedLanguage": {
+      "language": "en"
+    }
+  }
+]

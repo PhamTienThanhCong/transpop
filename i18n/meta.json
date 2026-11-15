@@ -1,0 +1,32 @@
+{
+  "extName": {
+    "en": "TransPop — Select to Translate",
+    "vi": "TransPop — Bôi đen là dịch",
+    "description": "Extension name shown in Chrome and the Web Store (max 75 chars)"
+  },
+  "extShortName": {
+    "en": "TransPop",
+    "vi": "TransPop",
+    "description": "Short name (max 12 chars)"
+  },
+  "extDescription": {
+    "en": "Select any word or phrase to translate it instantly. Dictionary, pronunciation, history and favorites. Free and open source.",
+    "vi": "Bôi đen từ hoặc câu bất kỳ để dịch ngay. Có từ điển, phát âm, lịch sử và mục yêu thích. Miễn phí, mã nguồn mở.",
+    "description": "Extension description (max 132 chars)"
+  },
+  "actionTitle": {
+    "en": "TransPop — Translate",
+    "vi": "TransPop — Dịch",
+    "description": "Toolbar button tooltip"
+  },
+  "cmdTranslateSelection": {
+    "en": "Translate selected text",
+    "vi": "Dịch đoạn văn bản đang chọn",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
+  },
+  "cmdToggleEnabled": {
+    "en": "Turn in-page translation on/off",
+    "vi": "Bật/tắt dịch trên trang",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
+  }
+}

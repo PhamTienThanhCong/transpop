@@ -1,0 +1,851 @@
+{
+  "actionTitle": {
+    "message": "TransPop — Dịch"
+  },
+  "bg_action_title_paused": {
+    "message": "TransPop — đang tạm dừng (đã tắt dịch trên trang)"
+  },
+  "bg_badge_off": {
+    "message": "TẮT"
+  },
+  "bg_ctx_pause": {
+    "message": "Tạm dừng TransPop trên mọi trang"
+  },
+  "bg_ctx_resume": {
+    "message": "Bật lại TransPop trên mọi trang"
+  },
+  "bg_ctx_site_off": {
+    "message": "Tắt trên $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_ctx_site_on": {
+    "message": "Bật lại trên $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_ctx_site_unavailable": {
+    "message": "Tắt trên trang này"
+  },
+  "bg_ctx_translate": {
+    "message": "Dịch “%s”"
+  },
+  "bubble_collapse_source": {
+    "message": "Thu gọn"
+  },
+  "bubble_copy_translation": {
+    "message": "Sao chép bản dịch"
+  },
+  "bubble_dialog_label": {
+    "message": "Bản dịch TransPop"
+  },
+  "bubble_expand_source": {
+    "message": "Xem toàn bộ"
+  },
+  "bubble_listen_source": {
+    "message": "Nghe văn bản gốc"
+  },
+  "bubble_listen_translation": {
+    "message": "Nghe bản dịch"
+  },
+  "bubble_no_translation": {
+    "message": "Không có bản dịch."
+  },
+  "bubble_translate_into": {
+    "message": "Dịch sang"
+  },
+  "bubble_trigger_hint": {
+    "message": "Dịch (hoặc nhấn phím $P1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bubble_trigger_label": {
+    "message": "Dịch đoạn đã chọn"
+  },
+  "cmdToggleEnabled": {
+    "message": "Bật/tắt dịch trên trang"
+  },
+  "cmdTranslateSelection": {
+    "message": "Dịch đoạn văn bản đang chọn"
+  },
+  "common_add_favorite": {
+    "message": "Thêm vào yêu thích"
+  },
+  "common_alternatives": {
+    "message": "Cách dịch khác"
+  },
+  "common_cancel": {
+    "message": "Hủy"
+  },
+  "common_clear": {
+    "message": "Xóa"
+  },
+  "common_close": {
+    "message": "Đóng"
+  },
+  "common_copied": {
+    "message": "Đã sao chép"
+  },
+  "common_copy": {
+    "message": "Sao chép"
+  },
+  "common_definitions": {
+    "message": "Định nghĩa"
+  },
+  "common_delete": {
+    "message": "Xóa"
+  },
+  "common_detect_language": {
+    "message": "Phát hiện ngôn ngữ"
+  },
+  "common_detected_language": {
+    "message": "$P1$ (tự phát hiện)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_dictionary": {
+    "message": "Từ điển"
+  },
+  "common_error_EMPTY": {
+    "message": "Không có nội dung để dịch."
+  },
+  "common_error_NETWORK": {
+    "message": "Không kết nối được dịch vụ dịch. Hãy kiểm tra kết nối mạng."
+  },
+  "common_error_PROVIDER_ERROR": {
+    "message": "Dịch vụ dịch trả về lỗi. Vui lòng thử lại."
+  },
+  "common_error_RATE_LIMITED": {
+    "message": "Đang có quá nhiều yêu cầu. Vui lòng đợi một chút rồi thử lại."
+  },
+  "common_error_TOO_LONG": {
+    "message": "Văn bản quá dài (tối đa 5.000 ký tự)."
+  },
+  "common_error_UNKNOWN": {
+    "message": "Đã có lỗi xảy ra. Vui lòng thử lại."
+  },
+  "common_error_UNSUPPORTED_LANG": {
+    "message": "Ngôn ngữ này chưa được hỗ trợ."
+  },
+  "common_examples": {
+    "message": "Ví dụ"
+  },
+  "common_favorites": {
+    "message": "Yêu thích"
+  },
+  "common_history": {
+    "message": "Lịch sử"
+  },
+  "common_listen": {
+    "message": "Nghe phát âm"
+  },
+  "common_off": {
+    "message": "Tắt"
+  },
+  "common_on": {
+    "message": "Bật"
+  },
+  "common_open_full_page": {
+    "message": "Mở toàn trang"
+  },
+  "common_powered_by": {
+    "message": "Cung cấp bởi $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_provider_google": {
+    "message": "Google Dịch"
+  },
+  "common_provider_microsoft": {
+    "message": "Microsoft Translator"
+  },
+  "common_remove_favorite": {
+    "message": "Bỏ khỏi yêu thích"
+  },
+  "common_retry": {
+    "message": "Thử lại"
+  },
+  "common_save": {
+    "message": "Lưu"
+  },
+  "common_search": {
+    "message": "Tìm kiếm"
+  },
+  "common_settings": {
+    "message": "Cài đặt"
+  },
+  "common_show_less": {
+    "message": "Thu gọn"
+  },
+  "common_show_more": {
+    "message": "Xem thêm"
+  },
+  "common_source_language": {
+    "message": "Ngôn ngữ nguồn"
+  },
+  "common_stop": {
+    "message": "Dừng"
+  },
+  "common_swap_languages": {
+    "message": "Đảo chiều ngôn ngữ"
+  },
+  "common_synonyms": {
+    "message": "Từ đồng nghĩa"
+  },
+  "common_target_language": {
+    "message": "Ngôn ngữ đích"
+  },
+  "common_translate": {
+    "message": "Dịch"
+  },
+  "common_translating": {
+    "message": "Đang dịch…"
+  },
+  "common_translation": {
+    "message": "Bản dịch"
+  },
+  "extDescription": {
+    "message": "Bôi đen từ hoặc câu bất kỳ để dịch ngay. Có từ điển, phát âm, lịch sử và mục yêu thích. Miễn phí, mã nguồn mở."
+  },
+  "extName": {
+    "message": "TransPop — Bôi đen là dịch"
+  },
+  "extShortName": {
+    "message": "TransPop"
+  },
+  "options_about_github": {
+    "message": "GitHub"
+  },
+  "options_about_license": {
+    "message": "Giấy phép MIT · Biểu tượng: Lucide (ISC)"
+  },
+  "options_about_rate": {
+    "message": "Đánh giá trên Chrome Web Store"
+  },
+  "options_about_report": {
+    "message": "Báo lỗi"
+  },
+  "options_about_tagline": {
+    "message": "Bôi đen là dịch. Miễn phí và mã nguồn mở."
+  },
+  "options_appearance_desc": {
+    "message": "Tùy chỉnh giao diện khung dịch theo ý bạn."
+  },
+  "options_auto_speak_desc": {
+    "message": "Đọc to từ đơn và cụm từ ngắn khi khung dịch mở ra."
+  },
+  "options_auto_speak_title": {
+    "message": "Tự động phát âm"
+  },
+  "options_bubble_desc": {
+    "message": "Chọn những gì hiển thị trong khung dịch."
+  },
+  "options_clear_all": {
+    "message": "Xóa tất cả"
+  },
+  "options_close_outside_desc": {
+    "message": "Ẩn khung dịch khi bạn nhấp vào bất kỳ chỗ nào khác trên trang."
+  },
+  "options_close_outside_title": {
+    "message": "Đóng khi nhấp ra ngoài"
+  },
+  "options_confirm_prompt": {
+    "message": "Bạn chắc chứ?"
+  },
+  "options_context_menu_desc": {
+    "message": "Bôi đen văn bản, nhấp chuột phải rồi chọn Dịch “…”. Vẫn dùng được trên các trang đã tắt TransPop."
+  },
+  "options_context_menu_title": {
+    "message": "Menu chuột phải"
+  },
+  "options_data_desc": {
+    "message": "Mọi dữ liệu đều nằm trong trình duyệt của bạn."
+  },
+  "options_disable_inputs_desc": {
+    "message": "Không dịch khi bôi đen trong ô nhập, vùng văn bản và trình soạn thảo."
+  },
+  "options_disable_inputs_title": {
+    "message": "Bỏ qua ô nhập liệu"
+  },
+  "options_doc_title": {
+    "message": "Cài đặt TransPop"
+  },
+  "options_double_click_desc": {
+    "message": "Chỉ dịch từ bạn nhấp đúp, không dịch mọi vùng chọn."
+  },
+  "options_double_click_title": {
+    "message": "Chỉ khi nhấp đúp"
+  },
+  "options_enabled_desc": {
+    "message": "Dịch văn bản bạn bôi đen trên các trang web. Cửa sổ dịch trên thanh công cụ luôn hoạt động."
+  },
+  "options_enabled_title": {
+    "message": "Bật dịch trên trang web"
+  },
+  "options_export": {
+    "message": "Xuất"
+  },
+  "options_export_desc": {
+    "message": "Tải về bản sao lưu cài đặt, lịch sử và mục yêu thích."
+  },
+  "options_export_done": {
+    "message": "Đã tải bản sao lưu"
+  },
+  "options_export_title": {
+    "message": "Xuất dữ liệu"
+  },
+  "options_favorites_cleared": {
+    "message": "Đã xóa mục yêu thích"
+  },
+  "options_font_size_desc": {
+    "message": "Cỡ chữ cơ bản của khung dịch."
+  },
+  "options_font_size_title": {
+    "message": "Cỡ chữ"
+  },
+  "options_font_size_value": {
+    "message": "$P1$ px",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_general_desc": {
+    "message": "Những thiết lập cơ bản cho việc dịch."
+  },
+  "options_history_cleared": {
+    "message": "Đã xóa lịch sử"
+  },
+  "options_import": {
+    "message": "Nhập"
+  },
+  "options_import_desc": {
+    "message": "Khôi phục từ tệp sao lưu TransPop. Dữ liệu hiện có vẫn được giữ lại."
+  },
+  "options_import_done": {
+    "message": "Đã khôi phục — thêm $P1$ mục lịch sử và $P2$ mục yêu thích",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "options_import_invalid": {
+    "message": "Tệp này không phải bản sao lưu TransPop hợp lệ."
+  },
+  "options_import_title": {
+    "message": "Nhập dữ liệu"
+  },
+  "options_items_one": {
+    "message": "$P1$ mục",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_items_other": {
+    "message": "$P1$ mục",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_modifier_desc_hotkey": {
+    "message": "Giữ phím trong khi bôi đen, hoặc nhấn phím sau khi bôi đen."
+  },
+  "options_modifier_desc_icon": {
+    "message": "Giữ phím này khi bôi đen để bỏ qua biểu tượng và dịch ngay."
+  },
+  "options_modifier_title": {
+    "message": "Phím kích hoạt"
+  },
+  "options_nav_about": {
+    "message": "Giới thiệu"
+  },
+  "options_nav_appearance": {
+    "message": "Giao diện"
+  },
+  "options_nav_bubble": {
+    "message": "Nội dung khung dịch"
+  },
+  "options_nav_data": {
+    "message": "Dữ liệu & quyền riêng tư"
+  },
+  "options_nav_general": {
+    "message": "Chung"
+  },
+  "options_nav_label": {
+    "message": "Các mục cài đặt"
+  },
+  "options_nav_shortcuts": {
+    "message": "Phím tắt"
+  },
+  "options_nav_sites": {
+    "message": "Trang web"
+  },
+  "options_nav_trigger": {
+    "message": "Cách kích hoạt"
+  },
+  "options_preview_alt": {
+    "message": "Xem trước khung dịch"
+  },
+  "options_preview_label": {
+    "message": "Xem trước"
+  },
+  "options_preview_pos": {
+    "message": "tính từ"
+  },
+  "options_privacy_link": {
+    "message": "Đọc chính sách quyền riêng tư"
+  },
+  "options_privacy_text": {
+    "message": "TransPop chỉ gửi văn bản bạn chọn dịch tới dịch vụ dịch đã chọn. Không tài khoản, không theo dõi, không thu thập số liệu."
+  },
+  "options_privacy_title": {
+    "message": "Quyền riêng tư của bạn"
+  },
+  "options_provider_desc": {
+    "message": "Nếu dịch vụ này gặp sự cố, TransPop tự động chuyển sang dịch vụ còn lại."
+  },
+  "options_provider_google": {
+    "message": "Google"
+  },
+  "options_provider_microsoft": {
+    "message": "Microsoft"
+  },
+  "options_provider_title": {
+    "message": "Dịch vụ dịch"
+  },
+  "options_reset": {
+    "message": "Khôi phục"
+  },
+  "options_reset_confirm": {
+    "message": "Khôi phục tất cả"
+  },
+  "options_reset_desc": {
+    "message": "Đưa mọi cài đặt về mặc định. Lịch sử và mục yêu thích được giữ nguyên."
+  },
+  "options_reset_done": {
+    "message": "Đã khôi phục cài đặt mặc định"
+  },
+  "options_reset_title": {
+    "message": "Khôi phục cài đặt gốc"
+  },
+  "options_save_failed": {
+    "message": "Không lưu được thay đổi"
+  },
+  "options_save_history_desc": {
+    "message": "Lưu danh sách các bản dịch gần đây trên thiết bị này."
+  },
+  "options_save_history_title": {
+    "message": "Lưu lịch sử dịch"
+  },
+  "options_saved": {
+    "message": "Đã lưu"
+  },
+  "options_secondary_desc": {
+    "message": "Dùng khi văn bản được chọn đã là ngôn ngữ của bạn."
+  },
+  "options_secondary_title": {
+    "message": "Ngôn ngữ phụ"
+  },
+  "options_shortcut_not_set": {
+    "message": "Chưa đặt"
+  },
+  "options_shortcut_open_popup": {
+    "message": "Mở cửa sổ TransPop"
+  },
+  "options_shortcuts_customize": {
+    "message": "Tùy chỉnh phím tắt"
+  },
+  "options_shortcuts_desc": {
+    "message": "Dịch nhanh hơn bằng bàn phím."
+  },
+  "options_shortcuts_hint": {
+    "message": "Phím tắt do Chrome quản lý."
+  },
+  "options_shortcuts_unavailable": {
+    "message": "Không tải được danh sách phím tắt."
+  },
+  "options_show_definitions_desc": {
+    "message": "Giải nghĩa bằng ngôn ngữ gốc (nếu có)."
+  },
+  "options_show_dictionary_desc": {
+    "message": "Từ loại và các nghĩa khác của từ và cụm từ ngắn."
+  },
+  "options_show_examples_desc": {
+    "message": "Các câu ví dụ có dùng từ đó."
+  },
+  "options_show_phonetic_desc": {
+    "message": "Hiện phiên âm của văn bản gốc."
+  },
+  "options_show_phonetic_title": {
+    "message": "Phiên âm"
+  },
+  "options_sites_add": {
+    "message": "Thêm"
+  },
+  "options_sites_add_label": {
+    "message": "Trang web cần tắt"
+  },
+  "options_sites_desc": {
+    "message": "Tắt dịch trên trang với một số trang web cụ thể."
+  },
+  "options_sites_empty_desc": {
+    "message": "TransPop hoạt động trên mọi trang web. Bạn cũng có thể tắt cho trang đang xem ngay trong cửa sổ popup."
+  },
+  "options_sites_empty_title": {
+    "message": "Chưa tắt trang web nào"
+  },
+  "options_sites_error_duplicate": {
+    "message": "$P1$ đã có trong danh sách.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_sites_error_invalid": {
+    "message": "Hãy nhập một trang web hợp lệ, ví dụ: example.com."
+  },
+  "options_sites_hint": {
+    "message": "Dán liên kết hoặc nhập tên miền. Áp dụng cho cả tên miền con."
+  },
+  "options_sites_placeholder": {
+    "message": "example.com"
+  },
+  "options_sites_remove": {
+    "message": "Xóa $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_speech_rate_desc": {
+    "message": "Tốc độ đọc văn bản thành tiếng."
+  },
+  "options_speech_rate_title": {
+    "message": "Tốc độ đọc"
+  },
+  "options_speech_rate_value": {
+    "message": "$P1$×",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_target_desc": {
+    "message": "Văn bản bạn chọn sẽ được dịch sang ngôn ngữ này."
+  },
+  "options_target_title": {
+    "message": "Dịch sang"
+  },
+  "options_test_voice": {
+    "message": "Nghe thử"
+  },
+  "options_theme_auto": {
+    "message": "Tự động"
+  },
+  "options_theme_dark": {
+    "message": "Tối"
+  },
+  "options_theme_desc": {
+    "message": "Áp dụng cho khung dịch, cửa sổ popup và trang này."
+  },
+  "options_theme_light": {
+    "message": "Sáng"
+  },
+  "options_theme_title": {
+    "message": "Chủ đề"
+  },
+  "options_trigger_auto_desc": {
+    "message": "Bản dịch hiện ra ngay khi bạn bôi đen văn bản."
+  },
+  "options_trigger_auto_title": {
+    "message": "Dịch ngay lập tức"
+  },
+  "options_trigger_desc": {
+    "message": "Chọn điều sẽ xảy ra khi bạn bôi đen văn bản trên trang."
+  },
+  "options_trigger_hotkey_desc": {
+    "message": "Không hiện gì cho đến khi bạn nhấn phím đã chọn."
+  },
+  "options_trigger_hotkey_title": {
+    "message": "Dùng phím tắt"
+  },
+  "options_trigger_icon_desc": {
+    "message": "Biểu tượng TransPop nhỏ hiện cạnh vùng chọn. Bấm vào để dịch."
+  },
+  "options_trigger_icon_title": {
+    "message": "Hiện biểu tượng"
+  },
+  "options_trigger_mode_label": {
+    "message": "Khi bạn bôi đen văn bản"
+  },
+  "options_version": {
+    "message": "Phiên bản $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_voice_sample": {
+    "message": "Xin chào! Đây là giọng đọc của TransPop."
+  },
+  "options_voice_sample_lang": {
+    "message": "vi"
+  },
+  "popup_back": {
+    "message": "Quay lại trình dịch"
+  },
+  "popup_char_count": {
+    "message": "$P1$ / $P2$ ký tự",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_clear_all": {
+    "message": "Xóa tất cả"
+  },
+  "popup_clear_text": {
+    "message": "Xóa văn bản"
+  },
+  "popup_confirm_clear_favorites": {
+    "message": "Xóa tất cả mục yêu thích?"
+  },
+  "popup_confirm_clear_history": {
+    "message": "Xóa toàn bộ lịch sử?"
+  },
+  "popup_copy_failed": {
+    "message": "Không thể sao chép vào bộ nhớ tạm"
+  },
+  "popup_copy_translation": {
+    "message": "Sao chép bản dịch"
+  },
+  "popup_details": {
+    "message": "Chi tiết"
+  },
+  "popup_empty_favorites_hint": {
+    "message": "Nhấn biểu tượng ngôi sao trên bản dịch để lưu lại tại đây."
+  },
+  "popup_empty_favorites_title": {
+    "message": "Chưa có mục yêu thích"
+  },
+  "popup_empty_history_hint": {
+    "message": "Các từ và câu bạn đã dịch sẽ hiển thị tại đây."
+  },
+  "popup_empty_history_title": {
+    "message": "Chưa có lịch sử dịch"
+  },
+  "popup_empty_search_hint": {
+    "message": "Không có kết quả nào cho “$P1$”. Hãy thử từ khác.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_empty_search_title": {
+    "message": "Không tìm thấy kết quả"
+  },
+  "popup_enable_pages": {
+    "message": "Dịch trên trang"
+  },
+  "popup_enable_pages_title": {
+    "message": "Hiện bản dịch khi bạn bôi đen văn bản trên trang web"
+  },
+  "popup_enable_site": {
+    "message": "Trên $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_enable_site_title": {
+    "message": "Dịch văn bản được bôi đen trên $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_export_csv": {
+    "message": "Xuất CSV"
+  },
+  "popup_export_done": {
+    "message": "Đã tải xuống tệp CSV"
+  },
+  "popup_history_favorites": {
+    "message": "Lịch sử & yêu thích"
+  },
+  "popup_history_off": {
+    "message": "Tính năng lưu lịch sử đang tắt."
+  },
+  "popup_history_off_action": {
+    "message": "Bật lại"
+  },
+  "popup_input_placeholder": {
+    "message": "Nhập hoặc dán văn bản cần dịch"
+  },
+  "popup_items_filtered": {
+    "message": "$P1$ / $P2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_items_one": {
+    "message": "1 mục"
+  },
+  "popup_items_other": {
+    "message": "$P1$ mục",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_listen_source": {
+    "message": "Nghe văn bản gốc"
+  },
+  "popup_listen_translation": {
+    "message": "Nghe bản dịch"
+  },
+  "popup_output_placeholder": {
+    "message": "Bản dịch sẽ hiển thị tại đây"
+  },
+  "popup_page_title": {
+    "message": "Trình dịch TransPop"
+  },
+  "popup_search_placeholder": {
+    "message": "Tìm từ hoặc bản dịch"
+  },
+  "popup_speak_failed": {
+    "message": "Không thể phát âm thanh"
+  },
+  "popup_translate_now": {
+    "message": "Dịch ngay"
+  },
+  "popup_translate_word": {
+    "message": "Dịch “$P1$”",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "welcome_demo_hint_hotkey": {
+    "message": "Nhấn $P1$ để dịch",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "welcome_demo_icon_label": {
+    "message": "Dịch bằng TransPop"
+  },
+  "welcome_demo_tip": {
+    "message": "Mẹo: bấm vào từ được gạch chân, hoặc nhấp đúp vào bất kỳ từ nào."
+  },
+  "welcome_doc_title": {
+    "message": "Chào mừng đến với TransPop"
+  },
+  "welcome_footer_note": {
+    "message": "Bạn có thể thay đổi tất cả trong phần Cài đặt."
+  },
+  "welcome_lead": {
+    "message": "Bôi đen từ hoặc câu bất kỳ trên mọi trang web để xem bản dịch tức thì — ngay tại nơi bạn đang đọc."
+  },
+  "welcome_menu_translate": {
+    "message": "Dịch “…”"
+  },
+  "welcome_open_settings": {
+    "message": "Mở cài đặt"
+  },
+  "welcome_start": {
+    "message": "Bắt đầu duyệt web"
+  },
+  "welcome_step1_desc": {
+    "message": "TransPop sẽ dịch mọi thứ sang ngôn ngữ này."
+  },
+  "welcome_step1_title": {
+    "message": "Ngôn ngữ của bạn"
+  },
+  "welcome_step2_desc": {
+    "message": "Chọn điều sẽ xảy ra khi bạn bôi đen văn bản. Bạn có thể đổi lại bất cứ lúc nào."
+  },
+  "welcome_step2_title": {
+    "message": "Cách dịch"
+  },
+  "welcome_step3_desc": {
+    "message": "Bôi đen một từ hoặc cụm từ bất kỳ trong đoạn văn dưới đây."
+  },
+  "welcome_step3_title": {
+    "message": "Dùng thử"
+  },
+  "welcome_steps_label": {
+    "message": "Bắt đầu"
+  },
+  "welcome_tip_menu_desc": {
+    "message": "Bôi đen văn bản, nhấp chuột phải rồi chọn Dịch “…”."
+  },
+  "welcome_tip_menu_title": {
+    "message": "Dịch bằng chuột phải"
+  },
+  "welcome_tip_pin_desc": {
+    "message": "Nhấp vào biểu tượng mảnh ghép trên thanh công cụ Chrome, rồi nhấn nút ghim cạnh TransPop."
+  },
+  "welcome_tip_pin_title": {
+    "message": "Ghim TransPop lên thanh công cụ"
+  },
+  "welcome_tip_shortcut_desc": {
+    "message": "Bôi đen văn bản rồi nhấn phím tắt để dịch."
+  },
+  "welcome_tip_shortcut_set": {
+    "message": "Đặt phím tắt"
+  },
+  "welcome_tip_shortcut_title": {
+    "message": "Phím tắt"
+  },
+  "welcome_tips_title": {
+    "message": "Thêm vài mẹo nhỏ"
+  },
+  "welcome_title": {
+    "message": "Chào mừng bạn đến với TransPop"
+  }
+}

@@ -1,0 +1,940 @@
+{
+  "actionTitle": {
+    "message": "TransPop — Translate",
+    "description": "Toolbar button tooltip"
+  },
+  "bg_action_title_paused": {
+    "message": "TransPop — paused (in-page translation is off)",
+    "description": "Toolbar button tooltip while paused"
+  },
+  "bg_badge_off": {
+    "message": "OFF",
+    "description": "Toolbar badge while in-page translation is paused (max 4 characters)"
+  },
+  "bg_ctx_pause": {
+    "message": "Pause TransPop everywhere",
+    "description": "Toolbar icon context menu: turn off in-page translation globally"
+  },
+  "bg_ctx_resume": {
+    "message": "Resume TransPop everywhere",
+    "description": "Toolbar icon context menu: turn in-page translation back on"
+  },
+  "bg_ctx_site_off": {
+    "message": "Turn off on $P1$",
+    "description": "Toolbar icon context menu. $1 = website hostname, e.g. example.com",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_ctx_site_on": {
+    "message": "Turn on on $P1$",
+    "description": "Toolbar icon context menu (site is currently disabled). $1 = website hostname",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bg_ctx_site_unavailable": {
+    "message": "Turn off on this site",
+    "description": "Toolbar icon context menu, shown greyed out when the current page can't be identified (e.g. chrome:// pages)"
+  },
+  "bg_ctx_translate": {
+    "message": "Translate “%s”",
+    "description": "Context menu item on selected text. Keep %s: Chrome replaces it with the selection."
+  },
+  "bubble_collapse_source": {
+    "message": "Show less",
+    "description": "Collapses the expanded source text in the bubble header"
+  },
+  "bubble_copy_translation": {
+    "message": "Copy translation",
+    "description": "Copy button under the translation"
+  },
+  "bubble_dialog_label": {
+    "message": "TransPop translation",
+    "description": "Accessible name of the translation bubble (role=dialog)"
+  },
+  "bubble_expand_source": {
+    "message": "Show full text",
+    "description": "Expands the clamped (3-line) source text in the bubble header"
+  },
+  "bubble_listen_source": {
+    "message": "Listen to the original",
+    "description": "Speaker button next to the selected (source) text"
+  },
+  "bubble_listen_translation": {
+    "message": "Listen to the translation",
+    "description": "Speaker button under the translation"
+  },
+  "bubble_no_translation": {
+    "message": "No translation available.",
+    "description": "Shown when the provider returned an empty translation"
+  },
+  "bubble_translate_into": {
+    "message": "Translate into",
+    "description": "Label of the target-language dropdown in the bubble"
+  },
+  "bubble_trigger_hint": {
+    "message": "Translate (or tap $P1$)",
+    "description": "Tooltip of the floating button; $1 = modifier key name, e.g. Shift",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bubble_trigger_label": {
+    "message": "Translate selection",
+    "description": "Accessible label of the small floating TransPop button shown next to selected text"
+  },
+  "cmdToggleEnabled": {
+    "message": "Turn in-page translation on/off",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
+  },
+  "cmdTranslateSelection": {
+    "message": "Translate selected text",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
+  },
+  "common_add_favorite": {
+    "message": "Add to favorites"
+  },
+  "common_alternatives": {
+    "message": "Other translations"
+  },
+  "common_cancel": {
+    "message": "Cancel"
+  },
+  "common_clear": {
+    "message": "Clear"
+  },
+  "common_close": {
+    "message": "Close"
+  },
+  "common_copied": {
+    "message": "Copied"
+  },
+  "common_copy": {
+    "message": "Copy"
+  },
+  "common_definitions": {
+    "message": "Definitions"
+  },
+  "common_delete": {
+    "message": "Delete"
+  },
+  "common_detect_language": {
+    "message": "Detect language"
+  },
+  "common_detected_language": {
+    "message": "$P1$ (detected)",
+    "description": "$1 = language name",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_dictionary": {
+    "message": "Dictionary"
+  },
+  "common_error_EMPTY": {
+    "message": "Nothing to translate."
+  },
+  "common_error_NETWORK": {
+    "message": "Can't reach the translation service. Check your internet connection."
+  },
+  "common_error_PROVIDER_ERROR": {
+    "message": "The translation service returned an error. Please try again."
+  },
+  "common_error_RATE_LIMITED": {
+    "message": "Too many requests right now. Please wait a moment and try again."
+  },
+  "common_error_TOO_LONG": {
+    "message": "Text is too long (max 5,000 characters)."
+  },
+  "common_error_UNKNOWN": {
+    "message": "Something went wrong. Please try again."
+  },
+  "common_error_UNSUPPORTED_LANG": {
+    "message": "This language isn't supported."
+  },
+  "common_examples": {
+    "message": "Examples"
+  },
+  "common_favorites": {
+    "message": "Favorites"
+  },
+  "common_history": {
+    "message": "History"
+  },
+  "common_listen": {
+    "message": "Listen"
+  },
+  "common_off": {
+    "message": "Off"
+  },
+  "common_on": {
+    "message": "On"
+  },
+  "common_open_full_page": {
+    "message": "Open in full page"
+  },
+  "common_powered_by": {
+    "message": "Powered by $P1$",
+    "description": "$1 = provider name",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_provider_google": {
+    "message": "Google Translate"
+  },
+  "common_provider_microsoft": {
+    "message": "Microsoft Translator"
+  },
+  "common_remove_favorite": {
+    "message": "Remove from favorites"
+  },
+  "common_retry": {
+    "message": "Try again"
+  },
+  "common_save": {
+    "message": "Save"
+  },
+  "common_search": {
+    "message": "Search"
+  },
+  "common_settings": {
+    "message": "Settings"
+  },
+  "common_show_less": {
+    "message": "Show less"
+  },
+  "common_show_more": {
+    "message": "Show more"
+  },
+  "common_source_language": {
+    "message": "Source language"
+  },
+  "common_stop": {
+    "message": "Stop"
+  },
+  "common_swap_languages": {
+    "message": "Swap languages"
+  },
+  "common_synonyms": {
+    "message": "Synonyms"
+  },
+  "common_target_language": {
+    "message": "Target language"
+  },
+  "common_translate": {
+    "message": "Translate"
+  },
+  "common_translating": {
+    "message": "Translating…"
+  },
+  "common_translation": {
+    "message": "Translation"
+  },
+  "extDescription": {
+    "message": "Select any word or phrase to translate it instantly. Dictionary, pronunciation, history and favorites. Free and open source.",
+    "description": "Extension description (max 132 chars)"
+  },
+  "extName": {
+    "message": "TransPop — Select to Translate",
+    "description": "Extension name shown in Chrome and the Web Store (max 75 chars)"
+  },
+  "extShortName": {
+    "message": "TransPop",
+    "description": "Short name (max 12 chars)"
+  },
+  "options_about_github": {
+    "message": "GitHub"
+  },
+  "options_about_license": {
+    "message": "MIT License · Icons: Lucide (ISC)"
+  },
+  "options_about_rate": {
+    "message": "Rate on Chrome Web Store"
+  },
+  "options_about_report": {
+    "message": "Report a bug"
+  },
+  "options_about_tagline": {
+    "message": "Select to translate. Free and open source."
+  },
+  "options_appearance_desc": {
+    "message": "Make the translation bubble look just right."
+  },
+  "options_auto_speak_desc": {
+    "message": "Pronounce single words and short phrases when the bubble opens."
+  },
+  "options_auto_speak_title": {
+    "message": "Read aloud automatically"
+  },
+  "options_bubble_desc": {
+    "message": "Choose what the translation bubble shows."
+  },
+  "options_clear_all": {
+    "message": "Clear all"
+  },
+  "options_close_outside_desc": {
+    "message": "Dismiss the bubble when you click anywhere else on the page."
+  },
+  "options_close_outside_title": {
+    "message": "Close when clicking outside"
+  },
+  "options_confirm_prompt": {
+    "message": "Are you sure?"
+  },
+  "options_context_menu_desc": {
+    "message": "Select text, right-click and choose Translate “…”. Works even on sites where TransPop is turned off."
+  },
+  "options_context_menu_title": {
+    "message": "Right-click menu"
+  },
+  "options_data_desc": {
+    "message": "Everything stays in your browser."
+  },
+  "options_disable_inputs_desc": {
+    "message": "Don't translate selections inside inputs, text areas and editors."
+  },
+  "options_disable_inputs_title": {
+    "message": "Ignore text fields"
+  },
+  "options_doc_title": {
+    "message": "TransPop Settings",
+    "description": "Browser tab title of the settings page"
+  },
+  "options_double_click_desc": {
+    "message": "Translate only words you double-click, not every selection."
+  },
+  "options_double_click_title": {
+    "message": "Double-click only"
+  },
+  "options_enabled_desc": {
+    "message": "Translate text you select on websites. The toolbar popup always works."
+  },
+  "options_enabled_title": {
+    "message": "Enable in-page translation"
+  },
+  "options_export": {
+    "message": "Export"
+  },
+  "options_export_desc": {
+    "message": "Download a backup of your settings, history and favorites."
+  },
+  "options_export_done": {
+    "message": "Backup downloaded"
+  },
+  "options_export_title": {
+    "message": "Export data"
+  },
+  "options_favorites_cleared": {
+    "message": "Favorites cleared"
+  },
+  "options_font_size_desc": {
+    "message": "Base font size of the translation bubble."
+  },
+  "options_font_size_title": {
+    "message": "Text size"
+  },
+  "options_font_size_value": {
+    "message": "$P1$ px",
+    "description": "$1 = font size in pixels",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_general_desc": {
+    "message": "The basics of how TransPop translates for you."
+  },
+  "options_history_cleared": {
+    "message": "History cleared"
+  },
+  "options_import": {
+    "message": "Import"
+  },
+  "options_import_desc": {
+    "message": "Restore from a TransPop backup file. Existing items are kept."
+  },
+  "options_import_done": {
+    "message": "Backup restored — $P1$ history items and $P2$ favorites added",
+    "description": "$1 = history count, $2 = favorites count",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "options_import_invalid": {
+    "message": "This file isn't a valid TransPop backup."
+  },
+  "options_import_title": {
+    "message": "Import data"
+  },
+  "options_items_one": {
+    "message": "$P1$ item",
+    "description": "$1 = count (singular)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_items_other": {
+    "message": "$P1$ items",
+    "description": "$1 = count (plural)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_modifier_desc_hotkey": {
+    "message": "Hold the key while selecting, or tap it after selecting."
+  },
+  "options_modifier_desc_icon": {
+    "message": "Hold it while selecting to skip the icon and translate right away."
+  },
+  "options_modifier_title": {
+    "message": "Hotkey",
+    "description": "Modifier key used in hotkey mode"
+  },
+  "options_nav_about": {
+    "message": "About"
+  },
+  "options_nav_appearance": {
+    "message": "Appearance"
+  },
+  "options_nav_bubble": {
+    "message": "Bubble content"
+  },
+  "options_nav_data": {
+    "message": "Data & privacy"
+  },
+  "options_nav_general": {
+    "message": "General"
+  },
+  "options_nav_label": {
+    "message": "Settings sections",
+    "description": "aria-label of the settings navigation"
+  },
+  "options_nav_shortcuts": {
+    "message": "Keyboard shortcuts"
+  },
+  "options_nav_sites": {
+    "message": "Sites"
+  },
+  "options_nav_trigger": {
+    "message": "Trigger",
+    "description": "Section: how the bubble is triggered"
+  },
+  "options_preview_alt": {
+    "message": "Preview of the translation bubble"
+  },
+  "options_preview_label": {
+    "message": "Preview"
+  },
+  "options_preview_pos": {
+    "message": "adjective",
+    "description": "Part of speech shown in the bubble preview (sample word: obvious)"
+  },
+  "options_privacy_link": {
+    "message": "Read the privacy policy"
+  },
+  "options_privacy_text": {
+    "message": "TransPop sends the text you choose to translate to the selected translation service. No accounts, no tracking, no analytics."
+  },
+  "options_privacy_title": {
+    "message": "Your privacy"
+  },
+  "options_provider_desc": {
+    "message": "If it's unavailable, the other one is used automatically."
+  },
+  "options_provider_google": {
+    "message": "Google",
+    "description": "Short provider name in a segmented control"
+  },
+  "options_provider_microsoft": {
+    "message": "Microsoft",
+    "description": "Short provider name in a segmented control"
+  },
+  "options_provider_title": {
+    "message": "Translation service"
+  },
+  "options_reset": {
+    "message": "Reset"
+  },
+  "options_reset_confirm": {
+    "message": "Reset all"
+  },
+  "options_reset_desc": {
+    "message": "Restore all settings to their defaults. History and favorites are kept."
+  },
+  "options_reset_done": {
+    "message": "Settings restored to defaults"
+  },
+  "options_reset_title": {
+    "message": "Reset settings"
+  },
+  "options_save_failed": {
+    "message": "Couldn't save your changes"
+  },
+  "options_save_history_desc": {
+    "message": "Keep a list of your recent translations on this device."
+  },
+  "options_save_history_title": {
+    "message": "Save translation history"
+  },
+  "options_saved": {
+    "message": "Saved",
+    "description": "Toast after a setting is auto-saved"
+  },
+  "options_secondary_desc": {
+    "message": "Used when the selected text is already in your language."
+  },
+  "options_secondary_title": {
+    "message": "Secondary language"
+  },
+  "options_shortcut_not_set": {
+    "message": "Not set",
+    "description": "Keyboard shortcut not assigned"
+  },
+  "options_shortcut_open_popup": {
+    "message": "Open the TransPop popup",
+    "description": "Description of the _execute_action command"
+  },
+  "options_shortcuts_customize": {
+    "message": "Customize shortcuts"
+  },
+  "options_shortcuts_desc": {
+    "message": "Translate faster with your keyboard."
+  },
+  "options_shortcuts_hint": {
+    "message": "Shortcuts are managed by Chrome."
+  },
+  "options_shortcuts_unavailable": {
+    "message": "Shortcuts couldn't be loaded."
+  },
+  "options_show_definitions_desc": {
+    "message": "Explanations in the original language, when available."
+  },
+  "options_show_dictionary_desc": {
+    "message": "Parts of speech and other meanings for words and short phrases."
+  },
+  "options_show_examples_desc": {
+    "message": "Example sentences that use the word."
+  },
+  "options_show_phonetic_desc": {
+    "message": "Show the phonetic spelling of the original text."
+  },
+  "options_show_phonetic_title": {
+    "message": "Pronunciation"
+  },
+  "options_sites_add": {
+    "message": "Add"
+  },
+  "options_sites_add_label": {
+    "message": "Website to turn off"
+  },
+  "options_sites_desc": {
+    "message": "Turn off in-page translation on specific websites."
+  },
+  "options_sites_empty_desc": {
+    "message": "TransPop works on every website. You can also turn it off for the current site from the popup."
+  },
+  "options_sites_empty_title": {
+    "message": "No sites turned off"
+  },
+  "options_sites_error_duplicate": {
+    "message": "$P1$ is already on the list.",
+    "description": "$1 = hostname",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_sites_error_invalid": {
+    "message": "Enter a valid website, like example.com."
+  },
+  "options_sites_hint": {
+    "message": "Paste a link or type a domain. Subdomains are included."
+  },
+  "options_sites_placeholder": {
+    "message": "example.com"
+  },
+  "options_sites_remove": {
+    "message": "Remove $P1$",
+    "description": "$1 = hostname (button label)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_speech_rate_desc": {
+    "message": "How fast text is read aloud."
+  },
+  "options_speech_rate_title": {
+    "message": "Speech speed"
+  },
+  "options_speech_rate_value": {
+    "message": "$P1$×",
+    "description": "$1 = speech rate, e.g. 1.0",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_target_desc": {
+    "message": "Selected text is translated into this language."
+  },
+  "options_target_title": {
+    "message": "Translate into"
+  },
+  "options_test_voice": {
+    "message": "Test voice"
+  },
+  "options_theme_auto": {
+    "message": "Auto",
+    "description": "Theme follows the operating system"
+  },
+  "options_theme_dark": {
+    "message": "Dark"
+  },
+  "options_theme_desc": {
+    "message": "Applies to the bubble, the popup and this page."
+  },
+  "options_theme_light": {
+    "message": "Light"
+  },
+  "options_theme_title": {
+    "message": "Theme"
+  },
+  "options_trigger_auto_desc": {
+    "message": "The translation pops up as soon as you select text."
+  },
+  "options_trigger_auto_title": {
+    "message": "Translate instantly",
+    "description": "Trigger mode card title"
+  },
+  "options_trigger_desc": {
+    "message": "Choose what happens when you select text on a page."
+  },
+  "options_trigger_hotkey_desc": {
+    "message": "Nothing pops up until you press your hotkey."
+  },
+  "options_trigger_hotkey_title": {
+    "message": "Use a hotkey",
+    "description": "Trigger mode card title"
+  },
+  "options_trigger_icon_desc": {
+    "message": "A small TransPop icon appears next to the selection. Click it to translate."
+  },
+  "options_trigger_icon_title": {
+    "message": "Show icon",
+    "description": "Trigger mode card title (click the icon to translate)"
+  },
+  "options_trigger_mode_label": {
+    "message": "When you select text"
+  },
+  "options_version": {
+    "message": "Version $P1$",
+    "description": "$1 = extension version",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_voice_sample": {
+    "message": "Hello! This is how TransPop sounds.",
+    "description": "Spoken when the user clicks Test voice"
+  },
+  "options_voice_sample_lang": {
+    "message": "en",
+    "description": "Language code (Google Translate style) of options_voice_sample in this locale — not visible text"
+  },
+  "popup_back": {
+    "message": "Back to translator",
+    "description": "Back button in the History & Favorites view"
+  },
+  "popup_char_count": {
+    "message": "$P1$ of $P2$ characters",
+    "description": "Screen-reader label of the character counter. $1 = current count, $2 = limit",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_clear_all": {
+    "message": "Clear all",
+    "description": "Button that clears the whole history or favorites list"
+  },
+  "popup_clear_text": {
+    "message": "Clear text",
+    "description": "Clear (x) button on the input card"
+  },
+  "popup_confirm_clear_favorites": {
+    "message": "Remove all favorites?",
+    "description": "Inline confirmation for Clear all (Favorites)"
+  },
+  "popup_confirm_clear_history": {
+    "message": "Delete all history?",
+    "description": "Inline confirmation for Clear all (History)"
+  },
+  "popup_copy_failed": {
+    "message": "Couldn't copy to the clipboard",
+    "description": "Toast when copying fails"
+  },
+  "popup_copy_translation": {
+    "message": "Copy translation",
+    "description": "Copy button on the output card"
+  },
+  "popup_details": {
+    "message": "Details",
+    "description": "Title of the collapsible dictionary/definitions/examples card"
+  },
+  "popup_empty_favorites_hint": {
+    "message": "Tap the star on any translation to save it here for later.",
+    "description": "Empty state hint (Favorites)"
+  },
+  "popup_empty_favorites_title": {
+    "message": "No favorites yet",
+    "description": "Empty state title (Favorites)"
+  },
+  "popup_empty_history_hint": {
+    "message": "Words and phrases you translate will show up here.",
+    "description": "Empty state hint (History)"
+  },
+  "popup_empty_history_title": {
+    "message": "No translations yet",
+    "description": "Empty state title (History)"
+  },
+  "popup_empty_search_hint": {
+    "message": "Nothing matches “$P1$”. Try another word.",
+    "description": "Empty search hint. $1 = search query",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_empty_search_title": {
+    "message": "No matches",
+    "description": "Empty state title when the search has no results"
+  },
+  "popup_enable_pages": {
+    "message": "Translate on pages",
+    "description": "Footer switch bound to settings.enabled"
+  },
+  "popup_enable_pages_title": {
+    "message": "Show translations when you select text on web pages",
+    "description": "Tooltip of the footer master switch"
+  },
+  "popup_enable_site": {
+    "message": "On $P1$",
+    "description": "Footer per-site switch. $1 = hostname, e.g. github.com",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_enable_site_title": {
+    "message": "Translate selected text on $P1$",
+    "description": "Tooltip of the per-site switch. $1 = hostname",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_export_csv": {
+    "message": "Export CSV",
+    "description": "Download favorites as a CSV file"
+  },
+  "popup_export_done": {
+    "message": "CSV file downloaded",
+    "description": "Toast after exporting favorites"
+  },
+  "popup_history_favorites": {
+    "message": "History & favorites",
+    "description": "Header button + segmented control label"
+  },
+  "popup_history_off": {
+    "message": "Saving history is turned off.",
+    "description": "Notice in the History tab when settings.saveHistory is false"
+  },
+  "popup_history_off_action": {
+    "message": "Turn on",
+    "description": "Button that re-enables saving history"
+  },
+  "popup_input_placeholder": {
+    "message": "Type or paste text to translate",
+    "description": "Textarea placeholder"
+  },
+  "popup_items_filtered": {
+    "message": "$P1$ of $P2$",
+    "description": "List count while searching. $1 = matches, $2 = total",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_items_one": {
+    "message": "1 item",
+    "description": "List count, singular"
+  },
+  "popup_items_other": {
+    "message": "$P1$ items",
+    "description": "List count, plural. $1 = number",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_listen_source": {
+    "message": "Listen to original",
+    "description": "Speaker button on the input card"
+  },
+  "popup_listen_translation": {
+    "message": "Listen to translation",
+    "description": "Speaker button on the output card"
+  },
+  "popup_output_placeholder": {
+    "message": "Translation will appear here",
+    "description": "Empty output card"
+  },
+  "popup_page_title": {
+    "message": "TransPop Translator",
+    "description": "Document title of the popup / full-page translator"
+  },
+  "popup_search_placeholder": {
+    "message": "Search words or translations",
+    "description": "Search field in the History & Favorites view"
+  },
+  "popup_speak_failed": {
+    "message": "Couldn't play audio",
+    "description": "Toast when text-to-speech fails"
+  },
+  "popup_translate_now": {
+    "message": "Translate now",
+    "description": "Tooltip of the Ctrl/Cmd+Enter keyboard hint"
+  },
+  "popup_translate_word": {
+    "message": "Translate “$P1$”",
+    "description": "Tooltip on a synonym chip. $1 = word",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "welcome_demo_hint_hotkey": {
+    "message": "Press $P1$ to translate",
+    "description": "$1 = modifier key label, e.g. Shift",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "welcome_demo_icon_label": {
+    "message": "Translate with TransPop"
+  },
+  "welcome_demo_tip": {
+    "message": "Tip: click an underlined word, or double-click any word."
+  },
+  "welcome_doc_title": {
+    "message": "Welcome to TransPop",
+    "description": "Browser tab title of the onboarding page"
+  },
+  "welcome_footer_note": {
+    "message": "You can change all of this later in Settings."
+  },
+  "welcome_lead": {
+    "message": "Select any word or sentence on any website and get the translation instantly — right where you're reading."
+  },
+  "welcome_menu_translate": {
+    "message": "Translate “…”",
+    "description": "Context-menu item shown in an illustration"
+  },
+  "welcome_open_settings": {
+    "message": "Open settings"
+  },
+  "welcome_start": {
+    "message": "Start browsing"
+  },
+  "welcome_step1_desc": {
+    "message": "TransPop translates everything into this language."
+  },
+  "welcome_step1_title": {
+    "message": "Your language"
+  },
+  "welcome_step2_desc": {
+    "message": "Choose what happens when you select text. You can change this anytime."
+  },
+  "welcome_step2_title": {
+    "message": "How to translate"
+  },
+  "welcome_step3_desc": {
+    "message": "Select any word or phrase in the paragraph below."
+  },
+  "welcome_step3_title": {
+    "message": "Try it"
+  },
+  "welcome_steps_label": {
+    "message": "Get started"
+  },
+  "welcome_tip_menu_desc": {
+    "message": "Select text, right-click and choose Translate “…”."
+  },
+  "welcome_tip_menu_title": {
+    "message": "Right-click to translate"
+  },
+  "welcome_tip_pin_desc": {
+    "message": "Click the puzzle icon in Chrome's toolbar, then the pin next to TransPop."
+  },
+  "welcome_tip_pin_title": {
+    "message": "Pin TransPop to the toolbar"
+  },
+  "welcome_tip_shortcut_desc": {
+    "message": "Select text, then press the shortcut to translate it."
+  },
+  "welcome_tip_shortcut_set": {
+    "message": "Set a shortcut"
+  },
+  "welcome_tip_shortcut_title": {
+    "message": "Keyboard shortcut"
+  },
+  "welcome_tips_title": {
+    "message": "A few more tricks"
+  },
+  "welcome_title": {
+    "message": "Welcome to TransPop"
+  }
+}

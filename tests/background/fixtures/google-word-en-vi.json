@@ -1,0 +1,206 @@
+{
+  "sentences": [
+    {
+      "trans": "rõ ràng",
+      "orig": "obvious",
+      "backend": 10
+    },
+    {
+      "src_translit": "ˈäbvēəs"
+    }
+  ],
+  "dict": [
+    {
+      "pos": "adjective",
+      "terms": [
+        "minh bạch",
+        "rỏ ràng"
+      ],
+      "entry": [
+        {
+          "word": "minh bạch",
+          "reverse_translation": [
+            "transparent",
+            "clear",
+            "explicit",
+            "straightforward",
+            "intelligible",
+            "obvious"
+          ]
+        },
+        {
+          "word": "rỏ ràng",
+          "reverse_translation": [
+            "conspicuous",
+            "obvious",
+            "explicit",
+            "apparent",
+            "evident",
+            "plain"
+          ]
+        }
+      ],
+      "base_form": "obvious",
+      "pos_enum": 3
+    }
+  ],
+  "src": "en",
+  "alternative_translations": [
+    {
+      "src_phrase": "obvious",
+      "alternative": [
+        {
+          "word_postproc": "rõ ràng",
+          "has_preceding_space": true,
+          "attach_to_next_token": false,
+          "backends": [
+            10
+          ]
+        },
+        {
+          "word_postproc": "hiển nhiên",
+          "has_preceding_space": true,
+          "attach_to_next_token": false,
+          "backends": [
+            3
+          ],
+          "backend_infos": [
+            {
+              "backend": 3
+            }
+          ]
+        }
+      ],
+      "srcunicodeoffsets": [
+        {
+          "begin": 0,
+          "end": 7
+        }
+      ],
+      "raw_src_segment": "obvious",
+      "start_pos": 0,
+      "end_pos": 0
+    }
+  ],
+  "confidence": 1,
+  "spell": {},
+  "ld_result": {
+    "srclangs": [
+      "en"
+    ],
+    "srclangs_confidences": [
+      1
+    ],
+    "extended_srclangs": [
+      "en"
+    ]
+  },
+  "synsets": [
+    {
+      "pos": "adjective",
+      "entry": [
+        {
+          "synonym": [
+            "as plain as the nose on one's face",
+            "standing/sticking out like a sore thumb",
+            "standing/sticking out a mile",
+            "right under one's nose"
+          ],
+          "definition_id": "m_en_gbus0709830.005",
+          "label_info": {
+            "register": [
+              "informal"
+            ]
+          }
+        },
+        {
+          "synonym": [
+            "clear",
+            "plain",
+            "plain to see",
+            "crystal clear",
+            "evident",
+            "apparent",
+            "manifest",
+            "patent",
+            "conspicuous",
+            "pronounced",
+            "transparent",
+            "clear-cut",
+            "palpable",
+            "prominent",
+            "marked",
+            "decided",
+            "salient",
+            "striking",
+            "distinct",
+            "bold",
+            "noticeable",
+            "perceptible",
+            "perceivable",
+            "visible",
+            "discernible",
+            "detectable",
+            "observable",
+            "tangible",
+            "recognizable",
+            "unmistakable",
+            "indisputable",
+            "self-evident",
+            "incontrovertible",
+            "incontestable",
+            "axiomatic",
+            "demonstrable",
+            "undeniable",
+            "as plain as a pikestaff",
+            "staring someone in the face",
+            "writ large",
+            "beyond doubt",
+            "beyond question",
+            "written all over one",
+            "as clear as day",
+            "blinding",
+            "inescapable",
+            "overt",
+            "open",
+            "undisguised",
+            "unconcealed",
+            "frank",
+            "glaring",
+            "blatant",
+            "flagrant"
+          ],
+          "definition_id": "m_en_gbus0709830.005"
+        }
+      ],
+      "base_form": "obvious",
+      "pos_enum": 3
+    }
+  ],
+  "definitions": [
+    {
+      "pos": "adjective",
+      "entry": [
+        {
+          "gloss": "easily perceived or understood; clear, self-evident, or apparent.",
+          "definition_id": "m_en_gbus0709830.005",
+          "example": "unemployment has been the most obvious cost of the recession"
+        }
+      ],
+      "base_form": "obvious",
+      "pos_enum": 3
+    }
+  ],
+  "examples": {
+    "example": [
+      {
+        "text": "it was <b>obvious</b> a storm was coming in",
+        "definition_id": "m_en_gbus0709830.005"
+      },
+      {
+        "text": "unemployment has been the most <b>obvious</b> cost of the recession",
+        "definition_id": "m_en_gbus0709830.005"
+      }
+    ]
+  }
+}

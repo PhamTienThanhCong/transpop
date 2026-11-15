@@ -1,0 +1,22 @@
+.DS_Store
+node_modules/
+dist/
+*.zip
+*.pem
+.env
+
+# OS / editor junk
+Thumbs.db
+.idea/
+*.swp
+*~
+
+# Build & release artifacts
+*.crx
+coverage/
+npm-debug.log*
+RELEASE_NOTES.md
+
+# Secrets (Chrome Web Store API credentials etc.)
+.env.*
+!.env.example
