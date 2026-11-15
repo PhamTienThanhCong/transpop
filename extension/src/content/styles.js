@@ -131,10 +131,10 @@
   display: block;
   width: 30px;
   height: 30px;
-  padding: 0;
+  padding: 3px;
   border: 0;
   border-radius: 9px;
-  background: transparent;
+  background: #ffffff;
   overflow: hidden;
   cursor: pointer;
   pointer-events: auto;
@@ -149,7 +149,7 @@
 .g-trigger.is-visible:hover { transform: scale(1.08); }
 .g-trigger.is-visible:active { transform: scale(0.95); }
 .g-trigger:focus-visible { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.55), var(--g-trigger-shadow); }
-.g-trigger svg { width: 30px; height: 30px; }
+.g-trigger svg { display: block; width: 24px; height: 24px; }
 
 /* ---------------- Bubble ---------------- */
 

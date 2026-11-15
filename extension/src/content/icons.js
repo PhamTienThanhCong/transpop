@@ -6,20 +6,25 @@
 
   /**
    * LOGO_SVG — the mark shown on the floating trigger button (30×30 px).
-   * Keep in sync with extension/icons/logo-mark.svg (the official TransPop mark).
+   * Keep in sync with extension/icons/logo-mark.svg (same bold variant as store-assets/src/icon-32.svg).
    * Requirements: self-contained SVG markup with a viewBox (it is scaled to 30px); no scripts, event
    * attributes or external references (ids are scoped to our closed shadow root).
-   * Keep gradientUnits="userSpaceOnUse" — the vertical handle strokes vanish with bounding-box units.
+   * Uses the bolder 32px variant (store-assets/src/icon-32.svg) because the button is ~30px.
    */
   const LOGO_SVG =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">' +
-    '<defs><linearGradient id="transpop-mark-bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">' +
-    '<stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>' +
-    '<path fill="url(#transpop-mark-bg)" d="M64 0C118 0 128 10 128 64S118 128 64 128 0 118 0 64 10 0 64 0Z"/>' +
-    '<path fill="#fff" d="M40 20h48c13.3 0 24 10.7 24 24v26c0 13.3-10.7 24-24 24H56c-7 8-16 13.5-26.5 15.6-1.5.3-2.5-1.3-1.5-2.5 3.6-4.3 5.8-8.5 6.9-14.1C23.6 91 16 81.2 16 70V44c0-13.3 10.7-24 24-24z"/>' +
-    '<g fill="url(#transpop-mark-bg)"><rect x="36" y="46" width="56" height="22"/><circle cx="36" cy="37" r="7"/><circle cx="92" cy="77" r="7"/></g>' +
-    '<path fill="none" stroke="url(#transpop-mark-bg)" stroke-width="6" stroke-linecap="round" d="M36 40v32M92 42v32"/>' +
-    '</svg>';
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs>' +
+    '<linearGradient id="transpop-front" x1="10" y1="40" x2="80" y2="120" gradientUnits="userSpaceOnUse">' +
+    '<stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient>' +
+    '<mask id="transpop-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">' +
+    '<rect width="128" height="128" fill="#fff"/>' +
+    '<path d="M26 40h38a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16H44l-22 14 6-14h-2a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round"/>' +
+    '</mask></defs><g transform="translate(64 64) scale(1.111) translate(-64 -66)"><g mask="url(#transpop-cut)">' +
+    '<path d="M64 12h38a16 16 0 0 1 16 16v36a16 16 0 0 1-16 16h-2l6 14-22-14H64a16 16 0 0 1-16-16V28a16 16 0 0 1 16-16z" fill="#C7D2FE"/>' +
+    '<path d="M100 26v6M86 37h28M107 38c-3 9-10 15-20 20M93 38c3 9 10 15 20 20" fill="none" stroke="#3730A3" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</g>' +
+    '<path d="M26 40h38a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16H44l-22 14 6-14h-2a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="url(#transpop-front)"/>' +
+    '<path d="M33 91 45 57 57 91M37.4 80h15.2" fill="none" stroke="#fff" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</g></svg>';
 
   const G = globalThis.__transpopContent;
   if (!G || G.started) return;
