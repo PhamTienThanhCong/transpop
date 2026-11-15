@@ -16,12 +16,17 @@
  *  - i18n: __MSG_*__ keys in the manifest, data-i18n*="key" in HTML and t('key') / getMessage('key')
  *    literals in JS all exist in _locales/en/messages.json; `build-locales.mjs --check` passes
  *  - release hygiene (warnings): placeholder URLs, CHANGELOG entry for the manifest version
+ *  - vendored third-party code (extension/vendor/<lib>/): LICENSE + README.md present, every file listed in the
+ *    README's SHA-256 table exists and matches (no silent edits), every Tesseract core .js has its .wasm.
+ *    Minified vendor code is exempt from the MV3 pattern scans and the i18n key scan (it trips them with dead
+ *    fallback code such as `new Function("return this")` and unrelated `t("…")` calls) but is still syntax-checked.
  *
  * Exit code 0 = no errors (warnings allowed), 1 = at least one error.
  * Works on a partially written tree: missing files are reported, never crash the script.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync, openSync, readSync, closeSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import os from 'node:os';
@@ -32,6 +37,8 @@ import { fileURLToPath } from 'node:url';
 const execFileP = promisify(execFile);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const EXT = path.join(ROOT, 'extension');
+const VENDOR = path.join(EXT, 'vendor');
+const isVendor = (p) => p.startsWith(VENDOR + path.sep);
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/') || '.';
 
 /** Permissions documented in docs/ARCHITECTURE.md §3 (each one has a Web Store justification). */
@@ -187,9 +194,11 @@ async function pool(items, size, fn) {
 const allFiles = await walk(EXT);
 const htmlFiles = allFiles.filter((f) => f.endsWith('.html'));
 const jsFiles = allFiles.filter((f) => /\.(m?js)$/.test(f));
+const ownJsFiles = jsFiles.filter((f) => !isVendor(f)); // our code: full MV3 / i18n rules
+const vendorFiles = allFiles.filter(isVendor);
 const cssFiles = allFiles.filter((f) => f.endsWith('.css'));
 const sources = new Map(); // file -> { raw, code (comments stripped) }
-for (const f of [...htmlFiles, ...jsFiles, ...cssFiles]) {
+for (const f of [...htmlFiles, ...ownJsFiles, ...cssFiles]) {
   try {
     const raw = await readFile(f, 'utf8');
     sources.set(f, { raw, code: f.endsWith('.html') ? raw.replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, ' ')) : f.endsWith('.css') ? raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' ')) : stripComments(raw) });
@@ -200,6 +209,10 @@ for (const f of [...htmlFiles, ...jsFiles, ...cssFiles]) {
 
 console.log(bold('TransPop — extension checks'));
 info(`${rel(EXT)}/: ${allFiles.length} files (${jsFiles.length} JS, ${htmlFiles.length} HTML, ${cssFiles.length} CSS)`);
+if (vendorFiles.length) {
+  const bytes = vendorFiles.reduce((n, f) => n + statSync(f).size, 0);
+  info(`${rel(VENDOR)}/: ${vendorFiles.length} third-party files (${(bytes / 1048576).toFixed(1)} MB)`);
+}
 
 // ───────────────────────────── locales ─────────────────────────────
 section('Locales');
@@ -444,7 +457,7 @@ section('JavaScript rules (MV3 / security / imports)');
 const htmlSinks = [];
 const i18nJsKeys = []; // [file, line, key]
 let importCount = 0;
-for (const file of jsFiles) {
+for (const file of ownJsFiles) {
   const { code } = sources.get(file);
   const problems = [];
   const at = (idx) => `${rel(file)}:${lineOf(code, idx)}`;
@@ -478,8 +491,9 @@ for (const file of jsFiles) {
 
   for (const p of problems) fail(p);
 }
-if (jsFiles.length) {
-  info(`scanned ${jsFiles.length} JS file${jsFiles.length === 1 ? '' : 's'}: ${importCount} relative import${importCount === 1 ? '' : 's'} checked`);
+if (ownJsFiles.length) {
+  const skipped = jsFiles.length - ownJsFiles.length;
+  info(`scanned ${ownJsFiles.length} JS file${ownJsFiles.length === 1 ? '' : 's'}: ${importCount} relative import${importCount === 1 ? '' : 's'} checked${skipped ? ` (${skipped} vendored file${skipped === 1 ? '' : 's'} exempt — see "Vendored third-party code")` : ''}`);
 }
 if (htmlSinks.length) {
   warn(`HTML sinks (innerHTML/insertAdjacentHTML/document.write) in ${htmlSinks.length} place(s) — only trusted static markup allowed (ARCHITECTURE §1.3):\n      ${htmlSinks.join('\n      ')}`);
@@ -503,6 +517,44 @@ if (!enKeys) {
     errorCount += keys.size - 1; // count every missing key
   }
   if (!missingKeys.length) ok(`${new Set(used.map((u) => u[2])).size} distinct keys referenced (${i18nHtmlKeys.length} in HTML, ${i18nJsKeys.length} in JS) — all defined`);
+}
+
+// ───────────────────────────── vendored third-party code ─────────────────────────────
+if (existsSync(VENDOR)) {
+  section('Vendored third-party code (extension/vendor/)');
+  const libs = (await readdir(VENDOR, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => path.join(VENDOR, d.name));
+  const strayTop = (await readdir(VENDOR, { withFileTypes: true })).filter((d) => d.isFile() && !d.name.startsWith('.'));
+  for (const f of strayTop) fail(`${rel(path.join(VENDOR, f.name))}: put vendored files in extension/vendor/<library>/`);
+  for (const lib of libs) {
+    const problems = [];
+    for (const req of ['LICENSE', 'README.md']) if (!isFile(path.join(lib, req))) problems.push(`missing ${req}`);
+    const readmePath = path.join(lib, 'README.md');
+    const listed = new Map(); // file name -> sha256 (from the README table: | `file` | size | `sha256` |)
+    if (isFile(readmePath)) {
+      const readme = await readFile(readmePath, 'utf8');
+      for (const m of readme.matchAll(/^\|\s*`([^`/\\]+)`\s*\|[^|\n]*\|\s*`([0-9a-f]{64})`\s*\|/gm)) listed.set(m[1], m[2]);
+      if (!listed.size) problems.push('README.md has no "| `file` | size | `sha256` |" table');
+    }
+    for (const [name, sha] of listed) {
+      const file = path.join(lib, name);
+      if (!isFile(file)) {
+        problems.push(`listed file missing: ${name}`);
+        continue;
+      }
+      const actual = createHash('sha256').update(await readFile(file)).digest('hex');
+      if (actual !== sha) problems.push(`${name}: SHA-256 mismatch (modified? re-vendor it and update README.md)`);
+    }
+    const present = allFiles.filter((f) => path.dirname(f) === lib).map((f) => path.basename(f));
+    const unlisted = present.filter((n) => !listed.has(n) && n !== 'README.md' && n !== 'LICENSE');
+    if (unlisted.length) problems.push(`files not listed in README.md (hash them or remove them): ${unlisted.join(', ')}`);
+    for (const n of present.filter((x) => /^tesseract-core-.*\.js$/.test(x) && !x.endsWith('.wasm.js'))) {
+      if (!present.includes(n.replace(/\.js$/, '.wasm'))) problems.push(`${n} has no matching ${n.replace(/\.js$/, '.wasm')}`);
+    }
+    const bytes = present.reduce((n, f) => n + statSync(path.join(lib, f)).size, 0);
+    if (problems.length) for (const p of problems) fail(`${rel(lib)}: ${p}`);
+    else ok(`${rel(lib)}: ${listed.size} files verified against README.md SHA-256 (${(bytes / 1048576).toFixed(1)} MB), LICENSE present`);
+  }
+  if (!libs.length) warn('extension/vendor/ is empty');
 }
 
 // ───────────────────────────── release hygiene ─────────────────────────────

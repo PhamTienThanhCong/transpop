@@ -205,8 +205,23 @@ export function uiLangToTarget(uiLang) {
   return normalizeLangCode(uiLang) || 'en';
 }
 
-/** Best-effort UI locale (works in extension contexts and in Node). */
+/** Display-language override (`settings.uiLanguage`, e.g. 'vi'); null = follow the browser. Set by initI18n(). */
+let uiLocaleOverride = null;
+
+/**
+ * Make getUiLocale() — and everything derived from it (language names, collation, number/relative-time
+ * formats, `<html lang>`) — use `code` instead of the browser language. `null` restores the browser language.
+ */
+export function setUiLocaleOverride(code) {
+  const next = typeof code === 'string' && code.trim() ? code.trim() : null;
+  if (next === uiLocaleOverride) return;
+  uiLocaleOverride = next;
+  displayNamesCache.clear(); // keyed by locale, so this only frees entries of the previous locale
+}
+
+/** Effective UI locale: the Display-language override when set, else the browser UI language (works in Node too). */
 export function getUiLocale() {
+  if (uiLocaleOverride) return uiLocaleOverride;
   try {
     if (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage) return chrome.i18n.getUILanguage();
   } catch {

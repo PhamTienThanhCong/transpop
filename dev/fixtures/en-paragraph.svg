@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- OCR test fixture (dev only). Render: rsvg-convert -o en-paragraph.png en-paragraph.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="190" viewBox="0 0 760 190">
+  <rect width="760" height="190" fill="#ffffff"/>
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#1f2937">
+    <text x="24" y="44">Unemployment has been the most obvious cost of the recession,</text>
+    <text x="24" y="76">but economists warn that the long-term consequences may be</text>
+    <text x="24" y="108">far more subtle. Productivity growth has stalled, and many</text>
+    <text x="24" y="140">businesses remain reluctant to invest in new equipment while</text>
+    <text x="24" y="172">demand is uncertain.</text>
+  </g>
+</svg>

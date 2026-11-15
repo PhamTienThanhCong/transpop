@@ -220,7 +220,9 @@
   }
 
   function maybeStopWatching() {
-    if (!trigger && !session) stopWatching();
+    if (trigger || session) return;
+    stopWatching();
+    if (localeStale) G.later(resetIfStale, 0); // deferred: open() hides the trigger right before it builds the bubble
   }
 
   function observeBubble() {
@@ -1025,6 +1027,38 @@
     head.addEventListener('pointerup', onUp);
     head.addEventListener('pointercancel', onUp);
   }
+
+  /* ------------------------------------------------------------------ */
+  /* Display language changed → rebuild the UI with the new strings      */
+  /* ------------------------------------------------------------------ */
+
+  let localeStale = false;
+
+  /** Drop the built UI (strings, `dir`, language list are baked in at build time) once nothing is visible. */
+  function resetIfStale() {
+    if (!localeStale || trigger || session) return;
+    localeStale = false;
+    if (!host) return;
+    stopWatching();
+    try {
+      host.remove();
+    } catch {
+      /* ignore */
+    }
+    host = shadow = root = statusEl = triggerEl = bubbleEl = null;
+    for (const key of Object.keys(els)) delete els[key];
+  }
+
+  G.onUiLanguageChange(() => {
+    if (!host) return; // nothing built yet — the next build uses the new strings
+    localeStale = true;
+    if (trigger || session) {
+      applySettings(); // trigger labels now; the rest is rebuilt when the bubble closes
+      if (session && session.canReveal) render(session);
+      return;
+    }
+    resetIfStale();
+  });
 
   /* ------------------------------------------------------------------ */
   /* Teardown & API                                                      */

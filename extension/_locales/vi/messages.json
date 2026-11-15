@@ -71,6 +71,9 @@
   "bubble_trigger_label": {
     "message": "Dịch đoạn đã chọn"
   },
+  "cmdCropTranslate": {
+    "message": "Dịch chữ trong ảnh hoặc vùng màn hình"
+  },
   "cmdToggleEnabled": {
     "message": "Bật/tắt dịch trên trang"
   },
@@ -118,11 +121,20 @@
   "common_dictionary": {
     "message": "Từ điển"
   },
+  "common_error_CAPTURE_FAILED": {
+    "message": "Không chụp được trang này. Hãy thử lại hoặc tải lại trang."
+  },
   "common_error_EMPTY": {
     "message": "Không có nội dung để dịch."
   },
   "common_error_NETWORK": {
     "message": "Không kết nối được dịch vụ dịch. Hãy kiểm tra kết nối mạng."
+  },
+  "common_error_OCR_FAILED": {
+    "message": "Nhận dạng chữ thất bại. Vui lòng thử lại."
+  },
+  "common_error_OCR_NO_TEXT": {
+    "message": "Không tìm thấy chữ trong vùng đã chọn."
   },
   "common_error_PROVIDER_ERROR": {
     "message": "Dịch vụ dịch trả về lỗi. Vui lòng thử lại."
@@ -604,6 +616,15 @@
   },
   "options_trigger_mode_label": {
     "message": "Khi bạn bôi đen văn bản"
+  },
+  "options_ui_language_auto": {
+    "message": "Tự động (theo trình duyệt)"
+  },
+  "options_ui_language_desc": {
+    "message": "Áp dụng cho menu, nút bấm và khung dịch. Tên hiển thị trong chrome://extensions luôn theo ngôn ngữ trình duyệt."
+  },
+  "options_ui_language_title": {
+    "message": "Ngôn ngữ giao diện"
   },
   "options_version": {
     "message": "Phiên bản $P1$",

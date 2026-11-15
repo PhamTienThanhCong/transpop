@@ -28,9 +28,19 @@ export const MSG = Object.freeze({
   SHOW_TRANSLATION: 'show-translation',
   GET_SELECTION: 'get-selection',
   PING: 'ping',
+  START_CROP: 'start-crop',
+  // → background (UI language + image translation)
+  GET_UI_MESSAGES: 'get-ui-messages',
+  OCR_REGION: 'ocr-region',
+  OCR_IMAGE: 'ocr-image',
+  GET_CAPTURE: 'get-capture',
+  START_CAPTURE: 'start-capture',
+  OCR_CLEAR_CACHE: 'ocr-clear-cache',
   // → offscreen document (internal)
   OFFSCREEN_PLAY: 'offscreen-play',
   OFFSCREEN_STOP: 'offscreen-stop',
+  OFFSCREEN_OCR: 'offscreen-ocr',
+  OFFSCREEN_OCR_CLEAR: 'offscreen-ocr-clear',
 });
 
 export const TRANSLATE_SOURCES = Object.freeze(['bubble', 'popup', 'context-menu', 'welcome']);
@@ -38,6 +48,8 @@ export const TRIGGER_MODES = Object.freeze(['icon', 'auto', 'hotkey']);
 export const MODIFIER_KEYS = Object.freeze(['Shift', 'Alt', 'Control', 'Meta']);
 export const PROVIDERS = Object.freeze(['google', 'microsoft']);
 export const THEMES = Object.freeze(['auto', 'light', 'dark']);
+/** 'auto' = follow the browser language; others must have an extension/_locales/<code>/ folder. */
+export const UI_LANGUAGES = Object.freeze(['auto', 'en', 'vi']);
 
 export const STORAGE_KEYS = Object.freeze({
   SETTINGS: 'settings', // chrome.storage.sync
@@ -69,6 +81,10 @@ export const ERROR_CODES = Object.freeze({
   PROVIDER_ERROR: 'PROVIDER_ERROR',
   UNSUPPORTED_LANG: 'UNSUPPORTED_LANG',
   UNKNOWN: 'UNKNOWN',
+  // image translation
+  CAPTURE_FAILED: 'CAPTURE_FAILED',
+  OCR_FAILED: 'OCR_FAILED',
+  OCR_NO_TEXT: 'OCR_NO_TEXT',
 });
 
 /**
@@ -95,4 +111,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   disabledSites: [],
   saveHistory: true,
   closeOnClickOutside: true,
+  uiLanguage: 'auto',
+  ocrLanguages: ['eng'],
 });

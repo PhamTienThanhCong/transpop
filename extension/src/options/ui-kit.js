@@ -2,7 +2,7 @@
  * TransPop — small UI kit shared by the options page and the welcome page (private to the options agent).
  * Everything here builds DOM nodes; user / translation text is only ever assigned via textContent.
  */
-import { MODIFIER_KEYS } from '../shared/constants.js';
+import { MODIFIER_KEYS, UI_LANGUAGES } from '../shared/constants.js';
 import { getLanguageOptions } from '../shared/languages.js';
 import { t } from '../shared/i18n.js';
 import { icon } from '../ui/icons.js';
@@ -134,6 +134,29 @@ export function fillLanguageSelect(select) {
   const frag = document.createDocumentFragment();
   for (const { code, name } of languageOptionsCache) frag.append(new Option(name, code));
   select.replaceChildren(frag);
+}
+
+/** A language's own name ("English", "Tiếng Việt") — what a user looks for when the UI is in a language they can't read. */
+export function endonym(code) {
+  try {
+    const name = new Intl.DisplayNames([code], { type: 'language' }).of(code);
+    if (name && name.toLowerCase() !== code.toLowerCase()) return name.charAt(0).toLocaleUpperCase(code) + name.slice(1);
+  } catch {
+    /* fall through */
+  }
+  return code;
+}
+
+/** Display-language <select>: "Auto (browser language)" + every shipped UI locale by its endonym. */
+export function fillUiLanguageSelect(select) {
+  select.replaceChildren(
+    new Option(t('options_ui_language_auto'), 'auto'),
+    ...UI_LANGUAGES.filter((code) => code !== 'auto').map((code) => {
+      const option = new Option(endonym(code), code);
+      option.lang = code;
+      return option;
+    }),
+  );
 }
 
 /* ------------------------------------------------------------------ */

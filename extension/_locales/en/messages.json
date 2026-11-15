@@ -90,6 +90,10 @@
     "message": "Translate selection",
     "description": "Accessible label of the small floating TransPop button shown next to selected text"
   },
+  "cmdCropTranslate": {
+    "message": "Translate text in an image or screen area",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
+  },
   "cmdToggleEnabled": {
     "message": "Turn in-page translation on/off",
     "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
@@ -140,11 +144,20 @@
   "common_dictionary": {
     "message": "Dictionary"
   },
+  "common_error_CAPTURE_FAILED": {
+    "message": "Couldn't capture this page. Try again, or reload the page."
+  },
   "common_error_EMPTY": {
     "message": "Nothing to translate."
   },
   "common_error_NETWORK": {
     "message": "Can't reach the translation service. Check your internet connection."
+  },
+  "common_error_OCR_FAILED": {
+    "message": "Text recognition failed. Please try again."
+  },
+  "common_error_OCR_NO_TEXT": {
+    "message": "No text found in the selected area."
   },
   "common_error_PROVIDER_ERROR": {
     "message": "The translation service returned an error. Please try again."
@@ -651,6 +664,18 @@
   },
   "options_trigger_mode_label": {
     "message": "When you select text"
+  },
+  "options_ui_language_auto": {
+    "message": "Auto (browser language)",
+    "description": "Display language option: follow the browser UI language"
+  },
+  "options_ui_language_desc": {
+    "message": "Menus, buttons and the translation bubble. Names in chrome://extensions always follow the browser.",
+    "description": "Hint under Display language. Chrome limitation: the extension name/description and shortcut names keep the browser language"
+  },
+  "options_ui_language_title": {
+    "message": "Display language",
+    "description": "Settings row: language of the TransPop interface itself (not the translation target)"
   },
   "options_version": {
     "message": "Version $P1$",

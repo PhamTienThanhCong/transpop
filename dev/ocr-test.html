@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TransPop — OCR engine test</title>
+    <!-- Dev harness only (never packaged). Runs extension/src/offscreen/ocr-engine.js directly in this page. -->
+    <style>
+      :root {
+        --primary: #0f766e;
+        --primary-soft: #f0fdfa;
+        --border: #e5e7ef;
+        --text: #0f172a;
+        --text-2: #475569;
+        --muted: #94a3b8;
+        --danger: #dc2626;
+        --success: #16a34a;
+        --surface-2: #f6f7fb;
+        color-scheme: light;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+        color: var(--text);
+        background: #fff;
+      }
+      header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+      header h1 { margin: 0; font-size: 18px; }
+      header .env { color: var(--text-2); font-size: 12px; }
+      main { display: grid; grid-template-columns: minmax(320px, 420px) 1fr; gap: 24px; padding: 24px; }
+      @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+      section { border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+      h2 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-2); }
+      label { display: flex; align-items: center; gap: 6px; }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+      .fixtures button, .actions button { font: inherit; }
+      button {
+        border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: 6px 12px; cursor: pointer;
+      }
+      button:hover { border-color: var(--primary); }
+      button.primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+      button[aria-pressed='true'] { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+      button:disabled { opacity: 0.5; cursor: progress; }
+      .drop {
+        border: 2px dashed var(--border); border-radius: 10px; min-height: 120px; display: grid; place-items: center;
+        background: var(--surface-2); padding: 8px; text-align: center; color: var(--muted);
+      }
+      .drop.over { border-color: var(--primary); }
+      .drop img { max-width: 100%; max-height: 260px; display: block; }
+      .langs { max-height: 220px; overflow: auto; columns: 2; font-size: 13px; }
+      .langs label { break-inside: avoid; }
+      .chosen { font-size: 12px; color: var(--text-2); }
+      .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+      .stat { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; }
+      .stat b { display: block; font-size: 18px; }
+      .stat span { font-size: 11px; color: var(--text-2); text-transform: uppercase; }
+      textarea { width: 100%; min-height: 140px; font-family: inherit; font-size: 15px; line-height: 1.5; padding: 8px; border: 1px solid var(--border); border-radius: 8px; }
+      .err { color: var(--danger); font-weight: 600; }
+      .ok { color: var(--success); font-weight: 600; }
+      table { border-collapse: collapse; width: 100%; font-size: 12px; }
+      th, td { border-bottom: 1px solid var(--border); padding: 4px 6px; text-align: left; vertical-align: top; }
+      th { color: var(--text-2); font-weight: 600; }
+      ol.log { margin: 0; padding-left: 20px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text-2); max-height: 200px; overflow: auto; }
+      pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; background: var(--surface-2); padding: 8px; border-radius: 8px; max-height: 300px; overflow: auto; }
+      .preview-pre img { max-width: 100%; border: 1px solid var(--border); }
+      small { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>TransPop — OCR engine test</h1>
+      <span class="env" id="env">…</span>
+    </header>
+    <main>
+      <div>
+        <section>
+          <h2>1 · Image</h2>
+          <div class="row fixtures" id="fixtures"></div>
+          <div class="row">
+            <input type="file" id="file" accept="image/*" />
+          </div>
+          <div class="drop" id="drop"><span>Pick a fixture, choose a file, drop an image here or paste a screenshot (⌘V / Ctrl+V)</span></div>
+        </section>
+        <section>
+          <h2>2 · OCR languages <small>(max 3, order = priority)</small></h2>
+          <div class="chosen" id="chosen"></div>
+          <div class="langs" id="langs"></div>
+        </section>
+        <section>
+          <h2>3 · Options</h2>
+          <div class="row">
+            <label>Page segmentation
+              <select id="psm">
+                <option value="">auto (engine heuristic + fallback pass)</option>
+                <option value="3">3 · AUTO</option>
+                <option value="6">6 · SINGLE_BLOCK</option>
+                <option value="7">7 · SINGLE_LINE</option>
+                <option value="11">11 · SPARSE_TEXT</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <label><input type="checkbox" id="pre" checked /> Pre-process like the crop pipeline (<code>cropForOcr</code>)</label>
+          </div>
+          <div class="row">
+            <label>Simulated devicePixelRatio <input type="number" id="dpr" value="1" min="0.5" max="4" step="0.1" style="width: 70px" /></label>
+          </div>
+          <div class="row actions">
+            <button class="primary" id="run">Run OCR</button>
+            <button id="runAll">Run all fixtures</button>
+            <button id="clear">Clear language cache</button>
+            <button id="terminate">Terminate worker</button>
+          </div>
+        </section>
+      </div>
+      <div>
+        <section>
+          <h2>Result</h2>
+          <div class="stats" id="stats"></div>
+          <div id="error" class="err" role="alert"></div>
+          <textarea id="text" dir="auto" readonly placeholder="Recognized text appears here"></textarea>
+        </section>
+        <section id="summarySection" hidden>
+          <h2>All fixtures</h2>
+          <table>
+            <thead><tr><th>Fixture</th><th>Langs</th><th>Match</th><th>Conf.</th><th>Time</th><th>Text</th></tr></thead>
+            <tbody id="summary"></tbody>
+          </table>
+        </section>
+        <section>
+          <h2>Lines</h2>
+          <table>
+            <thead><tr><th>#</th><th>Text</th><th>Conf.</th><th>BBox (x0,y0 → x1,y1)</th></tr></thead>
+            <tbody id="lines"></tbody>
+          </table>
+        </section>
+        <section>
+          <h2>Progress</h2>
+          <ol class="log" id="log"></ol>
+        </section>
+        <section>
+          <h2>Debug</h2>
+          <details class="preview-pre"><summary>Image sent to Tesseract</summary><img id="sent" alt="" /></details>
+          <details><summary>OcrResult JSON</summary><pre id="json"></pre></details>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./ocr-test.js"></script>
+  </body>
+</html>

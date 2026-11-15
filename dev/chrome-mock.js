@@ -197,6 +197,18 @@
       const s = await loadShared();
       return { ok: true, favorited: await s.isFavorite(msg.text, msg.to) };
     },
+    async 'get-ui-messages'() {
+      const s = await loadShared();
+      const { uiLanguage } = await s.getSettings();
+      if (!uiLanguage || uiLanguage === 'auto') return { ok: true, locale: LANG, messages: null };
+      const all = await fetch(`${EXT}_locales/${uiLanguage}/messages.json`).then((r) => r.json());
+      const messages = Object.fromEntries(
+        Object.entries(all)
+          .filter(([k]) => k.startsWith('bubble_') || k.startsWith('common_'))
+          .map(([k, v]) => [k, { message: v.message, ...(v.placeholders ? { placeholders: v.placeholders } : {}) }]),
+      );
+      return { ok: true, locale: uiLanguage, messages };
+    },
     async 'disable-site'(msg) {
       const s = await loadShared();
       const cur = await s.getSettings();

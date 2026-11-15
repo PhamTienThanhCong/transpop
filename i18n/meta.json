@@ -28,5 +28,10 @@
     "en": "Turn in-page translation on/off",
     "vi": "Bật/tắt dịch trên trang",
     "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
+  },
+  "cmdCropTranslate": {
+    "en": "Translate text in an image or screen area",
+    "vi": "Dịch chữ trong ảnh hoặc vùng màn hình",
+    "description": "Keyboard shortcut description (chrome://extensions/shortcuts)"
   }
 }

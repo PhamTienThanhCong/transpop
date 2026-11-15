@@ -84,14 +84,15 @@ put the request in your final report. Small private helpers belong in your own f
 
 ## 3. Manifest (summary — see `extension/manifest.json`)
 
-- `permissions`: `storage`, `contextMenus`, `offscreen`, `tts`
+- `permissions`: `storage`, `contextMenus`, `offscreen`, `tts`, `activeTab` (screen capture for image translation; no install warning)
+- `content_security_policy.extension_pages`: `script-src 'self' 'wasm-unsafe-eval'; object-src 'self';` (Tesseract WASM)
 - `host_permissions`: `https://translate.googleapis.com/*`, `https://translate.google.com/*`,
   `https://edge.microsoft.com/*`, `https://api-edge.cognitive.microsofttranslator.com/*`, `https://www.bing.com/*`
 - `background.service_worker`: `src/background/service-worker.js` (`"type": "module"`)
 - `content_scripts`: `<all_urls>`, `all_frames: true`, `match_about_blank: true`, `run_at: document_idle`
 - `action.default_popup`: `src/popup/popup.html`
 - `options_ui`: `src/options/options.html`, `open_in_tab: true`
-- `commands`: `_execute_action` (Alt+Shift+T), `translate-selection` (Alt+Shift+S), `toggle-enabled` (no default)
+- `commands`: `_execute_action` (Alt+Shift+T), `translate-selection` (Alt+Shift+S), `crop-translate` (Alt+Shift+A), `toggle-enabled` (no default)
 - `minimum_chrome_version`: `116`
 
 ---
@@ -328,3 +329,83 @@ names and parts of speech, star turns `--star` when favorited. Icons: stroke sty
 - Works on: ordinary sites, sites with strict CSP, iframes, dark sites, RTL pages, pages with huge z-index overlays.
 - Bubble never breaks the host page (Shadow DOM, `all: initial`, max z-index, no global listeners that `preventDefault`).
 - UI tested at 100% zoom, popup width 400px, options page responsive ≥ 360px.
+
+
+---
+
+## 10. Display language (UI language override)
+
+Setting `uiLanguage`: `'auto' | 'en' | 'vi'` (`UI_LANGUAGES` in constants.js; every non-auto value must have an
+`extension/_locales/<code>/messages.json`). `'auto'` keeps today's behaviour (`chrome.i18n`, browser language).
+
+- `src/shared/i18n.js` gains an async `initI18n()` that every extension page awaits **before** `localizeDocument()`:
+  it reads settings and, when `uiLanguage !== 'auto'`, fetches `_locales/<code>/messages.json`, after which `t()` uses
+  that dictionary (same placeholder rules as Chrome: `$P1$` + `placeholders`, plus `$1` positional). It also makes
+  `getUiLocale()` (languages.js) return the override, so language names / relative times / `<html lang>` follow it.
+  `uiDir()` → `rtl` only for RTL UI locales.
+- Pages reload themselves (or re-localize) when `uiLanguage` changes.
+- Background: context-menu titles use the same dictionary (re-created on change).
+- Content script: `{type: 'get-ui-messages'}` → `{locale, messages}` (`messages` is `null` for auto; only the `bubble_*` and `common_*` keys, without descriptions); its `t()` uses the
+  dictionary when present, else `chrome.i18n.getMessage`; refresh when the `settings.uiLanguage` changes.
+- Chrome limitation (document it in the UI hint): the extension name/description in `chrome://extensions` and the
+  shortcut descriptions keep following the browser language.
+
+## 11. Image translation (OCR) — phase 1
+
+Flow: **trigger → capture visible tab → user drags a region (or the right-clicked image's box is used) → crop → OCR
+(Tesseract.js, local) → show recognized text + translation in a bubble.**
+
+Triggers: command `crop-translate` (Alt+Shift+A), context menu on images "Translate text in image"
+(`contexts: ['image']`), context menu on pages "Translate screen area…" (`contexts: ['page']`), popup button.
+All are user gestures, so `activeTab` lets the background call `chrome.tabs.captureVisibleTab`.
+
+### Messages
+| `type` | direction | payload | response |
+|---|---|---|---|
+| `start-capture` | popup → background | `{ tabId? }` (default: active tab) | `{}` — same as the command |
+| `start-crop` | background → content (frame 0) | `{ mode: 'region' \| 'image', srcUrl? }` | `{ started: boolean }` |
+| `ocr-region` | content → background | `{ rect: {x, y, width, height}, viewport: {width, height}, langs?: string[] }` (CSS px, viewport-relative) | `{ ocr: OcrResult }` |
+| `ocr-image` | extension page → background | `{ dataUrl, langs?: string[] }` | `{ ocr: OcrResult }` |
+| `get-capture` | capture page → background | `{ id }` | `{ dataUrl, width, height, tabTitle? }` |
+| `ocr-clear-cache` | options → background | `{}` | `{}` — deletes downloaded traineddata |
+| `get-ui-messages` | content → background | `{}` | `{ locale, messages \| null }` |
+| `offscreen-ocr` / `offscreen-ocr-clear` | background → offscreen (`target: 'offscreen'`) | `{ dataUrl, langs }` / `{}` | `{ ocr }` / `{}` |
+
+```ts
+type OcrResult = {
+  text: string;            // recognized text, lines joined with \n, trimmed
+  confidence: number;      // 0..100 (Tesseract mean confidence)
+  langs: string[];         // Tesseract codes used
+  lang?: string;           // Google-style hint for translate `from` when exactly one OCR language was used
+  lines?: Array<{ text: string; confidence: number; bbox: {x0, y0, x1, y1} }>; // in cropped-image pixels
+}
+```
+Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). Then the UI calls the normal
+`translate` message with `text` (`from`: `ocr.lang` or `auto`).
+
+### Background pipeline
+1. On trigger: `captureVisibleTab(windowId, {format: 'png'})`, keep `{dataUrl, tabId, capturedAt}` in memory
+   (one per tab, dropped after 2 min or on the next capture). Capturing *before* the overlay appears means the overlay
+   is never in the image and the region matches what the user saw.
+2. Send `start-crop` to frame 0. **No receiver** (Chrome PDF viewer, `chrome://` pages, Web Store, tab opened before
+   install) → open the fallback page `src/capture/capture.html?id=<captureId>` in a popup window: it shows the
+   screenshot, lets the user drag a region, crops it client-side (canvas) and calls `ocr-image`.
+3. `ocr-region`: crop the stored screenshot (scale = imageWidth / viewport.width for device-pixel ratio), upscale small
+   crops (target ≥ ~1000px on the long side, max 2.5×), grayscale, encode PNG (OffscreenCanvas in the service worker),
+   then OCR.
+4. OCR runs in the **offscreen document** (single document; reasons `['AUDIO_PLAYBACK', 'WORKERS']`, shared with TTS
+   through one `ensureOffscreen()` helper). Tesseract.js is **vendored** under `extension/vendor/tesseract/`
+   (worker + core WASM — never loaded from a CDN: Web Store remote-code policy) with `workerBlobURL: false`.
+   Language data (`<lang>.traineddata`) is downloaded on first use from jsDelivr (`@tesseract.js-data/<lang>`) and cached
+   in IndexedDB by Tesseract — data, not code. Keep one worker alive and re-initialize only when `langs` change; if the
+   offscreen document was closed, recreate it and retry once.
+5. Default OCR languages: `settings.ocrLanguages` (Tesseract codes, max 3, default `['eng']`); the crop toolbar can
+   override per capture (remembered as the new default). Helpers: `src/shared/ocr-languages.js`.
+
+### Crop UI (content script, closed Shadow DOM)
+Full-viewport dim layer (cursor crosshair) with a hint bar on top ("Drag to select an area · Esc to cancel") and an
+OCR-language picker; drag draws a clear rectangle with a teal border + size label; min 12×12 px; Esc / right-click
+cancels; blocks page scrolling/clicks while active; mouse-up → overlay turns into a small loading state at the region
+→ results bubble anchored to the region: recognized text (editable `<textarea>`, re-translate button), translation,
+speak/copy, "Select again". `mode: 'image'` skips dragging and uses the bounding box of the last right-clicked
+`<img>` matching `srcUrl` (clamped to the viewport).

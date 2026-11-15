@@ -19,7 +19,8 @@ import { translate } from './translator.js';
 import { LRUCache, makeCacheKey } from './cache.js';
 import * as tts from './tts.js';
 import { updateBadge } from './badge.js';
-import { handleCommand, handleMenuClick, refreshActionMenus, scheduleRefresh, setupContextMenus } from './context-menus.js';
+import { handleCommand, handleMenuClick, scheduleRefresh, setupContextMenus, syncMenus } from './context-menus.js';
+import { getUiMessages } from './ui-messages.js';
 
 const WELCOME_PAGE = 'src/welcome/welcome.html';
 const OPTIONS_PAGE = 'src/options/options.html';
@@ -34,7 +35,10 @@ const cache = new LRUCache(LIMITS.CACHE_MAX);
 const inflight = new Map(); // cache key → Promise<TranslationResult> (de-duplicates concurrent requests)
 let historyChain = Promise.resolve();
 
-const uiLang = () => normalizeLangCode(getUiLocale()) || 'en';
+/** `hl` for the provider (localizes dictionary part-of-speech labels): the Display language, else the browser's. */
+const uiLang = (settings) =>
+  settings?.uiLanguage && settings.uiLanguage !== 'auto' ? settings.uiLanguage : normalizeLangCode(getUiLocale()) || 'en';
+let cacheUiLang = null; // `hl` of the cached results — the cache is dropped when the display language changes
 
 /** Serialize history writes so quick successive translations don't race (read-modify-write). */
 function recordHistory(result) {
@@ -57,6 +61,11 @@ async function handleTranslate(msg) {
   const swapTo = explicitTo ? undefined : settings.secondaryLang; // smart swap only when `to` is omitted
   const provider = settings.provider;
   const key = makeCacheKey({ provider, from, to, swapTo, text });
+  const hl = uiLang(settings);
+  if (hl !== cacheUiLang) {
+    cache.clear();
+    cacheUiLang = hl;
+  }
 
   let result;
   const hit = cache.get(key);
@@ -65,7 +74,7 @@ async function handleTranslate(msg) {
   } else {
     let pending = inflight.get(key);
     if (!pending) {
-      pending = translate({ text, from, to, swapTo, provider, uiLang: uiLang() }).finally(() => inflight.delete(key));
+      pending = translate({ text, from, to, swapTo, provider, uiLang: hl }).finally(() => inflight.delete(key));
       inflight.set(key, pending);
     }
     const fresh = await pending;
@@ -139,6 +148,7 @@ const handleMessage = createHandler({
     favorited: typeof msg.text === 'string' && msg.text.trim() && msg.to ? await isFavorite(msg.text, msg.to) : false,
   }),
   [MSG.DISABLE_SITE]: async (msg, sender) => ({ settings: await disableSite(msg.hostname || hostFromSender(sender)) }),
+  [MSG.GET_UI_MESSAGES]: () => getUiMessages(), // { locale, messages | null } for the content script (§10)
 });
 
 /* ------------------------------------------------------------------ */
@@ -199,7 +209,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 onSettingsChanged((settings) => {
   updateBadge(settings);
-  refreshActionMenus(settings);
+  syncMenus(settings); // titles; every menu is re-created when the display language changed
 });
 
 // Every time the worker starts (also after disable → enable, where neither onInstalled nor onStartup fire).

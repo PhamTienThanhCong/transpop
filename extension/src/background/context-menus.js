@@ -10,8 +10,9 @@
  */
 import { LIMITS, MSG } from '../shared/constants.js';
 import { sendToTab } from '../shared/messaging.js';
-import { t } from '../shared/i18n.js';
 import { getSettings, isSiteDisabled, normalizeHostname, saveSettings } from '../shared/storage.js';
+// Menu titles follow the Display-language setting: t() in this file IS bgT() (await ensureUiMessages() first).
+import { bgT as t, ensureUiMessages } from './ui-messages.js';
 
 export const MENU = Object.freeze({
   TRANSLATE: 'transpop-translate',
@@ -56,18 +57,25 @@ function updateMenu(id, props) {
 }
 
 let setupChain = Promise.resolve();
+let menusUiLanguage = null; // settings.uiLanguage the current titles were built with (null = unknown, e.g. worker restarted)
 
 /** (Re)create all menus. Serialized + removeAll first, so it never hits duplicate-id errors. */
 export function setupContextMenus() {
   setupChain = setupChain
     .catch(() => {})
     .then(async () => {
+      menusUiLanguage = (await ensureUiMessages()).lang;
       await removeAllMenus();
       await createMenu({ id: MENU.TRANSLATE, title: t('bg_ctx_translate'), contexts: ['selection'] });
       await createMenu({ id: MENU.TOGGLE_SITE, title: t('bg_ctx_site_unavailable'), contexts: ['action'], enabled: false });
       await createMenu({ id: MENU.TOGGLE_ENABLED, title: t('bg_ctx_pause'), contexts: ['action'] });
     });
   return setupChain.then(() => refreshActionMenus());
+}
+
+/** After a settings change: re-create every menu when the display language changed, else just refresh titles. */
+export function syncMenus(settings) {
+  return settings && settings.uiLanguage === menusUiLanguage ? refreshActionMenus(settings) : setupContextMenus();
 }
 
 /* ------------------------------------------------------------------ */
@@ -120,6 +128,7 @@ export async function refreshActionMenus(settingsArg) {
   const seq = ++refreshSeq;
   try {
     const settings = settingsArg || (await getSettings());
+    await ensureUiMessages(settings);
     const host = await hostnameForTab(await getActiveTab());
     if (seq !== refreshSeq) return; // a newer refresh is running
     await updateMenu(MENU.TOGGLE_ENABLED, { title: t(settings.enabled ? 'bg_ctx_pause' : 'bg_ctx_resume') });

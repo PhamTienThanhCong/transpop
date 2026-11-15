@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- OCR test fixture (dev only). Render: rsvg-convert -o vi-sentence.png vi-sentence.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="110" viewBox="0 0 720 110">
+  <rect width="720" height="110" fill="#f6f7fb"/>
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" fill="#0f172a">
+    <text x="24" y="46">Tiếng Việt có sáu thanh điệu: ngang, huyền, sắc,</text>
+    <text x="24" y="82">hỏi, ngã và nặng. Chúc bạn một ngày tốt lành!</text>
+  </g>
+</svg>

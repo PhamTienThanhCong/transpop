@@ -33,6 +33,8 @@ const MIME = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.md': 'text/plain; charset=utf-8',
+  '.wasm': 'application/wasm', // Tesseract core: streaming compilation needs the right MIME type
+  '.txt': 'text/plain; charset=utf-8',
 };
 
 const MOCK_TAG = '<script src="/dev/chrome-mock.js"></script>';
@@ -95,7 +97,8 @@ const server = http.createServer(async (req, res) => {
 <a href="/extension/src/popup/popup.html">Popup</a>
 <a href="/extension/src/popup/popup.html?view=tab">Popup — full page</a>
 <a href="/extension/src/options/options.html">Options</a>
-<a href="/extension/src/welcome/welcome.html">Welcome</a>`,
+<a href="/extension/src/welcome/welcome.html">Welcome</a>
+<a href="/dev/ocr-test.html">OCR engine test (Tesseract, image translation)</a>`,
         MIME['.html'],
       );
     }

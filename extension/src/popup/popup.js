@@ -7,7 +7,7 @@
 import { ERROR_CODES, LIMITS, MSG } from '../shared/constants.js';
 import { AUTO, getLanguageName, getLanguageOptions, getUiLocale, isSupportedLang, normalizeLangCode } from '../shared/languages.js';
 import { send, sendToTab } from '../shared/messaging.js';
-import { localizeDocument, t } from '../shared/i18n.js';
+import { initI18n, localizeDocument, reloadOnUiLanguageChange, t } from '../shared/i18n.js';
 import {
   getPopupState,
   getSettings,
@@ -48,6 +48,7 @@ applyTheme('auto'); // follow the OS until settings arrive (avoids a light flash
 /* ------------------------------------------------------------------ */
 
 hydrateIcons(document);
+await initI18n(); // Display language (ARCHITECTURE §10) — before any t(), language list or Intl formatter
 localizeDocument(document);
 
 const els = {
@@ -844,6 +845,7 @@ function bindEvents() {
   });
 
   onFavoritesChanged(() => refreshFavorite());
+  reloadOnUiLanguageChange(saveStateNow); // another display language → reload with the new strings
 
   window.addEventListener('pagehide', saveStateNow);
   document.addEventListener('visibilitychange', () => {

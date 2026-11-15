@@ -4,7 +4,7 @@
  */
 import { APP, MSG } from '../shared/constants.js';
 import { getLanguageName, getUiLocale } from '../shared/languages.js';
-import { localizeDocument, t } from '../shared/i18n.js';
+import { initI18n, localizeDocument, reloadOnUiLanguageChange, t } from '../shared/i18n.js';
 import { send } from '../shared/messaging.js';
 import {
   clearFavorites,
@@ -30,6 +30,7 @@ import {
   errorMessage,
   fillLanguageSelect,
   fillModifierSelect,
+  fillUiLanguageSelect,
   getCommands,
   kbdGroup,
   openShortcutsPage,
@@ -59,12 +60,18 @@ const state = {
 /** Radio-group controllers keyed by setting name (provider, theme, triggerMode). */
 const controls = {};
 const showToast = createToast($('#toast'));
-const locale = getUiLocale();
-const numberFormat = new Intl.NumberFormat(locale);
-const rateFormat = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const pluralRules = new Intl.PluralRules(locale);
+// Locale-dependent formatters: created in init(), after initI18n() applied the Display-language setting.
+let numberFormat;
+let rateFormat;
+let pluralRules;
 
 async function init() {
+  await initI18n();
+  const locale = getUiLocale();
+  numberFormat = new Intl.NumberFormat(locale);
+  rateFormat = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  pluralRules = new Intl.PluralRules(locale);
+
   hydrateIcons();
   localizeDocument();
   setupLogos();
@@ -76,6 +83,7 @@ async function init() {
 
   render(await getSettings());
   onSettingsChanged((settings) => render(settings));
+  reloadOnUiLanguageChange(() => flushRangeSaves()); // new display language → reload with the new strings
 
   setupData();
 }
@@ -104,6 +112,7 @@ function renderMeta() {
 /* ================================================================== */
 
 function setupControls() {
+  fillUiLanguageSelect($('#s-uiLanguage'));
   fillLanguageSelect($('#s-targetLang'));
   fillLanguageSelect($('#s-secondaryLang'));
   fillModifierSelect($('#s-modifierKey'));

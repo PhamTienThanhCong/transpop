@@ -1,13 +1,25 @@
 /**
- * TransPop — offscreen document: plays Google TTS audio chunks sequentially.
+ * TransPop — offscreen document (one per extension, shared by TTS and OCR; created by background/offscreen-doc.js
+ * with reasons AUDIO_PLAYBACK + WORKERS).
  * Messages (from the service worker, `target: 'offscreen'` only):
  *   { type: 'offscreen-play', urls: string[] | url: string, rate } → { ok: true } once the first chunk
  *       starts playing, { ok: false, error } if it can't be played (the SW then falls back to chrome.tts)
  *   { type: 'offscreen-stop' } → { ok: true }
+ *   { type: 'offscreen-ocr', dataUrl, langs } → { ok: true, ocr: OcrResult } | { ok: false, error: { code, message } }
+ *   { type: 'offscreen-ocr-clear' } → { ok: true } after the Tesseract worker is stopped and its language data deleted
+ *
+ * The document closes itself after IDLE_CLOSE_MS without audio or OCR (the WORKERS reason would otherwise keep it, and
+ * the OCR worker's memory, alive for the whole session); the service worker recreates it on the next request.
  */
 import { MSG, LIMITS } from '../shared/constants.js';
+import { serializeError } from '../shared/messaging.js';
+import { clearCache, getStatus, recognize } from './ocr-engine.js';
 
 const TTS_PREFIX = 'https://translate.google.com/translate_tts?';
+const IDLE_CLOSE_MS = 5 * 60_000;
+
+let idleCloseTimer = null;
+let ocrJobs = 0;
 
 let session = 0;
 let current = null; // { audio, reject }
@@ -98,9 +110,63 @@ function play(urls, rate) {
   });
 }
 
+/* ------------------------------------------------------------------ */
+/* Idle self-close                                                     */
+/* ------------------------------------------------------------------ */
+
+function touch() {
+  clearTimeout(idleCloseTimer);
+  idleCloseTimer = setTimeout(closeIfIdle, IDLE_CLOSE_MS);
+}
+
+function closeIfIdle() {
+  if (current || ocrJobs > 0 || getStatus().busy) {
+    touch();
+    return;
+  }
+  window.close();
+}
+
+/* ------------------------------------------------------------------ */
+/* OCR                                                                 */
+/* ------------------------------------------------------------------ */
+
+/** Run an OCR task and answer with an envelope; keeps the document alive while it runs. */
+function answerOcr(task, sendResponse) {
+  ocrJobs++;
+  Promise.resolve()
+    .then(task)
+    .then(
+      (data) => sendResponse({ ok: true, ...data }),
+      (err) => sendResponse({ ok: false, error: serializeError(err) }),
+    )
+    .finally(() => {
+      ocrJobs--;
+      touch();
+    });
+  return true;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || message.target !== 'offscreen') return false;
   if (sender?.id && sender.id !== chrome.runtime.id) return false;
+  touch();
+
+  if (message.type === MSG.OFFSCREEN_OCR) {
+    const { dataUrl, langs } = message;
+    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+      sendResponse({ ok: false, error: { code: 'OCR_FAILED', message: 'Not an image' } });
+      return false;
+    }
+    return answerOcr(async () => ({ ocr: await recognize(dataUrl, Array.isArray(langs) ? langs : undefined) }), sendResponse);
+  }
+
+  if (message.type === MSG.OFFSCREEN_OCR_CLEAR) {
+    return answerOcr(async () => {
+      await clearCache();
+      return {};
+    }, sendResponse);
+  }
 
   if (message.type === MSG.OFFSCREEN_PLAY) {
     const list = Array.isArray(message.urls) ? message.urls : message.url ? [message.url] : [];
@@ -123,3 +189,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return false;
 });
+
+// Close even if no message ever arrives (e.g. the service worker went away right after creating the document).
+touch();
