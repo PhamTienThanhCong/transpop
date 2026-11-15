@@ -25,6 +25,13 @@ import { ERROR_CODES } from '../shared/constants.js';
 import { makeError } from '../shared/messaging.js';
 import { normalizeOcrLanguages, ocrToLang } from '../shared/ocr-languages.js';
 
+/**
+ * Init-time Tesseract parameters. Tesseract prints diagnostics ("Estimating resolution as 673", "Detected 52
+ * diacritics", "Parameter not found…") through its debug channel, which Emscripten routes to console.error — Chrome
+ * then lists them under the extension's "Errors". They are not errors: send that channel to /dev/null.
+ */
+const INIT_CONFIG = Object.freeze({ debug_file: '/dev/null' });
+
 /** Tesseract page segmentation modes we use (values are what `tessedit_pageseg_mode` expects). */
 export const PSM = Object.freeze({ AUTO: '3', SINGLE_BLOCK: '6', SINGLE_LINE: '7', SPARSE_TEXT: '11' });
 const OEM_LSTM_ONLY = 1;
@@ -364,7 +371,7 @@ async function createEngine(langs) {
       errorHandler: (err) => {
         if (!initDone) failInit(err);
       },
-    });
+    }, { ...INIT_CONFIG });
   } catch (err) {
     creating = Promise.reject(err);
   } finally {
@@ -424,7 +431,7 @@ async function getEngine(langs) {
     const current = engine;
     const fresh = langs.filter((l) => !current.loaded.has(l));
     if (current.loaded.size + fresh.length <= OCR_LIMITS.MAX_LOADED_LANGS) {
-      await job(current, current.worker.reinitialize([...langs], OEM_LSTM_ONLY), config.initTimeoutMs, 'OCR language switch timed out');
+      await job(current, current.worker.reinitialize([...langs], OEM_LSTM_ONLY, { ...INIT_CONFIG }), config.initTimeoutMs, 'OCR language switch timed out');
       fresh.forEach((l) => current.loaded.add(l));
       current.key = key;
       return current;

@@ -113,4 +113,5 @@ export const DEFAULT_SETTINGS = Object.freeze({
   closeOnClickOutside: true,
   uiLanguage: 'auto',
   ocrLanguages: ['eng'],
+  ocrAutoDetect: true, // image translation: guess the text language from the page and try it first (ARCHITECTURE §11)
 });

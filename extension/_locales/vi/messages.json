@@ -48,11 +48,20 @@
   "bubble_copy_translation": {
     "message": "Sao chép bản dịch"
   },
+  "bubble_crop_auto": {
+    "message": "Tự động"
+  },
+  "bubble_crop_auto_title": {
+    "message": "Ngôn ngữ của chữ được tự nhận diện từ trang — các ngôn ngữ hiển thị ở đây cũng được thử."
+  },
   "bubble_crop_copy_text": {
     "message": "Sao chép chữ nhận dạng được"
   },
   "bubble_crop_dialog_label": {
     "message": "TransPop — chữ trong ảnh"
+  },
+  "bubble_crop_downloading": {
+    "message": "Đang tải dữ liệu ngôn ngữ (chỉ lần đầu)…"
   },
   "bubble_crop_full": {
     "message": "Dùng toàn bộ phần trang đang hiển thị"
@@ -83,6 +92,20 @@
   "bubble_crop_low_confidence": {
     "message": "Chữ có thể chưa được nhận dạng chính xác — hãy kiểm tra và sửa nếu cần."
   },
+  "bubble_crop_more_langs": {
+    "message": "Khác…"
+  },
+  "bubble_crop_more_langs_label": {
+    "message": "Chọn ngôn ngữ khác của chữ"
+  },
+  "bubble_crop_no_text_with": {
+    "message": "Không tìm thấy chữ khi đọc bằng: $P1$. Chữ có phải là ngôn ngữ khác không?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "bubble_crop_overlay_label": {
     "message": "Chọn vùng cần dịch"
   },
@@ -106,6 +129,17 @@
   },
   "bubble_crop_translate_again_hint": {
     "message": "Dịch đoạn chữ đã sửa ($P1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bubble_crop_try_label": {
+    "message": "Thử ngôn ngữ khác"
+  },
+  "bubble_crop_try_lang": {
+    "message": "Thử lại với $P1$",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -526,6 +560,12 @@
   },
   "options_nav_trigger": {
     "message": "Cách kích hoạt"
+  },
+  "options_ocr_auto_desc": {
+    "message": "Đoán ngôn ngữ dựa vào nội dung trang quanh vùng bạn chọn — ví dụ chữ Trung trên trang tiếng Trung. Các ngôn ngữ bên dưới vẫn được dùng thêm để dự phòng."
+  },
+  "options_ocr_auto_title": {
+    "message": "Tự nhận diện ngôn ngữ của chữ"
   },
   "options_ocr_cache_cleared": {
     "message": "Đã xóa dữ liệu ngôn ngữ đã tải"

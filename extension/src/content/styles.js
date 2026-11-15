@@ -619,6 +619,21 @@
 .g-ladd:hover { border-color: var(--g-primary); color: var(--g-primary); }
 .g-ladd:focus-visible { box-shadow: var(--g-focus-ring); }
 .g-ladd option { color: var(--g-text); background: var(--g-surface); font-weight: 400; text-align: start; }
+/* "Auto" pill: the text language is guessed from the page (these languages are tried too) */
+.g-lauto {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid var(--g-primary);
+  border-radius: 999px;
+  color: var(--g-primary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: help;
+}
 
 /* Region marker (document coordinates, scrolls with the page) */
 .g-crop-mark {
@@ -691,6 +706,29 @@
 .g-btn.is-primary:disabled:hover { background: var(--g-primary-soft); border-color: transparent; }
 .g-ocr .g-langs { padding: 8px 14px 9px; border-top: 1px solid var(--g-border); }
 .g-error-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+/* "No text found with …" → one-tap retry in another language */
+.g-retry-langs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.g-rchip, .g-rmore {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--g-border);
+  border-radius: 999px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-family: var(--g-font);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 26px;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  transition: background 160ms var(--g-ease), border-color 160ms var(--g-ease), color 160ms var(--g-ease);
+}
+.g-rchip:hover { border-color: var(--g-primary); background: var(--g-primary-soft); color: var(--g-primary); }
+.g-rmore { appearance: none; -webkit-appearance: none; max-width: 140px; border-style: dashed; border-color: var(--g-border-strong); color: var(--g-text-2); }
+.g-rmore:hover { border-color: var(--g-primary); color: var(--g-primary); }
+.g-rmore option { color: var(--g-text); background: var(--g-surface); }
+.g-rchip:focus-visible, .g-rmore:focus-visible { box-shadow: var(--g-focus-ring); }
 .g-ocr-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 7px 10px 7px 14px; }
 .g-ocr-foot .g-ocr-powered { margin-inline-start: auto; }
 
@@ -712,7 +750,7 @@
   .g-bubble, .g-crop-bar { border: 1px solid CanvasText; }
   .g-crop-box, .g-crop-mark { border-color: Highlight; }
   .g-ib:focus-visible, .g-btn:focus-visible, .g-to:focus-visible, .g-more:focus-visible, .g-trigger:focus-visible,
-  .g-ladd:focus-visible, .g-lchip-x:focus-visible, .g-ocr-text:focus {
+  .g-ladd:focus-visible, .g-lchip-x:focus-visible, .g-ocr-text:focus, .g-rchip:focus-visible, .g-rmore:focus-visible {
     outline: 2px solid Highlight;
   }
 }

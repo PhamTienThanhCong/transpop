@@ -11,8 +11,8 @@
   </head>
   <body>
     <!--
-      Screenshot page (ARCHITECTURE §11, fallback): opened in a popup window when the page itself can't show the
-      selection overlay (Chrome PDF viewer, browser pages, Chrome Web Store, tabs opened before install…).
+      Screenshot page (ARCHITECTURE §11, fallback): opened in a tab next to the page when the page itself can't show
+      the selection overlay (Chrome PDF viewer, browser pages, Chrome Web Store…).
     -->
     <div class="app">
       <header class="bar">
@@ -59,7 +59,7 @@
             <button type="button" class="btn btn-sm" id="btn-whole"><i data-icon="expand"></i><span data-i18n="capture_whole"></span></button>
           </div>
 
-          <div class="pane" id="pane-busy" role="status" hidden>
+          <div class="pane" id="pane-busy" role="status" tabindex="-1" hidden>
             <span class="spinner" aria-hidden="true"></span>
             <p data-i18n="bubble_crop_recognizing"></p>
             <p class="muted small" id="busy-slow" data-i18n="bubble_crop_slow" hidden></p>
@@ -68,6 +68,7 @@
           <div class="pane pane-error" id="pane-error" role="alert" hidden>
             <i data-icon="alert" data-icon-size="22" class="error-icon"></i>
             <p id="error-msg"></p>
+            <div class="retry-langs" id="retry-langs" role="group" data-i18n-aria-label="bubble_crop_try_label" hidden></div>
             <div class="row">
               <button type="button" class="btn btn-sm" id="btn-retry"><i data-icon="refresh"></i><span data-i18n="common_retry"></span></button>
               <button type="button" class="btn btn-sm" id="btn-again"><span data-i18n="bubble_crop_select_again"></span></button>

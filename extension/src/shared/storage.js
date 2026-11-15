@@ -74,6 +74,7 @@ export function normalizeSettings(raw) {
     closeOnClickOutside: pickBool(s.closeOnClickOutside, d.closeOnClickOutside),
     uiLanguage: pickEnum(s.uiLanguage, UI_LANGUAGES, d.uiLanguage),
     ocrLanguages: normalizeOcrLanguages(s.ocrLanguages),
+    ocrAutoDetect: pickBool(s.ocrAutoDetect, d.ocrAutoDetect),
   };
 }
 
