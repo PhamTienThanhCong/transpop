@@ -1377,7 +1377,7 @@
       return;
     }
     b.style.removeProperty('max-height');
-    const p = U.placeBubble(k.toView(s.anchor, o), { width: b.offsetWidth, height: b.offsetHeight }, vp, { gap: EDGE, margin: EDGE });
+    const p = U.placeBubble(k.toView(s.anchor, o), { width: b.offsetWidth, height: b.offsetHeight }, vp, { gap: EDGE, margin: EDGE, side: true });
     if (p.maxHeight != null) b.style.setProperty('max-height', `${p.maxHeight}px`);
     b.style.setProperty('left', `${p.left - o.x}px`);
     b.style.setProperty('top', `${p.top - o.y}px`);

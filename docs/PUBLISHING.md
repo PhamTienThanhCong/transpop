@@ -238,7 +238,7 @@ Nội dung dán lấy từ [STORE_LISTING.md](STORE_LISTING.md).
 | **Category** | **Tools** (nhóm Productivity). Phương án khác: **Education**. |
 | **Language** | **English** (ngôn ngữ mặc định — trùng `default_locale` của gói). |
 | **Store icon** | `store-assets/store-icon-128.png` (128×128). |
-| **Screenshots** | 1–5 ảnh **1280×800** (hoặc 640×400), PNG/JPEG, góc vuông, không viền. Xem `store-assets/screenshots/README.md`. Nên đủ 5 ảnh. |
+| **Screenshots** | 1–5 ảnh **1280×800** (hoặc 640×400), PNG/JPEG, góc vuông, không viền. Đã có sẵn — tải lên đúng 5 ảnh theo thứ tự: `01-bubble`, `06-image-translation`, `03-popup-dictionary`, `04-history-favorites`, `05-settings` trong `store-assets/screenshots/en/` (bản tiếng Anh) hoặc `vi/` (bản tiếng Việt). |
 | **Small promo tile** | `store-assets/promo-small-440x280.png` (440×280). |
 | **Marquee promo tile** | `store-assets/promo-marquee-1400x560.png` (1400×560) — tùy chọn, cần nếu muốn được Google chọn giới thiệu. |
 | **Promo video** | Tùy chọn — link YouTube. |

@@ -183,7 +183,7 @@
 
   /** "Screenshot" of the viewport at devicePixelRatio: white page + every visible same-origin <img> where it is. */
   function pseudoScreenshot() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Number(localStorage.getItem('transpop-dev-dpr')) || window.devicePixelRatio || 1; // override to emulate Retina captures
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const canvas = document.createElement('canvas');

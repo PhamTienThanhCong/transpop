@@ -212,3 +212,15 @@ test('double-injection guard keeps a healthy instance and replaces an orphaned o
   assert.notEqual(ctx.__transpopContent, first, 'orphan replaced');
   assert.equal(ctx.__transpopContent.started, false);
 });
+
+test('placeBubble: side placement (opt-in, OCR regions) when neither above nor below fits', () => {
+  const anchor = { left: 100, right: 500, top: 150, bottom: 450 };
+  const vp = { width: 1400, height: 760 };
+  const p = U.placeBubble(anchor, { width: 380, height: 420 }, vp, { side: true });
+  assert.equal(p.placement, 'right');
+  assert.equal(p.left, 508);
+  assert.equal(p.top, 150);
+  assert.equal(p.maxHeight, null);
+  const noSide = U.placeBubble(anchor, { width: 380, height: 420 }, vp);
+  assert.notEqual(noSide.placement, 'right', 'text selections keep above/below');
+});

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <!-- Store-screenshot fixture: a café notice board with Simplified Chinese text (original artwork, MIT). -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9cbb5"/><stop offset="1" stop-color="#c4b296"/></linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a5a35"/><stop offset="1" stop-color="#6b4226"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#3b2a1a" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="1200" height="720" fill="url(#wall)"/>
+  <g filter="url(#shadow)">
+    <rect x="150" y="70" width="900" height="580" rx="18" fill="url(#wood)"/>
+    <rect x="178" y="98" width="844" height="524" rx="10" fill="#fbf7ee"/>
+  </g>
+  <circle cx="200" cy="120" r="9" fill="#b08455"/><circle cx="1000" cy="120" r="9" fill="#b08455"/>
+  <circle cx="200" cy="600" r="9" fill="#b08455"/><circle cx="1000" cy="600" r="9" fill="#b08455"/>
+  <g font-family="'Hiragino Sans GB', 'PingFang SC', 'STHeiti', sans-serif" fill="#2b2118" text-anchor="middle">
+    <text x="600" y="215" font-size="76" font-weight="700">欢迎光临</text>
+    <rect x="420" y="245" width="360" height="4" rx="2" fill="#c9a26b"/>
+    <text x="600" y="330" font-size="44">营业时间：每天上午九点到晚上十点</text>
+    <text x="600" y="410" font-size="44">今日推荐：抹茶拿铁和手工蛋糕</text>
+    <text x="600" y="490" font-size="44">店内禁止吸烟，谢谢您的合作！</text>
+    <text x="600" y="570" font-size="32" fill="#6b5b4b">外带请到收银台点单</text>
+  </g>
+</svg>

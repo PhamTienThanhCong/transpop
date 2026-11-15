@@ -129,8 +129,9 @@ Bản dịch được cung cấp bởi Google Dịch (mặc định), tự độ
 
 All graphics are re-generated from SVG sources with `npm run icons` (`store-assets/render.sh`).
 
-Since 1.1.0, consider swapping one screenshot (e.g. the settings shot) for an **image translation** shot — see
-`screenshots/README.md` (the store shows at most 5).
+Upload these 5, in order: `01-bubble`, `06-image-translation`, `03-popup-dictionary`, `04-history-favorites`,
+`05-settings` — from `store-assets/screenshots/en/` (English listing) or `vi/` (Vietnamese listing). See
+`screenshots/README.md`.
 
 ---
 

@@ -27,23 +27,22 @@ File names are referenced by `README.md` — keep them.
 | 4 | `04-history-favorites.png` | **History & favorites** view in the popup (or full-page translator) with ~6–8 realistic entries, a few starred, search box visible. |
 | 5 | `05-settings.png` | **Settings page**: the Trigger section (Icon / Auto / Hotkey cards) or General section with target language, plus the theme selector — showing how customizable TransPop is. |
 
-### Image translation shot (since v1.1.0)
+### Image translation shots (since v1.1.0)
 
-The store shows at most 5 screenshots, so for the 1.1.0 listing swap one of the shots above (suggested: `05-settings.png`)
-for an image-translation shot. Keep the five file names above for the README; store the new one separately:
-
-| File | What it should show |
+| File | What it shows |
 |---|---|
-| `06-image-translation.png` (+ `en/`, `vi/`) | A page with **text inside an image** (e.g. a photo of a sign or a scanned page — public-domain content). The crop rectangle (teal border) around the text and the result bubble next to it: recognized text, translation, 🔊 / copy buttons. Optionally a second capture of the drag state with the hint bar "Drag to select an area · Esc to cancel". |
+| `06-image-translation.png` | A travel article with a photo of a café notice in Simplified Chinese: the selected area (teal border) and the result bubble beside it — recognized text (line breaks kept), auto-detected language chips, translation. |
+| `07-crop-area.png` | The crop overlay: dimmed page, hint bar "Drag to select an area · Esc to cancel" with the OCR language chips. |
 
-The dev harness can produce it: `npm run dev` → <http://localhost:5179/dev/ocr-test.html> has sample images
-(`dev/fixtures/`). Don't reference `06-image-translation.png` from `README.md` until the file exists.
+Captured from the dev showcase page: `npm run dev` → <http://localhost:5179/dev/showcase.html>, then in the console
+`localStorage.setItem('transpop-dev-dpr', '2')` (emulates a Retina capture, like the real extension on a Mac) and
+`chrome.runtime.sendMessage({type: 'start-capture', mode: 'region'})`, then drag over the notice board.
 
-## After capturing
+## Which 5 to upload to the Chrome Web Store
 
-1. Save the files here with the names above.
-2. Run `npm run check` — the README image warning disappears once all five exist.
-3. Upload them in the Developer Dashboard → **Store listing → Screenshots** (in this order).
+The store accepts at most 5 screenshots. Upload, in this order: **`01-bubble`, `06-image-translation`,
+`03-popup-dictionary`, `04-history-favorites`, `05-settings`** (from `en/` for the English listing, `vi/` for the
+Vietnamese one). `02-icon-trigger` and `07-crop-area` are shown in the README only.
 
 ## Captured (v1.0.0)
 

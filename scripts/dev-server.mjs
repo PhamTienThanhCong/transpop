@@ -68,10 +68,11 @@ async function handleTranslate(req, res) {
   }
 }
 
-async function demoPage() {
+/** Any dev page with a <!--CONTENT_SCRIPTS--> marker gets the chrome mock + the manifest's content scripts. */
+async function demoPage(file = 'dev/demo.html') {
   const manifest = JSON.parse(await readFile(path.join(ROOT, 'extension/manifest.json'), 'utf8'));
   const scripts = (manifest.content_scripts?.[0]?.js || []).map((s) => `<script src="/extension/${s}"></script>`).join('\n');
-  const html = await readFile(path.join(ROOT, 'dev/demo.html'), 'utf8');
+  const html = await readFile(path.join(ROOT, file), 'utf8');
   return html.replace('<!--CONTENT_SCRIPTS-->', `${MOCK_TAG}\n${scripts}`);
 }
 
@@ -94,6 +95,7 @@ const server = http.createServer(async (req, res) => {
 <p>Language: <a style="display:inline" href="?" onclick="localStorage.setItem('transpop-dev-lang','vi')">vi</a> · <a style="display:inline" href="?" onclick="localStorage.setItem('transpop-dev-lang','en')">en</a>
  · Theme follows the extension setting.</p>
 <a href="/dev/demo.html">Content script demo page (select text)</a>
+<a href="/dev/showcase.html">Store-screenshot showcase (image translation)</a>
 <a href="/extension/src/popup/popup.html">Popup</a>
 <a href="/extension/src/popup/popup.html?view=tab">Popup — full page</a>
 <a href="/extension/src/options/options.html">Options</a>
@@ -103,6 +105,7 @@ const server = http.createServer(async (req, res) => {
       );
     }
     if (url.pathname === '/dev/demo.html') return send(res, 200, await demoPage(), MIME['.html']);
+    if (url.pathname === '/dev/showcase.html') return send(res, 200, await demoPage('dev/showcase.html'), MIME['.html']);
 
     const filePath = path.normalize(path.join(ROOT, decodeURIComponent(url.pathname)));
     if (!filePath.startsWith(ROOT)) return send(res, 403, 'Forbidden');

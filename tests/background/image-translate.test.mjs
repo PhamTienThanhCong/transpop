@@ -400,3 +400,42 @@ test('reflowOcrText joins CJK lines without spaces even without a language hint'
   );
   assert.equal(reflowOcrText('Hello world\nagain'), 'Hello world again');
 });
+
+test('reflowOcrText keeps line breaks of centred / short lines (signs) but joins left-aligned wrapped paragraphs', async () => {
+  const { reflowOcrText } = await import('../../extension/src/background/image-translate.js');
+  const sign = '欢迎光临\n营业时间：每天上午九点到晚上十点\n今日推荐：抹茶拿铁和手工蛋糕\n店内禁止吸烟，谢谢您的合作！';
+  const signLines = [
+    { text: '欢迎光临', bbox: { x0: 400, y0: 0, x1: 700, y1: 60 } },
+    { text: '营业时间：每天上午九点到晚上十点', bbox: { x0: 100, y0: 80, x1: 1000, y1: 130 } },
+    { text: '今日推荐：抹茶拿铁和手工蛋糕', bbox: { x0: 160, y0: 150, x1: 940, y1: 200 } },
+    { text: '店内禁止吸烟，谢谢您的合作！', bbox: { x0: 160, y0: 220, x1: 940, y1: 270 } },
+  ];
+  assert.equal(reflowOcrText(sign, 'zh-CN', signLines), sign, 'centred sign lines stay separate');
+
+  const para = 'Unemployment has been the most obvious cost of the recession,\nbut economists warn that the long-term\nconsequences may be subtle.';
+  const paraLines = [
+    { text: 'a', bbox: { x0: 20, y0: 0, x1: 980, y1: 30 } },
+    { text: 'b', bbox: { x0: 21, y0: 40, x1: 900, y1: 70 } },
+    { text: 'c', bbox: { x0: 20, y0: 80, x1: 500, y1: 110 } },
+  ];
+  assert.equal(
+    reflowOcrText(para, 'en', paraLines),
+    'Unemployment has been the most obvious cost of the recession, but economists warn that the long-term consequences may be subtle.',
+  );
+  assert.equal(reflowOcrText('one\ntwo', 'en', [{ text: 'x', bbox: { x0: 0, x1: 10 } }]), 'one two', 'mismatched layout → text-only rules');
+});
+
+test('dropNoiseLines removes low-confidence specks, keeps real short lines', async () => {
+  const { dropNoiseLines } = await import('../../extension/src/background/image-translate.js');
+  const text = '、 lc\n欢迎光临\n营业时间：每天上午九点到晚上十点';
+  const lines = [
+    { text: '、 lc', confidence: 22, bbox: { x0: 0, y0: 0, x1: 900, y1: 10 } },
+    { text: '欢迎光临', confidence: 93, bbox: { x0: 300, y0: 20, x1: 600, y1: 80 } },
+    { text: '营业时间：每天上午九点到晚上十点', confidence: 91, bbox: { x0: 40, y0: 100, x1: 860, y1: 150 } },
+  ];
+  const r = dropNoiseLines(text, lines);
+  assert.equal(r.text, '欢迎光临\n营业时间：每天上午九点到晚上十点');
+  assert.equal(r.lines.length, 2);
+  const ok = dropNoiseLines('OK\nGo', [{ text: 'OK', confidence: 90 }, { text: 'Go', confidence: 88 }]);
+  assert.equal(ok.text, 'OK\nGo', 'confident short lines stay');
+});

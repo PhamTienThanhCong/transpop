@@ -529,11 +529,12 @@
    * @param {{left:number, top:number, right:number, bottom:number}} anchor  selection rect (may be off-screen)
    * @param {{width:number, height:number}} size  natural bubble size
    * @param {{width:number, height:number}} viewport
-   * @param {{gap?:number, margin?:number, prefX?:number, minHeight?:number}} [opts]
+   * @param {{gap?:number, margin?:number, prefX?:number, minHeight?:number, side?:boolean}} [opts]
    *        prefX: preferred horizontal centre (e.g. the mouse-up x)
-   * @returns {{left:number, top:number, placement:'below'|'above'|'overlay', maxHeight:number|null}}
+   *        side: allow placing the bubble beside the anchor (image/OCR regions) when neither above nor below fits
+   * @returns {{left:number, top:number, placement:'below'|'above'|'right'|'left'|'overlay', maxHeight:number|null}}
    */
-  U.placeBubble = (anchor, size, viewport, { gap = 8, margin = 8, prefX, minHeight = 140 } = {}) => {
+  U.placeBubble = (anchor, size, viewport, { gap = 8, margin = 8, prefX, minHeight = 140, side = false } = {}) => {
     const vw = viewport.width;
     const vh = viewport.height;
     const w = Math.min(size.width, Math.max(0, vw - margin * 2));
@@ -553,6 +554,17 @@
     } else if (h <= spaceAbove) {
       top = anchor.top - gap - h;
       placement = 'above';
+    } else if (side && h <= vh - margin * 2 && Math.max(vw - margin - (anchor.right + gap), anchor.left - gap - margin) >= w) {
+      // Neither above nor below has room for the whole bubble, but a side does (e.g. a large image region):
+      // sit next to the anchor, top-aligned with it, fully visible.
+      const spaceRight = vw - margin - (anchor.right + gap);
+      const sideLeft = spaceRight >= w ? anchor.right + gap : anchor.left - gap - w;
+      return {
+        left: Math.round(U.clamp(sideLeft, margin, vw - margin - w)),
+        top: Math.round(U.clamp(anchor.top, margin, vh - margin - h)),
+        placement: spaceRight >= w ? 'right' : 'left',
+        maxHeight: null,
+      };
     } else if (Math.max(spaceBelow, spaceAbove) >= minHeight) {
       // Doesn't fit entirely on either side: use the roomier side and scroll inside.
       if (spaceBelow >= spaceAbove) {
