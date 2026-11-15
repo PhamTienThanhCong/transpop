@@ -50,7 +50,7 @@ git archive dev | tar -x -C "$WT"
 # …then drop the dev-only paths.
 (
   cd "$WT"
-  shopt -s nullglob dotglob globstar
+  shopt -s nullglob dotglob  # (no globstar: macOS ships bash 3.2)
   while IFS= read -r line || [ -n "$line" ]; do
     line="${line%%#*}"
     line="${line#"${line%%[![:space:]]*}"}"
