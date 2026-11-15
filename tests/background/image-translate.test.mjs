@@ -85,8 +85,8 @@ test('computeErrorWindow / capturePagePath / isExtensionPage', () => {
 
 /* ---------------- handlers with fakes ---------------- */
 
-function setup({ capture = null, sendToTab, captureTab, settings = { ocrLanguages: ['eng'] } } = {}) {
-  const calls = { crop: [], ocr: [], saved: [], tab: [], windows: [], tabsCreated: [], captureTab: 0 };
+function setup({ capture = null, sendToTab, captureTab, inject, settings = { ocrLanguages: ['eng'] } } = {}) {
+  const calls = { crop: [], ocr: [], saved: [], tab: [], windows: [], tabsCreated: [], captureTab: 0, injected: [] };
   const fakeChrome = {
     runtime: { getURL: (p) => `${ORIGIN}${p}` },
     tabs: {
@@ -126,7 +126,11 @@ function setup({ capture = null, sendToTab, captureTab, settings = { ocrLanguage
       }),
     sendToTab: async (tabId, type, payload, opts) => {
       calls.tab.push({ tabId, type, payload, opts });
-      return sendToTab ? sendToTab(payload) : null;
+      return sendToTab ? sendToTab(payload, calls) : null;
+    },
+    injectContentScripts: async (tabId) => {
+      calls.injected.push(tabId);
+      return inject ? inject(tabId) : false;
     },
   });
   return { it, calls };
@@ -183,12 +187,38 @@ test('startCapture: content script started → no window; started:false (e.g. XM
   assert.equal(calls.windows.length, 0);
 
   started = false;
-  assert.deepEqual(await it.startCapture({ id: 4, windowId: 1 }, { mode: 'image', srcUrl: 'https://x/y.png' }), { started: true, fallback: true });
+  assert.deepEqual(await it.startCapture({ id: 4, index: 2, windowId: 1 }, { mode: 'image', srcUrl: 'https://x/y.png' }), { started: true, fallback: true });
   assert.deepEqual(calls.tab.at(-1).payload, { mode: 'image', srcUrl: 'https://x/y.png' });
-  const w = calls.windows.at(-1);
-  assert.equal(w.url, `${ORIGIN}src/capture/capture.html?id=cap-4`);
-  assert.equal(w.type, 'popup');
-  assert.ok(w.width <= 1200 && w.height <= 900);
+  assert.equal(calls.windows.length, 0, 'never a separate window');
+  assert.deepEqual(calls.tabsCreated.at(-1), { url: `${ORIGIN}src/capture/capture.html?id=cap-4&from=4`, active: true, index: 3, openerTabId: 4, windowId: 1 });
+});
+
+test('startCapture: no content script → inject it (activeTab) and use the in-page overlay', async () => {
+  let injected = false;
+  const { it, calls } = setup({
+    inject: () => (injected = true),
+    sendToTab: (p) => {
+      if (!injected) throw NO_RECEIVER;
+      return p.prepare ? { ready: true } : { started: true };
+    },
+  });
+  assert.deepEqual(await it.startCapture({ id: 8, index: 0, windowId: 1 }), { started: true, fallback: false });
+  assert.deepEqual(calls.injected, [8]);
+  assert.equal(calls.tabsCreated.length, 0);
+  assert.equal(calls.windows.length, 0);
+});
+
+test('startCapture: injection impossible (PDF viewer, chrome://) → capture page in a tab next to the source', async () => {
+  const { it, calls } = setup({
+    inject: () => false,
+    sendToTab: () => {
+      throw NO_RECEIVER;
+    },
+  });
+  assert.deepEqual(await it.startCapture({ id: 9, index: 5, windowId: 2 }), { started: true, fallback: true });
+  assert.deepEqual(calls.injected, [9]);
+  assert.equal(calls.tabsCreated.at(-1).url, `${ORIGIN}src/capture/capture.html?id=cap-9&from=9`);
+  assert.equal(calls.tabsCreated.at(-1).index, 6);
 });
 
 test('startCapture: the screenshot happens after "prepare" (our UI is hidden first)', async () => {
@@ -223,8 +253,8 @@ test('startCapture: capture failure → error bubble, else the error page; rejec
     },
   });
   await assert.rejects(noReceiver.it.startCapture({ id: 2, windowId: 1 }), { code: 'CAPTURE_FAILED' });
-  assert.equal(noReceiver.calls.windows.at(-1).url, `${ORIGIN}src/capture/capture.html?error=CAPTURE_FAILED`);
-  assert.equal(noReceiver.calls.windows.at(-1).width, CAPTURE_WINDOW.errorWidth);
+  assert.equal(noReceiver.calls.tabsCreated.at(-1).url, `${ORIGIN}src/capture/capture.html?error=CAPTURE_FAILED&from=2`);
+  assert.equal(noReceiver.calls.windows.length, 0);
 
   await assert.rejects(noReceiver.it.startCapture(null), { code: 'CAPTURE_FAILED' });
 });

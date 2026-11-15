@@ -12,6 +12,7 @@
  */
 import { LIMITS, MSG } from '../shared/constants.js';
 import { sendToTab } from '../shared/messaging.js';
+import { injectContentScripts } from './inject.js';
 import { getSettings, isSiteDisabled, normalizeHostname, saveSettings } from '../shared/storage.js';
 // Menu titles follow the Display-language setting: t() in this file IS bgT() (await ensureUiMessages() first).
 import { bgT as t, ensureUiMessages } from './ui-messages.js';
@@ -181,9 +182,24 @@ export async function toggleEnabled() {
   return saveSettings({ enabled: !settings.enabled });
 }
 
-/** Open the translator popup in a small standalone window (fallback when no content script is reachable). */
+/**
+ * Fallback when no content script can run in the tab (PDF viewer, chrome://, Web Store): show the toolbar popup
+ * prefilled with `text` (chrome.action.openPopup, Chrome 127+); only if that's unavailable, a small window.
+ */
 export async function openPopupWindow(text = '') {
   const clean = String(text || '').trim().slice(0, LIMITS.MAX_TEXT_LENGTH);
+  try {
+    if (typeof chrome.action?.openPopup === 'function') {
+      if (clean) {
+        const { popupState = {} } = await chrome.storage.local.get('popupState');
+        await chrome.storage.local.set({ popupState: { ...popupState, text: clean, from: 'auto' } });
+      }
+      await chrome.action.openPopup();
+      return;
+    }
+  } catch (err) {
+    warn('action.openPopup', err);
+  }
   const url = chrome.runtime.getURL(`src/popup/popup.html?view=window${clean ? `&text=${encodeURIComponent(clean)}` : ''}`);
   try {
     await chrome.windows.create({ url, type: 'popup', width: POPUP_WINDOW.width, height: POPUP_WINDOW.height, focused: true });
@@ -215,6 +231,8 @@ async function translateSelectionFromMenu(info, tab) {
     const frameId = typeof info.frameId === 'number' ? info.frameId : 0;
     if (await showInFrame(tab.id, { text }, frameId)) return;
     if (frameId !== 0 && (await showInFrame(tab.id, { text }, 0))) return; // e.g. sandboxed iframe → top frame
+    // Tab opened before install/update: inject now (activeTab from the menu click) and show in the top frame.
+    if ((await injectContentScripts(tab.id)) && (await showInFrame(tab.id, { text }, 0))) return;
   }
   await openPopupWindow(text);
 }
@@ -269,5 +287,9 @@ export async function handleCommand(command, tab) {
     warn('show-translation (command)', err);
     res = null;
   }
-  if (res === null) await openPopupWindow(); // no content script (restricted page / not injected yet)
+  if (res === null && (await injectContentScripts(target.id))) {
+    // Not injected yet (tab opened before install/update): inject, then ask the top frame again.
+    res = await showInFrame(target.id, {}, 0) ? { shown: true } : { shown: false };
+  }
+  if (res === null) await openPopupWindow(); // restricted page (PDF viewer, chrome://, Web Store)
 }

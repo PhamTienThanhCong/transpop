@@ -84,7 +84,7 @@ put the request in your final report. Small private helpers belong in your own f
 
 ## 3. Manifest (summary — see `extension/manifest.json`)
 
-- `permissions`: `storage`, `contextMenus`, `offscreen`, `tts`, `activeTab` (screen capture for image translation; no install warning)
+- `permissions`: `storage`, `contextMenus`, `offscreen`, `tts`, `activeTab` (screen capture for image translation; no install warning), `scripting` (on-demand re-injection of our own content scripts into the active tab after a user gesture, for tabs opened before install/update; no install warning)
 - `content_security_policy.extension_pages`: `script-src 'self' 'wasm-unsafe-eval'; object-src 'self';` (Tesseract WASM)
 - `host_permissions`: `https://translate.googleapis.com/*`, `https://translate.google.com/*`,
   `https://edge.microsoft.com/*`, `https://api-edge.cognitive.microsofttranslator.com/*`, `https://www.bing.com/*`
@@ -387,8 +387,11 @@ Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). Then t
 1. On trigger: `captureVisibleTab(windowId, {format: 'png'})`, keep `{dataUrl, tabId, capturedAt}` in memory
    (one per tab, dropped after 2 min or on the next capture). Capturing *before* the overlay appears means the overlay
    is never in the image and the region matches what the user saw.
-2. Send `start-crop` to frame 0. **No receiver** (Chrome PDF viewer, `chrome://` pages, Web Store, tab opened before
-   install) → open the fallback page `src/capture/capture.html?id=<captureId>` in a popup window: it shows the
+2. Send `start-crop` to frame 0. **No receiver** → first try `injectContentScripts(tabId)` (`background/inject.js`,
+   `chrome.scripting` under the `activeTab` grant — fixes tabs opened before install/update) and ask again. Still no
+   receiver (Chrome PDF viewer, `chrome://` pages, Web Store) → open the fallback page
+   `src/capture/capture.html?id=<captureId>&from=<tabId>` in a **new tab next to the source tab** (never a separate
+   window; "Back to page" closes it and re-activates the source tab): it shows the
    screenshot, lets the user drag a region, crops it client-side (canvas) and calls `ocr-image`.
 3. `ocr-region`: crop the stored screenshot (scale = imageWidth / viewport.width for device-pixel ratio), upscale small
    crops (target ≥ ~1000px on the long side, max 2.5×), grayscale, encode PNG (OffscreenCanvas in the service worker),
@@ -406,6 +409,8 @@ Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). Then t
 - `start-crop {prepare: true}` → the page hides all TransPop UI and answers `{ready: true}` *before* the background
   captures; `start-crop {error: CODE}` shows an error bubble when capture fails.
 - `start-capture` also accepts `{mode, srcUrl}` and uses `sender.tab` when sent from a page ("Select again").
+- Context-menu "Translate “%s”" and the `translate-selection` command also inject on demand; on restricted pages they
+  open the toolbar popup (`chrome.action.openPopup`, text prefilled via `popupState`) instead of a separate window.
 - `get-capture` and `ocr-clear-cache` only answer extension pages.
 - Content strings for the crop UI use the `bubble_crop_*` prefix (so `get-ui-messages` already covers them).
 - Image mode falls back to drag mode with a hint when the right-clicked image can't be located (e.g. inside an iframe).

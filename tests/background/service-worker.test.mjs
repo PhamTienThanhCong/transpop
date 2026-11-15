@@ -252,19 +252,17 @@ test('crop-translate command: prepare → capture → start-crop to frame 0 (con
   assert.equal(log.windowsCreated.length, windows, 'no fallback window');
 });
 
-test('image context menu: start-crop carries srcUrl; no receiver → capture page window with the capture id', async () => {
+test('image context menu: start-crop carries srcUrl; no receiver (and injection impossible) → capture page tab', async () => {
   behaviour.captureVisibleTab = async () => pngDataUrl(2560, 1600);
   behaviour.tabSendMessage = async () => {
     throw new Error('Could not establish connection. Receiving end does not exist.');
   };
   chrome.contextMenus.onClicked.dispatch({ menuItemId: 'transpop-image', srcUrl: 'https://example.com/a.png' }, { id: 7, windowId: 1 });
   await flush(10);
-  const w = log.windowsCreated.at(-1);
-  assert.match(w.url, /^chrome-extension:\/\/transpop-test\/src\/capture\/capture\.html\?id=[\w-]+$/);
-  assert.equal(w.type, 'popup');
-  assert.ok(w.width <= 1280 - 40 && w.height <= 800 - 40, 'capped to the source window');
+  const url = log.tabsCreated.at(-1);
+  assert.match(url, /^chrome-extension:\/\/transpop-test\/src\/capture\/capture\.html\?id=[\w-]+&from=7$/, 'a tab next to the source, not a window');
 
-  const id = decodeURIComponent(w.url.split('id=')[1]);
+  const id = decodeURIComponent(url.split('id=')[1].split('&')[0]);
   const shot = await send({ type: 'get-capture', id }, EXT_SENDER);
   assert.equal(shot.ok, true);
   assert.equal(shot.width, 2560);
@@ -292,10 +290,12 @@ test('capture failure: error bubble through start-crop, or the error page when n
     throw new Error('Could not establish connection. Receiving end does not exist.');
   };
   const windows = log.windowsCreated.length;
+  const tabs = log.tabsCreated.length;
   chrome.contextMenus.onClicked.dispatch({ menuItemId: 'transpop-area' }, { id: 7, windowId: 1 });
   await flush(10);
-  assert.equal(log.windowsCreated.length, windows + 1);
-  assert.equal(log.windowsCreated.at(-1).url, 'chrome-extension://transpop-test/src/capture/capture.html?error=CAPTURE_FAILED');
+  assert.equal(log.windowsCreated.length, windows, 'no separate window');
+  assert.equal(log.tabsCreated.length, tabs + 1);
+  assert.equal(log.tabsCreated.at(-1), 'chrome-extension://transpop-test/src/capture/capture.html?error=CAPTURE_FAILED&from=7');
 });
 
 test('ocr-region: needs the tab capture; ocr-image runs OCR and remembers changed languages', async () => {

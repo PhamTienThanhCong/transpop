@@ -273,6 +273,7 @@ Dashboard hiện một ô cho **mỗi** quyền trong manifest. Dán đúng kh�
 | `offscreen` | Service worker MV3 không phát được âm thanh và không chạy được Web Worker → tạo **một** offscreen document với 2 lý do: `AUDIO_PLAYBACK` (phát âm) và `WORKERS` (chạy bộ nhận dạng chữ Tesseract trong Web Worker để dịch chữ trong ảnh). Không dùng cho việc gì khác. |
 | `tts` | Phát âm dự phòng bằng giọng đọc có sẵn khi không tải được âm thanh trực tuyến. |
 | `activeTab` | Gọi `chrome.tabs.captureVisibleTab` để chụp tab hiện tại **chỉ ngay sau thao tác của người dùng** (phím tắt `Alt+Shift+A`, menu chuột phải trên ảnh/trang, nút "Translate screen area" trong popup). Quyền chỉ áp dụng cho tab đó, hết hiệu lực khi tab chuyển trang; **không có cảnh báo khi cài**. Ảnh chụp được nhận dạng ngay trên máy, không tải lên đâu cả. |
+| `scripting` | Chỉ dùng `chrome.scripting.executeScript` để **nạp lại chính content script của TransPop** (các file đã có trong gói) vào tab hiện tại khi người dùng chủ động bấm dịch (phím tắt, menu chuột phải, nút trong popup) mà tab đó được mở **trước khi** cài/cập nhật tiện ích. Chạy nhờ quyền tạm thời của `activeTab`, chỉ trên tab đó; không chèn mã từ xa; **không có cảnh báo khi cài**. |
 | **Host permissions** (1 ô chung) | Giải thích content script chạy trên `<all_urls>` **và** từng tên miền dịch vụ — xem bảng dưới. |
 
 Ô **Host permission justification** phải giải thích **tất cả**:
@@ -383,7 +384,7 @@ Lần đầu tiên, hoặc tiện ích có quyền rộng như `<all_urls>`, có
 
 | Vấn đề | Mã vi phạm thường gặp | TransPop đã làm gì / bạn cần lưu ý |
 |---|---|---|
-| **Xin quyền quá rộng hoặc không dùng tới** | Purple Potassium | Chỉ 5 quyền (`storage`, `contextMenus`, `offscreen`, `tts`, `activeTab`) + 5 tên miền dịch vụ cụ thể, đều đang dùng. `<all_urls>` chỉ dành cho content script và được giải thích kỹ ([8.2](#82-giải-thích-từng-quyền-permission-justification)). Chụp màn hình dùng `activeTab` (hẹp nhất có thể, chỉ sau thao tác của người dùng) thay vì `<all_urls>`/`tabs`. Không xin `tabs`, `scripting`, `history`, `webRequest`… `npm run check` cảnh báo nếu có quyền lạ. |
+| **Xin quyền quá rộng hoặc không dùng tới** | Purple Potassium | Chỉ 6 quyền (`storage`, `contextMenus`, `offscreen`, `tts`, `activeTab`, `scripting`) + 5 tên miền dịch vụ cụ thể, đều đang dùng. `<all_urls>` chỉ dành cho content script và được giải thích kỹ ([8.2](#82-giải-thích-từng-quyền-permission-justification)). Chụp màn hình dùng `activeTab` (hẹp nhất có thể, chỉ sau thao tác của người dùng) thay vì `<all_urls>`/`tabs`. Không xin `tabs`, `scripting`, `history`, `webRequest`… `npm run check` cảnh báo nếu có quyền lạ. |
 | **Chạy mã từ xa** (Manifest V3 cấm) | Blue Argon | Toàn bộ mã nằm trong gói; không `eval`, không `new Function`, không `<script src="https://…">`, không import từ URL — `npm run check` kiểm tra tự động. Dữ liệu JSON từ API dịch không phải là mã. Tesseract.js + lõi WASM được đóng gói sẵn (`'wasm-unsafe-eval'` chỉ để biên dịch WASM trong gói); dữ liệu ngôn ngữ OCR tải từ jsDelivr là dữ liệu, không phải mã ([8.3](#83-remote-code-mã-từ-xa)). |
 | **Thương hiệu gây hiểu nhầm / mạo danh** | — | **Không bao giờ** dùng chữ "Google", "Google Translate", "Microsoft" hay logo của họ trong **tên, biểu tượng, ảnh chụp quảng cáo**. TransPop có tên và logo riêng; mô tả có câu "not affiliated with Google or Microsoft". |
 | **Nhồi từ khóa** | Yellow Argon | Mô tả viết tự nhiên, không liệt kê danh sách ngôn ngữ/từ khóa, không nhắc tên đối thủ. Xem [STORE_LISTING.md §7](STORE_LISTING.md#7-keywords--wording-guidance). |
@@ -415,9 +416,9 @@ Lưu ý:
 
 - **Tránh thêm quyền mới.** Nếu bản cập nhật xin thêm quyền có cảnh báo, Chrome sẽ **tạm vô hiệu hóa** tiện ích cho
   tới khi người dùng đồng ý — nhiều người sẽ không bật lại.
-- Bản **1.1.0** thêm quyền `activeTab` (và lý do `WORKERS` cho offscreen, CSP `'wasm-unsafe-eval'`). `activeTab`
+- Bản **1.1.0** thêm quyền `activeTab` và `scripting` (và lý do `WORKERS` cho offscreen, CSP `'wasm-unsafe-eval'`). Cả hai
   **không có cảnh báo** nên Chrome không vô hiệu hóa tiện ích khi cập nhật — nhưng trước khi gửi duyệt vẫn phải vào tab
-  **Privacy** điền ô giải thích cho `activeTab` và cập nhật ô `offscreen` (dán từ
+  **Privacy** điền ô giải thích cho `activeTab`, `scripting` và cập nhật ô `offscreen` (dán từ
   [STORE_LISTING.md §5](STORE_LISTING.md#permission-justifications)), đồng thời cập nhật mô tả trong Store listing.
 - Muốn tạo bản phát hành trên GitHub: `git tag v1.0.1 && git push origin v1.0.1` → workflow
   `.github/workflows/release.yml` tự đóng gói và đính kèm file zip vào GitHub Release (tag phải trùng version
@@ -537,7 +538,7 @@ Edge cũng có API riêng (Edge Add-ons API) nếu muốn tự động hóa sau 
 - [ ] Store listing: mô tả EN (+ VI), category, icon 128, ít nhất 1 (nên 5) ảnh 1280×800, small promo tile.
 - [ ] Tên, icon, ảnh **không** chứa "Google"/"Microsoft" hay logo của họ.
 - [ ] Privacy: single purpose; giải thích cho `storage`, `contextMenus`, `offscreen` (AUDIO_PLAYBACK + WORKERS),
-      `tts`, `activeTab` và host permissions (gồm `<all_urls>` content script + 5 tên miền); remote code = No; chỉ
+      `tts`, `activeTab`, `scripting` và host permissions (gồm `<all_urls>` content script + 5 tên miền); remote code = No; chỉ
       tick "Website content"; tick đủ 3 cam kết; URL chính sách (đã có mục dịch chữ trong ảnh).
 - [ ] Distribution: Free, Public (hoặc Unlisted để thử trước), All regions.
 - [ ] Test instructions đã điền.

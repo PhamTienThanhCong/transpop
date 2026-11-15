@@ -141,6 +141,9 @@
   "bubble_trigger_label": {
     "message": "Dịch đoạn đã chọn"
   },
+  "capture_back": {
+    "message": "Quay lại trang"
+  },
   "capture_empty": {
     "message": "Hãy chọn một vùng trên ảnh chụp — chữ nhận dạng được và bản dịch sẽ hiện ở đây."
   },

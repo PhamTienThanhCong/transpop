@@ -467,7 +467,31 @@ els.speakSrc.addEventListener('click', () => speak(els.text.value.trim(), state.
 els.copySrc.addEventListener('click', () => copy(els.text.value));
 els.speakTr.addEventListener('click', () => speak(state.result?.translation || '', state.result?.to));
 els.copyTr.addEventListener('click', () => copy(state.result?.translation || ''));
-els.close.addEventListener('click', () => window.close());
+// Opened as a tab next to the source page (`from` = source tab id): going back closes this tab and re-activates it.
+const fromTabId = Number.parseInt(params.get('from') || '', 10);
+async function backToPage() {
+  try {
+    if (Number.isInteger(fromTabId) && fromTabId >= 0) await chrome.tabs.update(fromTabId, { active: true });
+  } catch {
+    /* source tab gone */
+  }
+  try {
+    const me = await chrome.tabs.getCurrent();
+    if (me && typeof me.id === 'number') {
+      await chrome.tabs.remove(me.id);
+      return;
+    }
+  } catch {
+    /* not a tab (popup window) */
+  }
+  window.close();
+}
+const backBtn = document.getElementById('btn-back');
+if (backBtn && Number.isInteger(fromTabId) && fromTabId >= 0) {
+  backBtn.hidden = false;
+  backBtn.addEventListener('click', backToPage);
+}
+els.close.addEventListener('click', backToPage);
 window.addEventListener('beforeunload', () => send(MSG.STOP_SPEAK).catch(() => {}));
 
 /* ------------------------------------------------------------------ */

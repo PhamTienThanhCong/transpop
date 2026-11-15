@@ -43,5 +43,10 @@
     "en": "From: $1",
     "vi": "Từ: $1",
     "description": "Shows where the screenshot comes from; $1 = page title"
+  },
+  "capture_back": {
+    "en": "Back to page",
+    "vi": "Quay lại trang",
+    "description": "Closes the capture tab and returns to the page it was taken from"
   }
 }

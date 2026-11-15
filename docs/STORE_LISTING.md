@@ -168,6 +168,12 @@ Manifest V3 service workers cannot play audio or start Web Workers. TransPop cre
 Image translation: when the user explicitly starts it — the keyboard shortcut (Alt+Shift+A), the "Translate text in image" / "Translate screen area…" right-click items, or the "Translate screen area" button in the popup — TransPop calls chrome.tabs.captureVisibleTab on that tab, lets the user select an area, and recognizes the text in it locally with the bundled OCR engine. activeTab is the narrowest way to do this: access is granted only for the current tab after that user gesture, and no broad host or tabs permission is needed. The screenshot is processed in memory and is never uploaded or stored; only the recognized text is sent to the translation service, like selected text.
 ```
 
+**scripting**
+
+```text
+Used only to re-inject TransPop's own content scripts (files shipped in the package) into the current tab when the user explicitly starts a translation — keyboard shortcut, right-click menu or the popup button — on a tab that was already open before TransPop was installed or updated. Without it, those tabs would need a manual reload. It runs under the temporary activeTab grant for that tab only, never injects remote code, and is never used in the background.
+```
+
 **tts**
 
 ```text
