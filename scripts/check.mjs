@@ -38,7 +38,9 @@ const execFileP = promisify(execFile);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const EXT = path.join(ROOT, 'extension');
 const VENDOR = path.join(EXT, 'vendor');
-const isVendor = (p) => p.startsWith(VENDOR + path.sep);
+/** TransPop glue files placed inside a vendor folder (e.g. vendor/tesseract/transpop-worker.js) are OUR code. */
+const isOwnGlue = (p) => path.basename(p).startsWith('transpop-');
+const isVendor = (p) => p.startsWith(VENDOR + path.sep) && !isOwnGlue(p);
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/') || '.';
 
 /** Permissions documented in docs/ARCHITECTURE.md §3 (each one has a Web Store justification). */
@@ -545,7 +547,7 @@ if (existsSync(VENDOR)) {
       if (actual !== sha) problems.push(`${name}: SHA-256 mismatch (modified? re-vendor it and update README.md)`);
     }
     const present = allFiles.filter((f) => path.dirname(f) === lib).map((f) => path.basename(f));
-    const unlisted = present.filter((n) => !listed.has(n) && n !== 'README.md' && n !== 'LICENSE');
+    const unlisted = present.filter((n) => !listed.has(n) && n !== 'README.md' && n !== 'LICENSE' && !n.startsWith('transpop-'));
     if (unlisted.length) problems.push(`files not listed in README.md (hash them or remove them): ${unlisted.join(', ')}`);
     for (const n of present.filter((x) => /^tesseract-core-.*\.js$/.test(x) && !x.endsWith('.wasm.js'))) {
       if (!present.includes(n.replace(/\.js$/, '.wasm'))) problems.push(`${n} has no matching ${n.replace(/\.js$/, '.wasm')}`);

@@ -411,6 +411,11 @@ carries `error.details = { langs, guessed, autoDetected }` (what was tried) — 
 4. OCR runs in the **offscreen document** (single document; reasons `['AUDIO_PLAYBACK', 'WORKERS']`, shared with TTS
    through one `ensureOffscreen()` helper). Tesseract.js is **vendored** under `extension/vendor/tesseract/`
    (worker + core WASM — never loaded from a CDN: Web Store remote-code policy) with `workerBlobURL: false`.
+   The worker entry is our `vendor/tesseract/transpop-worker.js`: it drops Tesseract's informational stderr lines
+   ("Parameter not found…", "Estimating resolution…") that Chrome would list as extension errors, then
+   `importScripts('worker.min.js')`. It must live next to the `.wasm` files (Emscripten resolves them relative to the
+   worker script); `npm run check` treats `transpop-*` files in vendor folders as our code. Init config also sets
+   `debug_file: '/dev/null'`.
    Language data (`<lang>.traineddata`) is downloaded on first use from jsDelivr (`@tesseract.js-data/<lang>`) and cached
    in IndexedDB by Tesseract — data, not code. Keep one worker alive and re-initialize only when `langs` change; if the
    offscreen document was closed, recreate it and retry once.

@@ -363,7 +363,9 @@ async function createEngine(langs) {
   let creating;
   try {
     creating = Tesseract.createWorker([...langs], OEM_LSTM_ONLY, {
-      workerPath: `${base}worker.min.js`,
+      // Our thin wrapper (filters Tesseract's informational stderr noise) which importScripts() the vendored worker.
+      // It must sit next to the .wasm files: Emscripten locates them relative to the worker script.
+      workerPath: `${base}transpop-worker.js`,
       corePath: `${base}${CORE_FILES[core]}`,
       workerBlobURL: false,
       logger: emitProgress,
