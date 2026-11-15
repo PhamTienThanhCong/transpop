@@ -59,3 +59,11 @@ tar -xzf <tgz>                                            # then copy the files 
 
 Then refresh the tables above (`shasum -a 256 *`) and run `npm run check` + the dev harness
 (`npm run dev` → http://localhost:5179/dev/ocr-test.html).
+
+## TransPop glue (not third-party)
+
+`transpop-worker.js` is TransPop's own worker entry (MIT): it filters Tesseract's informational stderr lines
+("Warning: Parameter not found…", "Estimating resolution…", "Detected N diacritics") that Chrome would otherwise list
+as extension errors, then `importScripts('worker.min.js')`. It sits in this folder because Emscripten resolves the
+`.wasm` core relative to the worker script's location. `npm run check` treats `transpop-*` files as our code (full
+MV3 rules, not hash-listed).
