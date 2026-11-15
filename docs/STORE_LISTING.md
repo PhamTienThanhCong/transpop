@@ -45,15 +45,17 @@ Select any word or phrase on a web page and TransPop shows its translation right
 • Pronunciation for the original text and the translation
 • Translator popup (Alt+Shift+T) with automatic language detection and a full-page view
 • Translate the current selection with Alt+Shift+S or from the right-click menu
+• Translate text in images and on screen (Alt+Shift+A): drag over any area — photos, videos, scanned PDFs, comics — and TransPop reads the text on your device and translates it. Or right-click an image → "Translate text in image"
 • History and favorites — searchable, exportable to CSV, stored only on your device
 • 130+ languages, with smart swap: text that is already in your language is translated into your second language
 • Light and dark themes, adjustable bubble font size
 • Turn TransPop off on specific sites, or pause it everywhere in one click
-• Interface in English and Vietnamese
+• Interface in English or Vietnamese — follow the browser language or pick one in Settings
 
 ★ PRIVACY FIRST
 • No account, no ads, no analytics, no tracking.
 • Text is sent to the translation service only when you ask for a translation.
+• Images you translate are processed on your device and never uploaded — only the recognized text is translated.
 • Your settings, history and favorites stay in your browser.
 Privacy policy: https://github.com/PhamTienThanhCong/transpop/blob/main/docs/PRIVACY.md
 
@@ -81,15 +83,17 @@ Bôi đen từ hoặc câu bất kỳ trên trang web, TransPop hiện bản d�
 • Phát âm cả văn bản gốc lẫn bản dịch
 • Cửa sổ dịch (Alt+Shift+T) tự nhận diện ngôn ngữ, có chế độ toàn trang
 • Dịch đoạn đang chọn bằng Alt+Shift+S hoặc menu chuột phải
+• Dịch chữ trong ảnh và trên màn hình (Alt+Shift+A): kéo chọn vùng bất kỳ — ảnh, video, PDF dạng ảnh, truyện tranh — TransPop nhận dạng chữ ngay trên máy và dịch. Hoặc chuột phải vào ảnh → "Dịch chữ trong ảnh"
 • Lịch sử và mục yêu thích — tìm kiếm được, xuất ra CSV, chỉ lưu trên máy bạn
 • Hơn 130 ngôn ngữ, tự đảo chiều thông minh: văn bản đã là ngôn ngữ của bạn sẽ được dịch sang ngôn ngữ thứ hai
 • Giao diện sáng và tối, chỉnh được cỡ chữ bong bóng
 • Tắt TransPop trên từng trang, hoặc tạm dừng trên mọi trang chỉ với một cú nhấp
-• Giao diện tiếng Việt và tiếng Anh
+• Giao diện tiếng Việt hoặc tiếng Anh — theo ngôn ngữ trình duyệt hoặc tự chọn trong Cài đặt
 
 ★ TÔN TRỌNG QUYỀN RIÊNG TƯ
 • Không tài khoản, không quảng cáo, không phân tích hành vi, không theo dõi.
 • Văn bản chỉ được gửi tới dịch vụ dịch khi bạn yêu cầu dịch.
+• Ảnh bạn dịch được xử lý ngay trên máy, không bao giờ được tải lên — chỉ phần chữ nhận dạng được mới được dịch.
 • Cài đặt, lịch sử và mục yêu thích nằm trong trình duyệt của bạn.
 Chính sách quyền riêng tư: https://github.com/PhamTienThanhCong/transpop/blob/main/docs/PRIVACY.md
 
@@ -125,6 +129,9 @@ Bản dịch được cung cấp bởi Google Dịch (mặc định), tự độ
 
 All graphics are re-generated from SVG sources with `npm run icons` (`store-assets/render.sh`).
 
+Since 1.1.0, consider swapping one screenshot (e.g. the settings shot) for an **image translation** shot — see
+`screenshots/README.md` (the store shows at most 5).
+
 ---
 
 ## 5. Privacy practices tab (paste in English)
@@ -132,7 +139,7 @@ All graphics are re-generated from SVG sources with `npm run icons` (`store-asse
 ### Single purpose
 
 ```text
-TransPop translates text that the user selects on a web page or types into its popup. Every feature serves this single purpose: the in-page translation bubble, the translator popup with dictionary, definitions, examples and pronunciation, and the history and favorites of the user's own translations.
+TransPop translates text that the user selects on a web page or types into its popup. Every feature serves this single purpose: the in-page translation bubble, the translator popup with dictionary, definitions, examples and pronunciation, image translation (the user selects an area of the screen or an image and the text in it is recognized on the device and translated), and the history and favorites of the user's own translations.
 ```
 
 ### Permission justifications
@@ -146,13 +153,19 @@ Saves the user's settings (target languages, trigger mode, theme, list of disabl
 **contextMenus**
 
 ```text
-Adds a "Translate “<selection>”" item to the right-click menu for selected text, and items to the toolbar icon's menu to turn in-page translation off for the current site or pause it everywhere.
+Adds a "Translate “<selection>”" item to the right-click menu for selected text, "Translate text in image" on images and "Translate screen area…" on pages (image translation), and items to the toolbar icon's menu to turn in-page translation off for the current site or pause it everywhere.
 ```
 
 **offscreen**
 
 ```text
-Manifest V3 service workers cannot play audio. TransPop creates an offscreen document (reason: AUDIO_PLAYBACK) solely to play the pronunciation of a word or translation when the user presses a Listen button or has enabled auto-pronounce in Settings.
+Manifest V3 service workers cannot play audio or start Web Workers. TransPop creates a single offscreen document with two reasons: AUDIO_PLAYBACK, to play the pronunciation of a word or translation when the user presses a Listen button or has enabled auto-pronounce; and WORKERS, to run the bundled Tesseract text-recognition engine (a Web Worker with WebAssembly, shipped inside the package) on the screen area the user selected for image translation. The offscreen document is used for nothing else.
+```
+
+**activeTab**
+
+```text
+Image translation: when the user explicitly starts it — the keyboard shortcut (Alt+Shift+A), the "Translate text in image" / "Translate screen area…" right-click items, or the "Translate screen area" button in the popup — TransPop calls chrome.tabs.captureVisibleTab on that tab, lets the user select an area, and recognizes the text in it locally with the bundled OCR engine. activeTab is the narrowest way to do this: access is granted only for the current tab after that user gesture, and no broad host or tabs permission is needed. The screenshot is processed in memory and is never uploaded or stored; only the recognized text is sent to the translation service, like selected text.
 ```
 
 **tts**
@@ -180,6 +193,12 @@ No other hosts are contacted. All requests go directly from the user's browser t
 Select **"No, I am not using remote code."** All JavaScript ships inside the package; the extension only
 fetches JSON/audio data from the translation services.
 
+If a reviewer asks about image translation (or the dashboard offers a free-text field), paste:
+
+```text
+No remote code is used. The OCR engine (Tesseract.js 7.0.0 and its WebAssembly cores, Apache-2.0) is bundled in the package under vendor/tesseract/ — unmodified official builds from npm, with SHA-256 checksums listed in vendor/tesseract/README.md. The "wasm-unsafe-eval" source in the extension CSP is only there to compile those packaged WebAssembly files, as allowed by Manifest V3. The only thing downloaded at runtime is language data for text recognition (<language>.traineddata.gz from cdn.jsdelivr.net, the @tesseract.js-data packages): model weights, not executable code, fetched once when the user first uses that language and cached locally.
+```
+
 ### Data usage
 
 Check only:
@@ -190,6 +209,9 @@ Check only:
 Leave everything else unchecked (personally identifiable info, health, financial/payment, authentication,
 personal communications, location, web history, user activity). History, favorites and settings are stored only
 in the user's own browser storage and are never transmitted to the developer.
+
+Image translation doesn't change this: screenshots are cropped and recognized on the device and never leave it;
+the recognized text sent to the translation provider is covered by **Website content**.
 
 Certify all three statements:
 
@@ -208,6 +230,7 @@ No account or login is needed.
 3. Right-click a selection → "Translate “…”" also opens the bubble. Alt+Shift+S translates the current selection.
 4. Click the TransPop toolbar icon (or press Alt+Shift+T) for the translator popup; the book icon opens history & favorites.
 5. Settings: the gear icon in the popup (or right-click the toolbar icon → Options). "Trigger" lets you switch to automatic or hotkey mode.
+6. Image translation: press Alt+Shift+A on any page and drag over some text (e.g. text inside an image) — the recognized text and its translation appear in a bubble. Also: right-click an image → "Translate text in image", or the scan button ("Translate screen area") at the top of the popup. The first use of a recognition language downloads its data (~2 MB) once, so it takes a few seconds; recognition languages are in Settings → Image translation.
 The default target language follows the browser UI language (English browsers translate into English and use the secondary language for English text — set a target language such as Vietnamese in Settings → General to test quickly).
 ```
 

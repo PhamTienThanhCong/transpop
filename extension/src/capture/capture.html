@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" data-i18n-doc-title="capture_page_title">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>TransPop</title>
+    <link rel="stylesheet" href="../ui/tokens.css" />
+    <link rel="stylesheet" href="capture.css" />
+    <script type="module" src="capture.js"></script>
+  </head>
+  <body>
+    <!--
+      Screenshot page (ARCHITECTURE §11, fallback): opened in a popup window when the page itself can't show the
+      selection overlay (Chrome PDF viewer, browser pages, Chrome Web Store, tabs opened before install…).
+    -->
+    <div class="app">
+      <header class="bar">
+        <div class="brand">
+          <img src="../../icons/logo-mark.svg" width="24" height="24" alt="" />
+          <div class="titles">
+            <h1 class="title" data-i18n="capture_heading"></h1>
+            <p class="from" id="from" hidden></p>
+          </div>
+        </div>
+        <div class="ocr-langs" id="ocr-langs" role="group" data-i18n-aria-label="bubble_crop_langs_label" data-i18n-title="bubble_crop_langs_label" hidden></div>
+        <button type="button" class="icon-btn" id="btn-close" data-i18n-aria-label="common_close" data-i18n-title="common_close">
+          <i data-icon="x"></i>
+        </button>
+      </header>
+
+      <main class="layout" id="layout">
+        <!-- Screenshot + drag selection -->
+        <section class="stage-col" id="stage-col">
+          <p class="hint" id="hint" data-i18n="capture_hint" hidden></p>
+          <div class="stage" id="stage">
+            <div class="frame" id="frame" data-i18n-aria-label="capture_hint" hidden>
+              <img id="shot" alt="" draggable="false" />
+              <div class="sel" id="sel" hidden><span class="sel-size" id="sel-size" aria-hidden="true"></span></div>
+            </div>
+            <div class="stage-msg" id="stage-msg" role="status">
+              <span class="spinner" id="stage-spinner" aria-hidden="true"></span>
+              <div>
+                <p class="stage-msg-text" id="stage-msg-text" data-i18n="capture_loading"></p>
+                <p class="stage-msg-sub" id="stage-msg-sub" hidden></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Results -->
+        <aside class="panel" id="panel" hidden>
+          <div class="pane" id="pane-empty">
+            <i data-icon="languages" data-icon-size="28" class="pane-icon"></i>
+            <p class="muted" data-i18n="capture_empty"></p>
+            <button type="button" class="btn btn-sm" id="btn-whole"><i data-icon="expand"></i><span data-i18n="capture_whole"></span></button>
+          </div>
+
+          <div class="pane" id="pane-busy" role="status" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <p data-i18n="bubble_crop_recognizing"></p>
+            <p class="muted small" id="busy-slow" data-i18n="bubble_crop_slow" hidden></p>
+          </div>
+
+          <div class="pane pane-error" id="pane-error" role="alert" hidden>
+            <i data-icon="alert" data-icon-size="22" class="error-icon"></i>
+            <p id="error-msg"></p>
+            <div class="row">
+              <button type="button" class="btn btn-sm" id="btn-retry"><i data-icon="refresh"></i><span data-i18n="common_retry"></span></button>
+              <button type="button" class="btn btn-sm" id="btn-again"><span data-i18n="bubble_crop_select_again"></span></button>
+            </div>
+          </div>
+
+          <div class="result" id="pane-result" hidden>
+            <label class="label" for="ocr-text" data-i18n="bubble_crop_recognized_label"></label>
+            <textarea id="ocr-text" class="textarea ocr-text" dir="auto" rows="3" spellcheck="false"></textarea>
+            <p class="muted small" id="low-confidence" data-i18n="bubble_crop_low_confidence" hidden></p>
+            <div class="tools">
+              <button type="button" class="icon-btn icon-btn-sm" id="btn-speak-src" data-i18n-aria-label="bubble_crop_listen_text" data-i18n-title="bubble_crop_listen_text"><i data-icon="volume"></i></button>
+              <button type="button" class="icon-btn icon-btn-sm" id="btn-copy-src" data-i18n-aria-label="bubble_crop_copy_text" data-i18n-title="bubble_crop_copy_text"><i data-icon="copy"></i></button>
+              <span class="spacer"></span>
+              <button type="button" class="btn btn-sm btn-soft" id="btn-translate-again"><i data-icon="refresh"></i><span data-i18n="bubble_crop_translate_again"></span></button>
+            </div>
+
+            <div class="langs-row">
+              <span class="from-lang" id="from-lang"></span>
+              <i data-icon="arrow-right" data-icon-size="14" class="arrow"></i>
+              <select id="to" class="select select-sm" data-i18n-aria-label="bubble_translate_into" data-i18n-title="bubble_translate_into"></select>
+            </div>
+
+            <div class="translation-box">
+              <div class="skeleton-wrap" id="tr-loading" aria-hidden="true" hidden>
+                <div class="skeleton sk-lg"></div>
+                <div class="skeleton sk-md"></div>
+              </div>
+              <div class="translation" id="translation" dir="auto"></div>
+              <div class="translit muted small" id="translit" dir="auto" hidden></div>
+              <div class="tr-error" id="tr-error" role="alert" hidden>
+                <p id="tr-error-msg"></p>
+                <button type="button" class="btn btn-sm" id="btn-tr-retry"><i data-icon="refresh"></i><span data-i18n="common_retry"></span></button>
+              </div>
+              <div class="tools" id="tr-tools">
+                <button type="button" class="icon-btn icon-btn-sm" id="btn-speak-tr" data-i18n-aria-label="bubble_listen_translation" data-i18n-title="bubble_listen_translation"><i data-icon="volume"></i></button>
+                <button type="button" class="icon-btn icon-btn-sm" id="btn-copy-tr" data-i18n-aria-label="bubble_copy_translation" data-i18n-title="bubble_copy_translation"><i data-icon="copy"></i></button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-sm select-again" id="btn-select-again"><span data-i18n="bubble_crop_select_again"></span></button>
+          </div>
+
+          <footer class="panel-foot muted small" id="powered" hidden></footer>
+        </aside>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

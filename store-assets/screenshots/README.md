@@ -27,6 +27,18 @@ File names are referenced by `README.md` — keep them.
 | 4 | `04-history-favorites.png` | **History & favorites** view in the popup (or full-page translator) with ~6–8 realistic entries, a few starred, search box visible. |
 | 5 | `05-settings.png` | **Settings page**: the Trigger section (Icon / Auto / Hotkey cards) or General section with target language, plus the theme selector — showing how customizable TransPop is. |
 
+### Image translation shot (since v1.1.0)
+
+The store shows at most 5 screenshots, so for the 1.1.0 listing swap one of the shots above (suggested: `05-settings.png`)
+for an image-translation shot. Keep the five file names above for the README; store the new one separately:
+
+| File | What it should show |
+|---|---|
+| `06-image-translation.png` (+ `en/`, `vi/`) | A page with **text inside an image** (e.g. a photo of a sign or a scanned page — public-domain content). The crop rectangle (teal border) around the text and the result bubble next to it: recognized text, translation, 🔊 / copy buttons. Optionally a second capture of the drag state with the hint bar "Drag to select an area · Esc to cancel". |
+
+The dev harness can produce it: `npm run dev` → <http://localhost:5179/dev/ocr-test.html> has sample images
+(`dev/fixtures/`). Don't reference `06-image-translation.png` from `README.md` until the file exists.
+
 ## After capturing
 
 1. Save the files here with the names above.

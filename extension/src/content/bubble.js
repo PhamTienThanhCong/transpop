@@ -1,5 +1,5 @@
 /*
- * TransPop content script — in-page UI (file 5/6): floating trigger button + translation bubble.
+ * TransPop content script — in-page UI (file 5/7): floating trigger button + translation bubble.
  *
  * Host isolation: ONE <transpop-root> element appended to <html>, closed shadow root, `all: initial`,
  * max z-index, styles from styles.js. Built lazily on first use; re-attached if a SPA removes it.
@@ -8,6 +8,7 @@
  * when <html> is offset/positioned.
  * Security: remote/user text only ever goes through textContent / text nodes; example `<b>` tags
  * are rendered by util.splitBold() → <strong>; icons are built with createElementNS.
+ * G.uiKit (end of file) shares the host, DOM helpers and result renderers with crop.js (image translation).
  */
 (() => {
   'use strict';
@@ -43,6 +44,19 @@
   let trigger = null; // { snap, timer }
   let session = null; // current bubble session
   let seq = 0;
+
+  /** Other in-page UIs living in the same host (crop.js): "is something of yours visible?" predicates. */
+  const activities = new Set();
+  /** Called right before the selection bubble opens (other UIs close themselves). */
+  const openHooks = new Set();
+  const othersActive = () =>
+    [...activities].some((fn) => {
+      try {
+        return !!fn();
+      } catch {
+        return false;
+      }
+    });
 
   let watching = false;
   let unwatch = [];
@@ -388,16 +402,16 @@
     root.append(bubbleEl);
   }
 
-  function fillLanguageOptions() {
-    if (els.to.options.length) return;
-    for (const { code, name } of G.lang.options()) els.to.append(h('option', { value: code }, name));
+  /** Fill a target-language <select> (once) and select `code` — also used by crop.js. */
+  function fillTargetSelect(select, code) {
+    if (!select.options.length) for (const o of G.lang.options()) select.append(h('option', { value: o.code }, o.name));
+    if (!code) return;
+    if (![...select.options].some((o) => o.value === code)) select.append(h('option', { value: code }, G.lang.name(code) || code));
+    if (select.value !== code) select.value = code;
   }
 
   function setTargetValue(code) {
-    fillLanguageOptions();
-    if (!code) return;
-    if (![...els.to.options].some((o) => o.value === code)) els.to.append(h('option', { value: code }, G.lang.name(code) || code));
-    if (els.to.value !== code) els.to.value = code;
+    fillTargetSelect(els.to, code);
   }
 
   /* ------------------------------------------------------------------ */
@@ -411,6 +425,13 @@
    */
   function open(snap, { focus = false } = {}) {
     if (!snap || !snap.text || !ensureHost()) return;
+    for (const fn of [...openHooks]) {
+      try {
+        fn();
+      } catch {
+        /* ignore */
+      }
+    }
     hideTrigger();
     buildBubble();
     if (session) {
@@ -643,12 +664,36 @@
       return;
     }
 
+    body.append(
+      ...resultViews(r, {
+        body,
+        expanded: !!s.expanded,
+        speak: (text, lang, btn) => speak(s, text, lang, btn),
+        onToggle: (expanded) => {
+          s.expanded = expanded;
+        },
+        onLayout: schedulePosition,
+      }),
+    );
+  }
+
+  /**
+   * The translation views for a TranslationResult: main translation (+ speak/copy) and the dictionary sections
+   * allowed by the settings, plus a "Show more" button when something is collapsed. Shared with crop.js.
+   * @param {object} r  TranslationResult
+   * @param {{body: Element, expanded?: boolean, speak: (text: string, lang: string, btn: Element) => void,
+   *   onToggle?: (expanded: boolean) => void, onLayout?: () => void}} ctx
+   *   body: the `.g-body` container that gets `is-expanded` (CSS hides `.g-extra` items while it is collapsed)
+   * @returns {Element[]}
+   */
+  function resultViews(r, ctx) {
     const st = G.settings;
     const flags = { truncated: false };
     const toLang = G.lang.bcp47(r.to) || null;
     const fromLang = r.from && r.from !== 'auto' ? G.lang.bcp47(r.from) : null;
-    const add = (el) => el && body.append(el);
-    add(mainView(s, r, toLang));
+    const out = [];
+    const add = (el) => el && out.push(el);
+    add(mainView(r, toLang, ctx));
     // Dictionary + alternatives follow `showDictionary`; definitions + synonyms (both monolingual,
     // source language) follow `showDefinitions`; examples follow `showExamples`.
     if (st.showDictionary) {
@@ -658,10 +703,11 @@
     if (st.showDefinitions) add(definitionsView(r, fromLang, flags));
     if (st.showExamples) add(examplesView(r, fromLang, flags));
     if (st.showDefinitions) add(posGridView('common_synonyms', r.synonyms, LIMIT.synGroups, LIMIT.synTerms, fromLang, false, flags));
-    if (flags.truncated) add(moreButton(s));
+    if (flags.truncated) add(moreButton(ctx));
+    return out;
   }
 
-  function mainView(s, r, lang) {
+  function mainView(r, lang, ctx) {
     const translation = typeof r.translation === 'string' ? r.translation : '';
     // Words / short phrases get a large, brand-colored headline; sentences stay at reading size.
     const isShort = translation.length > 0 && translation.length <= 40 && !/[\n.!?。！？]\s*\S/.test(translation);
@@ -671,7 +717,7 @@
     const parts = [tr];
     if (typeof r.translit === 'string' && r.translit.trim()) parts.push(h('div', { class: 'g-translit', dir: 'auto' }, r.translit.trim()));
 
-    const speakBtn = iconButton('volume', t('bubble_listen_translation'), (e) => speak(s, translation, r.to, e.currentTarget), true);
+    const speakBtn = iconButton('volume', t('bubble_listen_translation'), (e) => ctx.speak(translation, r.to, e.currentTarget), true);
     const copied = h('span', { class: 'g-copied', 'aria-hidden': 'true' }, t('common_copied'));
     const copyBtn = iconButton(
       'copy',
@@ -765,16 +811,18 @@
     return section('common_examples', ul);
   }
 
-  function moreButton(s) {
-    const label = h('span', null, t(s.expanded ? 'common_show_less' : 'common_show_more'));
-    const btn = h('button', { class: 'g-more', type: 'button', 'aria-expanded': String(!!s.expanded) }, label, icon(s.expanded ? 'chevron-up' : 'chevron-down', 14));
+  function moreButton(ctx) {
+    let expanded = !!ctx.expanded;
+    const label = h('span', null, t(expanded ? 'common_show_less' : 'common_show_more'));
+    const btn = h('button', { class: 'g-more', type: 'button', 'aria-expanded': String(expanded) }, label, icon(expanded ? 'chevron-up' : 'chevron-down', 14));
     btn.addEventListener('click', () => {
-      s.expanded = !s.expanded;
-      els.body.classList.toggle('is-expanded', s.expanded);
-      btn.setAttribute('aria-expanded', String(s.expanded));
-      label.textContent = t(s.expanded ? 'common_show_less' : 'common_show_more');
-      btn.lastChild.replaceWith(icon(s.expanded ? 'chevron-up' : 'chevron-down', 14));
-      schedulePosition();
+      expanded = !expanded;
+      ctx.body.classList.toggle('is-expanded', expanded);
+      btn.setAttribute('aria-expanded', String(expanded));
+      label.textContent = t(expanded ? 'common_show_less' : 'common_show_more');
+      btn.lastChild.replaceWith(icon(expanded ? 'chevron-up' : 'chevron-down', 14));
+      if (ctx.onToggle) ctx.onToggle(expanded);
+      if (ctx.onLayout) ctx.onLayout();
     });
     return btn;
   }
@@ -981,51 +1029,68 @@
 
   function onHeadPointerDown(e) {
     const s = session;
-    if (!s || e.button !== 0 || !e.isPrimary) return;
+    if (!s) return;
+    dragPanel(e, els.head, bubbleEl, {
+      isActive: () => session === s,
+      onStart: () => {
+        s.userMoved = true;
+      },
+    });
+  }
+
+  /**
+   * Drag a panel (bubble) by its header — shared with crop.js. Call from the handle's `pointerdown`.
+   * Clicks on controls inside the handle are ignored; the panel stays inside the viewport.
+   * @param {PointerEvent} e
+   * @param {Element} handle
+   * @param {HTMLElement} panel  absolutely positioned inside the host (style.left/top in host px)
+   * @param {{isActive?: () => boolean, onStart?: () => void}} [opts]
+   */
+  function dragPanel(e, handle, panel, { isActive = () => true, onStart } = {}) {
+    if (!panel || e.button !== 0 || !e.isPrimary) return;
     if (e.target && e.target.closest && e.target.closest('button, select, a, input, textarea')) return;
     e.preventDefault(); // inside our UI only: no text selection while dragging
-    const head = els.head;
     const startX = e.clientX;
     const startY = e.clientY;
-    const startLeft = parseFloat(bubbleEl.style.left) || 0;
-    const startTop = parseFloat(bubbleEl.style.top) || 0;
+    const startLeft = parseFloat(panel.style.left) || 0;
+    const startTop = parseFloat(panel.style.top) || 0;
     let moved = false;
     try {
-      head.setPointerCapture(e.pointerId);
+      handle.setPointerCapture(e.pointerId);
     } catch {
       /* ignore */
     }
     const onMove = (ev) => {
-      if (session !== s) return;
+      if (!isActive()) return;
       const dx = ev.clientX - startX;
       const dy = ev.clientY - startY;
       if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
       if (!moved) {
         moved = true;
-        s.userMoved = true;
-        bubbleEl.classList.add('is-dragging');
+        if (onStart) onStart();
+        panel.classList.add('is-dragging');
       }
       const o = hostOrigin();
       const vp = viewport();
-      const left = U.clamp(startLeft + dx + o.x, EDGE, vp.width - EDGE - bubbleEl.offsetWidth);
-      const top = U.clamp(startTop + dy + o.y, EDGE, vp.height - EDGE - bubbleEl.offsetHeight);
-      bubbleEl.style.setProperty('left', `${left - o.x}px`);
-      bubbleEl.style.setProperty('top', `${top - o.y}px`);
+      const left = U.clamp(startLeft + dx + o.x, EDGE, vp.width - EDGE - panel.offsetWidth);
+      const top = U.clamp(startTop + dy + o.y, EDGE, vp.height - EDGE - panel.offsetHeight);
+      panel.style.setProperty('left', `${left - o.x}px`);
+      panel.style.setProperty('top', `${top - o.y}px`);
     };
     const onUp = () => {
-      head.removeEventListener('pointermove', onMove);
-      head.removeEventListener('pointerup', onUp);
-      head.removeEventListener('pointercancel', onUp);
-      if (bubbleEl) bubbleEl.classList.remove('is-dragging');
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
+      panel.classList.remove('is-dragging');
       try {
-        head.releasePointerCapture(e.pointerId);
+        handle.releasePointerCapture(e.pointerId);
       } catch {
         /* ignore */
       }
     };
-    head.addEventListener('pointermove', onMove);
-    head.addEventListener('pointerup', onUp);
-    head.addEventListener('pointercancel', onUp);
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
   }
 
   /* ------------------------------------------------------------------ */
@@ -1036,7 +1101,7 @@
 
   /** Drop the built UI (strings, `dir`, language list are baked in at build time) once nothing is visible. */
   function resetIfStale() {
-    if (!localeStale || trigger || session) return;
+    if (!localeStale || trigger || session || othersActive()) return;
     localeStale = false;
     if (!host) return;
     stopWatching();
@@ -1052,7 +1117,7 @@
   G.onUiLanguageChange(() => {
     if (!host) return; // nothing built yet — the next build uses the new strings
     localeStale = true;
-    if (trigger || session) {
+    if (trigger || session || othersActive()) {
       applySettings(); // trigger labels now; the rest is rebuilt when the bubble closes
       if (session && session.canReveal) render(session);
       return;
@@ -1094,6 +1159,42 @@
     refresh: () => {
       applySettings();
       if (session && session.canReveal) render(session);
+    },
+  };
+
+  /** Building blocks for other in-page UIs sharing this host (crop.js). Getters: the host is rebuilt lazily. */
+  G.uiKit = {
+    h,
+    icon,
+    iconButton,
+    ensureHost,
+    root: () => root,
+    shadow: () => shadow,
+    host: () => host,
+    viewport,
+    hostOrigin,
+    toHost,
+    toView,
+    applySettings,
+    announce,
+    copyText,
+    resultViews,
+    fillTargetSelect,
+    dragPanel,
+    EDGE,
+    /** Register an "is your UI visible?" predicate (keeps the host alive across display-language changes). */
+    registerActivity: (fn) => {
+      activities.add(fn);
+      return () => activities.delete(fn);
+    },
+    /** Run `fn` right before the selection bubble opens. */
+    onBubbleOpen: (fn) => {
+      openHooks.add(fn);
+      return () => openHooks.delete(fn);
+    },
+    /** Another UI closed: finish a pending display-language rebuild once nothing is visible. */
+    idle: () => {
+      if (localeStale) G.later(resetIfStale, 0);
     },
   };
 })();

@@ -34,5 +34,9 @@
   "popup_enable_pages": { "en": "Translate on pages", "vi": "Dịch trên trang", "description": "Footer switch bound to settings.enabled" },
   "popup_enable_pages_title": { "en": "Show translations when you select text on web pages", "vi": "Hiện bản dịch khi bạn bôi đen văn bản trên trang web", "description": "Tooltip of the footer master switch" },
   "popup_enable_site": { "en": "On $1", "vi": "Trên $1", "description": "Footer per-site switch. $1 = hostname, e.g. github.com" },
+  "popup_capture": { "en": "Translate screen area", "vi": "Dịch vùng màn hình", "description": "Header button: select an area of the current tab and translate the text in it (OCR)" },
+  "popup_capture_shortcut": { "en": "Translate screen area ($1)", "vi": "Dịch vùng màn hình ($1)", "description": "Tooltip of the header button. $1 = keyboard shortcut, e.g. Alt+Shift+A" },
+  "popup_capture_unavailable": { "en": "Chrome doesn't allow capturing this page", "vi": "Chrome không cho phép chụp trang này", "description": "Tooltip when the button is disabled (e.g. Chrome Web Store pages)" },
+  "popup_capture_file_access": { "en": "To use it on local files, turn on “Allow access to file URLs” for TransPop in chrome://extensions", "vi": "Để dùng với tệp trên máy, hãy bật “Cho phép truy cập vào URL của tệp” cho TransPop trong chrome://extensions", "description": "Tooltip when the button is disabled on a file:// page without file access" },
   "popup_enable_site_title": { "en": "Translate selected text on $1", "vi": "Dịch văn bản được bôi đen trên $1", "description": "Tooltip of the per-site switch. $1 = hostname" }
 }

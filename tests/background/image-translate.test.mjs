@@ -1,0 +1,255 @@
+/**
+ * Unit tests for extension/src/background/image-translate.js — pure helpers + handlers with injected fakes
+ * (capture / OCR / storage / messaging), no real chrome.* needed.
+ */
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  CAPTURE_WINDOW,
+  capturePagePath,
+  computeCaptureWindow,
+  computeErrorWindow,
+  createImageTranslation,
+  isExtensionPage,
+  pickOcrLanguages,
+  sanitizeRect,
+  sanitizeViewport,
+} from '../../extension/src/background/image-translate.js';
+
+const ORIGIN = 'chrome-extension://abc/';
+const NO_RECEIVER = new Error('Could not establish connection. Receiving end does not exist.');
+
+/* ---------------- pure helpers ---------------- */
+
+test('sanitizeRect: finite numbers, normalized drag direction, at least 1×1', () => {
+  assert.deepEqual(sanitizeRect({ x: 10, y: 20, width: 30, height: 40 }), { x: 10, y: 20, width: 30, height: 40 });
+  assert.deepEqual(sanitizeRect({ x: 50, y: 60, width: -30, height: -40 }), { x: 20, y: 20, width: 30, height: 40 });
+  assert.deepEqual(sanitizeRect({ x: '1', y: '2', width: '3', height: '4' }), { x: 1, y: 2, width: 3, height: 4 });
+  assert.equal(sanitizeRect({ x: 0, y: 0, width: 0.5, height: 10 }), null);
+  assert.equal(sanitizeRect({ x: NaN, y: 0, width: 10, height: 10 }), null);
+  assert.equal(sanitizeRect({ x: 0, y: 0, width: 10 }), null);
+  assert.equal(sanitizeRect(null), null);
+});
+
+test('sanitizeViewport: positive finite size only', () => {
+  assert.deepEqual(sanitizeViewport({ width: 1280, height: 720 }), { width: 1280, height: 720 });
+  assert.equal(sanitizeViewport({ width: 0, height: 720 }), null);
+  assert.equal(sanitizeViewport({ width: 'x', height: 720 }), null);
+  assert.equal(sanitizeViewport(undefined), null);
+});
+
+test('pickOcrLanguages: explicit list (normalized) vs settings; `changed` only when it differs', () => {
+  const settings = { ocrLanguages: ['eng'] };
+  assert.deepEqual(pickOcrLanguages(undefined, settings), { langs: ['eng'], changed: false });
+  assert.deepEqual(pickOcrLanguages([], settings), { langs: ['eng'], changed: false });
+  assert.deepEqual(pickOcrLanguages(['eng'], settings), { langs: ['eng'], changed: false });
+  assert.deepEqual(pickOcrLanguages(['jpn', 'eng', 'jpn', 'xx'], settings), { langs: ['jpn', 'eng'], changed: true });
+  assert.deepEqual(pickOcrLanguages(['a', 'b'], settings), { langs: ['eng'], changed: false }, 'unknown codes → default');
+  assert.deepEqual(pickOcrLanguages(['vie', 'eng', 'jpn', 'kor'], null).langs, ['vie', 'eng', 'jpn'], 'max 3');
+});
+
+test('computeCaptureWindow: screenshot CSS size + panel, capped to the source window, centered', () => {
+  // 2× screenshot of a 1280×800 window: the shot alone is 1280 CSS px wide → capped to the window minus margin.
+  const big = computeCaptureWindow({ image: { width: 2560, height: 1500 }, source: { left: 100, top: 50, width: 1280, height: 800 } });
+  assert.equal(big.width, 1280 - CAPTURE_WINDOW.margin);
+  assert.equal(big.height, 800 - CAPTURE_WINDOW.margin);
+  assert.equal(big.left, 100 + 20);
+  assert.equal(big.top, 50 + 20);
+
+  // Small screenshot in a big window: fits the screenshot + panel.
+  const small = computeCaptureWindow({ image: { width: 400, height: 300 }, source: { left: 0, top: 0, width: 1600, height: 1000 } });
+  assert.equal(small.width, Math.max(CAPTURE_WINDOW.minWidth, 400 + CAPTURE_WINDOW.panel));
+  assert.equal(small.height, Math.max(CAPTURE_WINDOW.minHeight, 300 + CAPTURE_WINDOW.chrome));
+
+  // Unknown source window: default caps, no position.
+  const unknown = computeCaptureWindow({ image: { width: 5000, height: 4000 }, source: null });
+  assert.deepEqual(unknown, { width: CAPTURE_WINDOW.defaultMaxWidth, height: CAPTURE_WINDOW.defaultMaxHeight });
+});
+
+test('computeErrorWindow / capturePagePath / isExtensionPage', () => {
+  assert.deepEqual(computeErrorWindow(null), { width: CAPTURE_WINDOW.errorWidth, height: CAPTURE_WINDOW.errorHeight });
+  const e = computeErrorWindow({ left: 0, top: 0, width: 1460, height: 1000 });
+  assert.equal(e.left, 500);
+  assert.ok(e.top >= 0);
+
+  assert.equal(capturePagePath({ id: 'a b' }), 'src/capture/capture.html?id=a%20b');
+  assert.equal(capturePagePath({ error: 'CAPTURE_FAILED' }), 'src/capture/capture.html?error=CAPTURE_FAILED');
+  assert.equal(capturePagePath({ error: '<script>' }), 'src/capture/capture.html?error=CAPTURE_FAILED');
+
+  assert.equal(isExtensionPage({ url: 'chrome-extension://abc/src/popup/popup.html' }, ORIGIN), true);
+  assert.equal(isExtensionPage({ origin: 'chrome-extension://abc' }, ORIGIN), true);
+  assert.equal(isExtensionPage({ url: 'chrome-extension://abcd/x.html' }, ORIGIN), false);
+  assert.equal(isExtensionPage({ url: 'https://example.com/' }, ORIGIN), false);
+  assert.equal(isExtensionPage({}, ''), false);
+});
+
+/* ---------------- handlers with fakes ---------------- */
+
+function setup({ capture = null, sendToTab, captureTab, settings = { ocrLanguages: ['eng'] } } = {}) {
+  const calls = { crop: [], ocr: [], saved: [], tab: [], windows: [], tabsCreated: [], captureTab: 0 };
+  const fakeChrome = {
+    runtime: { getURL: (p) => `${ORIGIN}${p}` },
+    tabs: {
+      get: async (id) => ({ id, windowId: 3 }),
+      query: async (q) => (q.windowId === 9 ? [{ id: 90, windowId: 9 }] : [{ id: 11, windowId: 1 }]),
+      create: async (p) => calls.tabsCreated.push(p),
+    },
+    windows: {
+      get: async () => ({ left: 0, top: 0, width: 1200, height: 900 }),
+      getLastFocused: async () => ({ id: 9 }),
+      create: async (p) => {
+        calls.windows.push(p);
+        return { id: 1 };
+      },
+    },
+  };
+  const it = createImageTranslation({
+    chrome: () => fakeChrome,
+    getSettings: async () => settings,
+    saveSettings: async (patch) => calls.saved.push(patch),
+    getCaptureForTab: (tabId) => (capture && capture.tabId === tabId ? capture : null),
+    getCapture: (id) => (capture && capture.id === id ? capture : null),
+    cropForOcr: async (...args) => {
+      calls.crop.push(args);
+      return 'data:image/png;base64,CROP';
+    },
+    runOcr: async (dataUrl, langs) => {
+      calls.ocr.push({ dataUrl, langs });
+      return { text: 'Hi', confidence: 90, langs };
+    },
+    clearOcrCache: async () => ({}),
+    captureTab:
+      captureTab ||
+      (async (tab) => {
+        calls.captureTab++;
+        return { id: `cap-${tab.id}`, dataUrl: 'data:image/png;base64,SHOT', width: 2400, height: 1600 };
+      }),
+    sendToTab: async (tabId, type, payload, opts) => {
+      calls.tab.push({ tabId, type, payload, opts });
+      return sendToTab ? sendToTab(payload) : null;
+    },
+  });
+  return { it, calls };
+}
+
+const CAPTURE = { id: 'c1', tabId: 5, dataUrl: 'data:image/png;base64,SHOT', width: 2560, height: 1600, tabTitle: 'Page' };
+const fromTab = (id) => ({ url: 'https://example.com/', tab: { id, windowId: 1 } });
+
+test('ocr-region: crops the sender tab screenshot with the given rect/viewport, OCR with settings languages', async () => {
+  const { it, calls } = setup({ capture: CAPTURE });
+  const res = await it.handleOcrRegion({ rect: { x: 10, y: 20, width: 100, height: 40 }, viewport: { width: 1280, height: 800 } }, fromTab(5));
+  assert.deepEqual(res.ocr.langs, ['eng']);
+  assert.deepEqual(calls.crop[0], ['data:image/png;base64,SHOT', { x: 10, y: 20, width: 100, height: 40 }, { width: 1280, height: 800 }]);
+  assert.deepEqual(calls.ocr[0], { dataUrl: 'data:image/png;base64,CROP', langs: ['eng'] });
+  assert.equal(calls.saved.length, 0);
+});
+
+test('ocr-region: toolbar languages are used and remembered; errors are coded', async () => {
+  const { it, calls } = setup({ capture: CAPTURE });
+  await it.handleOcrRegion({ rect: { x: 0, y: 0, width: 50, height: 50 }, viewport: { width: 800, height: 600 }, langs: ['jpn', 'eng'] }, fromTab(5));
+  assert.deepEqual(calls.ocr[0].langs, ['jpn', 'eng']);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(calls.saved, [{ ocrLanguages: ['jpn', 'eng'] }]);
+
+  await assert.rejects(it.handleOcrRegion({ rect: { x: 0, y: 0, width: 5, height: 5 }, viewport: { width: 1, height: 1 } }, fromTab(6)), {
+    code: 'CAPTURE_FAILED',
+  });
+  await assert.rejects(it.handleOcrRegion({ rect: {}, viewport: { width: 1, height: 1 } }, fromTab(5)), { code: 'OCR_FAILED' });
+  await assert.rejects(it.handleOcrRegion({ rect: { x: 0, y: 0, width: 5, height: 5 }, viewport: {} }, fromTab(5)), { code: 'OCR_FAILED' });
+  await assert.rejects(it.handleOcrRegion({}, { url: 'chrome-extension://abc/x' }), { code: 'CAPTURE_FAILED' });
+});
+
+test('get-capture / ocr-clear-cache are for extension pages only', async () => {
+  const { it } = setup({ capture: CAPTURE });
+  const page = { url: `${ORIGIN}src/capture/capture.html?id=c1`, tab: { id: 77 } };
+  assert.deepEqual(await it.handleGetCapture({ id: 'c1' }, page), { dataUrl: CAPTURE.dataUrl, width: 2560, height: 1600, tabTitle: 'Page' });
+  await assert.rejects(it.handleGetCapture({ id: 'c1' }, fromTab(5)), { code: 'CAPTURE_FAILED' });
+  await assert.rejects(it.handleGetCapture({ id: 'zz' }, page), { code: 'CAPTURE_FAILED' });
+  assert.deepEqual(await it.handleClearCache({}, page), {});
+  await assert.rejects(it.handleClearCache({}, fromTab(5)));
+});
+
+test('startCapture: content script started → no window; started:false (e.g. XML page) → capture page', async () => {
+  let started = true;
+  const { it, calls } = setup({ sendToTab: (p) => (p.prepare ? { ready: true } : { started }) });
+  assert.deepEqual(await it.startCapture({ id: 4, windowId: 1 }), { started: true, fallback: false });
+  assert.deepEqual(
+    calls.tab.map((c) => [c.type, c.payload, c.opts]),
+    [
+      ['start-crop', { prepare: true }, { frameId: 0 }],
+      ['start-crop', { mode: 'region' }, { frameId: 0 }],
+    ],
+  );
+  assert.equal(calls.windows.length, 0);
+
+  started = false;
+  assert.deepEqual(await it.startCapture({ id: 4, windowId: 1 }, { mode: 'image', srcUrl: 'https://x/y.png' }), { started: true, fallback: true });
+  assert.deepEqual(calls.tab.at(-1).payload, { mode: 'image', srcUrl: 'https://x/y.png' });
+  const w = calls.windows.at(-1);
+  assert.equal(w.url, `${ORIGIN}src/capture/capture.html?id=cap-4`);
+  assert.equal(w.type, 'popup');
+  assert.ok(w.width <= 1200 && w.height <= 900);
+});
+
+test('startCapture: the screenshot happens after "prepare" (our UI is hidden first)', async () => {
+  const order = [];
+  const { it } = setup({
+    sendToTab: (p) => {
+      order.push(p.prepare ? 'prepare' : 'start');
+      return p.prepare ? { ready: true } : { started: true };
+    },
+    captureTab: async (tab) => {
+      order.push('capture');
+      return { id: 'x', dataUrl: 'data:image/png;base64,A', width: 10, height: 10, tabId: tab.id };
+    },
+  });
+  await it.startCapture({ id: 1, windowId: 1 });
+  assert.deepEqual(order, ['prepare', 'capture', 'start']);
+});
+
+test('startCapture: capture failure → error bubble, else the error page; rejects with CAPTURE_FAILED', async () => {
+  const failing = async () => {
+    throw new Error('boom');
+  };
+  const withReceiver = setup({ captureTab: failing, sendToTab: (p) => (p.prepare ? { ready: true } : { started: true }) });
+  await assert.rejects(withReceiver.it.startCapture({ id: 2, windowId: 1 }), { code: 'CAPTURE_FAILED' });
+  assert.deepEqual(withReceiver.calls.tab.at(-1).payload, { mode: 'region', error: 'CAPTURE_FAILED' });
+  assert.equal(withReceiver.calls.windows.length, 0);
+
+  const noReceiver = setup({
+    captureTab: failing,
+    sendToTab: () => {
+      throw NO_RECEIVER;
+    },
+  });
+  await assert.rejects(noReceiver.it.startCapture({ id: 2, windowId: 1 }), { code: 'CAPTURE_FAILED' });
+  assert.equal(noReceiver.calls.windows.at(-1).url, `${ORIGIN}src/capture/capture.html?error=CAPTURE_FAILED`);
+  assert.equal(noReceiver.calls.windows.at(-1).width, CAPTURE_WINDOW.errorWidth);
+
+  await assert.rejects(noReceiver.it.startCapture(null), { code: 'CAPTURE_FAILED' });
+});
+
+test('start-capture: content script → its tab; popup → tabId or the last focused normal window', async () => {
+  const { it, calls } = setup({ sendToTab: (p) => (p.prepare ? { ready: true } : { started: true }) });
+  await it.handleStartCapture({ mode: 'region' }, fromTab(21));
+  assert.equal(calls.tab.at(-1).tabId, 21);
+
+  await it.handleStartCapture({ tabId: 33 }, { url: `${ORIGIN}src/popup/popup.html` });
+  assert.equal(calls.tab.at(-1).tabId, 33);
+
+  // From the capture page (an extension page inside a tab): never capture that tab itself.
+  await it.handleStartCapture({}, { url: `${ORIGIN}src/capture/capture.html`, tab: { id: 77, windowId: 4 } });
+  assert.equal(calls.tab.at(-1).tabId, 90, 'active tab of the last focused normal window');
+});
+
+test('reflowOcrText joins wrapped lines, keeps paragraphs and list items', async () => {
+  const { reflowOcrText } = await import('../../extension/src/background/image-translate.js');
+  assert.equal(
+    reflowOcrText('Unemployment has been the most obvious cost of the recession,\nbut economists warn that the long-\nterm consequences may be\nfar more subtle.', 'en'),
+    'Unemployment has been the most obvious cost of the recession, but economists warn that the long-term consequences may be far more subtle.',
+  );
+  assert.equal(reflowOcrText('First paragraph\nline two\n\nSecond paragraph', 'en'), 'First paragraph line two\n\nSecond paragraph');
+  assert.equal(reflowOcrText('Shopping list:\n- milk\n- eggs', 'en'), 'Shopping list:\n- milk\n- eggs');
+  assert.equal(reflowOcrText('今日はとても\n良い天気ですね。', 'ja'), '今日はとても良い天気ですね。');
+  assert.equal(reflowOcrText('', 'en'), '');
+});

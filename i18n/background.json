@@ -4,6 +4,16 @@
     "vi": "Dịch “%s”",
     "description": "Context menu item on selected text. Keep %s: Chrome replaces it with the selection."
   },
+  "bg_ctx_image": {
+    "en": "Translate text in image",
+    "vi": "Dịch chữ trong ảnh",
+    "description": "Context menu item on images: recognizes the text in the image (OCR) and translates it"
+  },
+  "bg_ctx_area": {
+    "en": "Translate screen area…",
+    "vi": "Dịch vùng màn hình…",
+    "description": "Context menu item on pages: drag to select an area of the screen, its text is recognized and translated"
+  },
   "bg_ctx_site_off": {
     "en": "Turn off on $1",
     "vi": "Tắt trên $1",

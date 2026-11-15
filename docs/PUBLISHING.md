@@ -87,6 +87,12 @@ Mẹo:
   mục đó — đảm bảo gói không thiếu file.
 - Giới hạn bình thường (không phải lỗi): tiện ích **không chạy** trên trang `chrome://…`, Chrome Web Store, trình
   xem PDF tích hợp của Chrome, và các trình soạn thảo vẽ bằng canvas (vd. Google Docs) — đây là giới hạn của Chrome.
+  Riêng **dịch chữ trong ảnh** (`Alt+Shift+A`) vẫn dùng được ở Google Docs, trình xem PDF và phần lớn trang
+  `chrome://…` (hai loại sau qua cửa sổ chụp dự phòng) — trừ Chrome Web Store (Chrome chặn chụp màn hình ở đó). Với tệp `file://`, cần bật
+  *Allow access to file URLs* (Cho phép truy cập vào URL của tệp) cho TransPop ở `chrome://extensions`.
+- Thử dịch chữ trong ảnh: mở một trang có ảnh chứa chữ (hoặc `npm run dev` → <http://localhost:5179/dev/ocr-test.html>),
+  nhấn `Alt+Shift+A` rồi kéo chọn vùng chữ; hoặc chuột phải vào ảnh → *Translate text in image*. Lần đầu dùng mỗi
+  ngôn ngữ OCR, tiện ích tải dữ liệu ngôn ngữ (~1,5–3 MB) từ jsDelivr nên cần có mạng.
 
 ---
 
@@ -195,7 +201,10 @@ npm run package   # build ngôn ngữ + check + tạo dist/transpop-v<version>.z
 ```
 
 - `npm run check` phải kết thúc bằng **✔ All checks passed** (các dòng ⚠ là cảnh báo, nên đọc nhưng không chặn).
-- `npm run package` in ra đường dẫn và dung lượng file, vd. `✔ dist/transpop-v1.0.0.zip — 130 KB`.
+- `npm run package` in ra đường dẫn và dung lượng file, vd. `✔ dist/transpop-v1.0.0.zip — 130 KB`. Từ bản
+  **1.1.0**, file zip lớn hơn khoảng **3,5 MB** vì có bộ nhận dạng chữ Tesseract.js (thư viện + 3 lõi WebAssembly ở
+  `extension/vendor/tesseract/`, ~8,6 MB khi chưa nén). Đây là kích thước bình thường, vẫn rất nhỏ so với giới hạn của
+  cửa hàng. Dữ liệu ngôn ngữ OCR **không** nằm trong gói — tiện ích tải về khi người dùng cần.
 - File zip chứa **nội dung** của thư mục `extension/` (`manifest.json` nằm ở gốc file zip — đúng yêu cầu của cửa hàng).
 - Thử Load unpacked từ bản giải nén của file zip (xem [mục 1](#1-chạy-thử-trên-máy-load-unpacked)).
 
@@ -250,8 +259,8 @@ Bấm **Save draft** (Lưu bản nháp) thường xuyên.
 ### 8.1. Single purpose (Mục đích duy nhất)
 
 Chrome yêu cầu mỗi tiện ích chỉ có **một mục đích** dễ hiểu. Của TransPop: *dịch văn bản người dùng chọn hoặc nhập*.
-Mọi tính năng (bong bóng, popup, từ điển, phát âm, lịch sử, yêu thích) đều phục vụ mục đích đó. Dán khối
-**Single purpose**.
+Mọi tính năng (bong bóng, popup, từ điển, phát âm, lịch sử, yêu thích, **dịch chữ trong ảnh / vùng màn hình**) đều
+phục vụ mục đích đó — dịch chữ trong ảnh chỉ là một cách khác để "chọn" văn bản cần dịch. Dán khối **Single purpose**.
 
 ### 8.2. Giải thích từng quyền (Permission justification)
 
@@ -261,8 +270,9 @@ Dashboard hiện một ô cho **mỗi** quyền trong manifest. Dán đúng kh�
 |---|---|
 | `storage` | Lưu cài đặt (`chrome.storage.sync`), lịch sử và yêu thích (`chrome.storage.local`) ngay trong trình duyệt. |
 | `contextMenus` | Thêm mục *Translate "…"* vào menu chuột phải, và mục tắt trên trang này / tạm dừng ở menu của biểu tượng. |
-| `offscreen` | Service worker MV3 không phát được âm thanh → tạo offscreen document (lý do `AUDIO_PLAYBACK`) chỉ để phát âm. |
+| `offscreen` | Service worker MV3 không phát được âm thanh và không chạy được Web Worker → tạo **một** offscreen document với 2 lý do: `AUDIO_PLAYBACK` (phát âm) và `WORKERS` (chạy bộ nhận dạng chữ Tesseract trong Web Worker để dịch chữ trong ảnh). Không dùng cho việc gì khác. |
 | `tts` | Phát âm dự phòng bằng giọng đọc có sẵn khi không tải được âm thanh trực tuyến. |
+| `activeTab` | Gọi `chrome.tabs.captureVisibleTab` để chụp tab hiện tại **chỉ ngay sau thao tác của người dùng** (phím tắt `Alt+Shift+A`, menu chuột phải trên ảnh/trang, nút "Translate screen area" trong popup). Quyền chỉ áp dụng cho tab đó, hết hiệu lực khi tab chuyển trang; **không có cảnh báo khi cài**. Ảnh chụp được nhận dạng ngay trên máy, không tải lên đâu cả. |
 | **Host permissions** (1 ô chung) | Giải thích content script chạy trên `<all_urls>` **và** từng tên miền dịch vụ — xem bảng dưới. |
 
 Ô **Host permission justification** phải giải thích **tất cả**:
@@ -279,11 +289,24 @@ Dashboard hiện một ô cho **mỗi** quyền trong manifest. Dán đúng kh�
 > Vì có `<all_urls>`, Dashboard có thể hiện cảnh báo *"Due to the Host Permission, your extension may require an
 > in-depth review which will delay publishing"*. Đó là bình thường với tiện ích dịch — giải thích rõ ràng như trên
 > giúp duyệt nhanh hơn. **Không** thêm quyền nào khác nếu không thật sự cần (vd. `tabs`, `scripting`, `history`).
+>
+> `cdn.jsdelivr.net` (nơi tải dữ liệu ngôn ngữ OCR) **không** cần host permission — jsDelivr cho phép CORS công khai —
+> nên không có trong manifest. Vẫn nên nhắc tới nó trong phần Remote code / Data usage để người duyệt không thắc mắc.
 
 ### 8.3. Remote code (Mã từ xa)
 
 Chọn **"No, I am not using remote code"**. TransPop không tải hay chạy JavaScript từ máy chủ nào; chỉ nhận dữ liệu
 JSON/âm thanh từ dịch vụ dịch. (`npm run check` tự động chặn `eval`, `new Function`, script từ xa.)
+
+Về tính năng dịch chữ trong ảnh (từ bản 1.1.0), người duyệt có thể hỏi hai điểm — câu trả lời đều là *không phải mã từ xa*:
+
+| Điểm | Giải thích |
+|---|---|
+| CSP `script-src 'self' 'wasm-unsafe-eval'` trong manifest | `'wasm-unsafe-eval'` là giá trị **Manifest V3 cho phép** để biên dịch WebAssembly. Chỉ dùng cho các lõi Tesseract (`.wasm`) **đóng gói sẵn** trong `extension/vendor/tesseract/` (bản chính thức từ npm, có bảng SHA-256 trong README của thư mục đó). Không cho phép `unsafe-eval` của JavaScript, không có nguồn script bên ngoài. |
+| Tải `<lang>.traineddata.gz` từ `cdn.jsdelivr.net` | Đây là **dữ liệu** (trọng số mô hình nhận dạng của ngôn ngữ), không phải mã chạy được — tương tự tải từ điển. Chỉ tải khi người dùng dùng ngôn ngữ đó lần đầu, lưu trong IndexedDB; người dùng xóa được trong Cài đặt → Dịch chữ trong ảnh. |
+
+Khối giải thích tiếng Anh để dán (nếu Dashboard có ô ghi chú) nằm trong
+[STORE_LISTING.md §5](STORE_LISTING.md#remote-code).
 
 ### 8.4. Data usage (Khai báo dữ liệu)
 
@@ -294,6 +317,10 @@ Tick **duy nhất**:
 **Không** tick các mục khác (Personally identifiable information, Health, Financial and payment, Authentication,
 Personal communications, Location, Web history, User activity). Lịch sử, yêu thích, cài đặt chỉ nằm trong bộ nhớ
 trình duyệt của người dùng, không bao giờ gửi cho nhà phát triển.
+
+Dịch chữ trong ảnh **không làm thay đổi** các mục cần tick: ảnh chụp màn hình được cắt và nhận dạng **ngay trên máy**,
+không bao giờ rời khỏi thiết bị (nên không tính là "thu thập"); phần chữ nhận dạng được gửi tới dịch vụ dịch thuộc
+đúng mục **Website content** đã tick ở trên.
 
 Tick **cả ba** cam kết:
 
@@ -356,14 +383,14 @@ Lần đầu tiên, hoặc tiện ích có quyền rộng như `<all_urls>`, có
 
 | Vấn đề | Mã vi phạm thường gặp | TransPop đã làm gì / bạn cần lưu ý |
 |---|---|---|
-| **Xin quyền quá rộng hoặc không dùng tới** | Purple Potassium | Chỉ 4 quyền (`storage`, `contextMenus`, `offscreen`, `tts`) + 5 tên miền dịch vụ cụ thể, đều đang dùng. `<all_urls>` chỉ dành cho content script và được giải thích kỹ ([8.2](#82-giải-thích-từng-quyền-permission-justification)). Không xin `tabs`, `scripting`, `history`, `webRequest`… `npm run check` cảnh báo nếu có quyền lạ. |
-| **Chạy mã từ xa** (Manifest V3 cấm) | Blue Argon | Toàn bộ mã nằm trong gói; không `eval`, không `new Function`, không `<script src="https://…">`, không import từ URL — `npm run check` kiểm tra tự động. Dữ liệu JSON từ API dịch không phải là mã. |
+| **Xin quyền quá rộng hoặc không dùng tới** | Purple Potassium | Chỉ 5 quyền (`storage`, `contextMenus`, `offscreen`, `tts`, `activeTab`) + 5 tên miền dịch vụ cụ thể, đều đang dùng. `<all_urls>` chỉ dành cho content script và được giải thích kỹ ([8.2](#82-giải-thích-từng-quyền-permission-justification)). Chụp màn hình dùng `activeTab` (hẹp nhất có thể, chỉ sau thao tác của người dùng) thay vì `<all_urls>`/`tabs`. Không xin `tabs`, `scripting`, `history`, `webRequest`… `npm run check` cảnh báo nếu có quyền lạ. |
+| **Chạy mã từ xa** (Manifest V3 cấm) | Blue Argon | Toàn bộ mã nằm trong gói; không `eval`, không `new Function`, không `<script src="https://…">`, không import từ URL — `npm run check` kiểm tra tự động. Dữ liệu JSON từ API dịch không phải là mã. Tesseract.js + lõi WASM được đóng gói sẵn (`'wasm-unsafe-eval'` chỉ để biên dịch WASM trong gói); dữ liệu ngôn ngữ OCR tải từ jsDelivr là dữ liệu, không phải mã ([8.3](#83-remote-code-mã-từ-xa)). |
 | **Thương hiệu gây hiểu nhầm / mạo danh** | — | **Không bao giờ** dùng chữ "Google", "Google Translate", "Microsoft" hay logo của họ trong **tên, biểu tượng, ảnh chụp quảng cáo**. TransPop có tên và logo riêng; mô tả có câu "not affiliated with Google or Microsoft". |
 | **Nhồi từ khóa** | Yellow Argon | Mô tả viết tự nhiên, không liệt kê danh sách ngôn ngữ/từ khóa, không nhắc tên đối thủ. Xem [STORE_LISTING.md §7](STORE_LISTING.md#7-keywords--wording-guidance). |
 | **Thiếu hoặc sai thông tin listing** (mô tả sơ sài, thiếu ảnh, ảnh không đúng thực tế) | Yellow Zinc | Mô tả đầy đủ, icon + ảnh chụp thật của tiện ích. Ảnh chụp phải là giao diện thật, không phóng đại tính năng. |
 | **Không hoạt động khi người duyệt thử** | Yellow Magnesium | Thử kỹ file zip; điền tab Test instructions. TransPop tự chuyển sang Microsoft khi Google lỗi và hiện thông báo lỗi thân thiện thay vì im lặng. |
 | **Chính sách quyền riêng tư thiếu/không khớp khai báo** | Purple Lithium | `docs/PRIVACY.md` công khai, song ngữ, khớp đúng phần Data usage (chỉ "Website content"). Liên kết phải mở được khi chưa đăng nhập. |
-| **Mã bị làm rối (obfuscation)** | Red Titanium | Mã JavaScript thuần, không minify/obfuscate, không build step — người duyệt đọc được ngay. (Minify thông thường được phép, nhưng TransPop không cần.) |
+| **Mã bị làm rối (obfuscation)** | Red Titanium | Mã JavaScript thuần, không minify/obfuscate, không build step — người duyệt đọc được ngay. (Minify thông thường được phép, nhưng TransPop không cần.) Ngoại lệ duy nhất: thư viện **Tesseract.js** trong `extension/vendor/tesseract/` là bản **minify chính thức** từ npm (minify được phép, khác với obfuscate); README của thư mục ghi rõ phiên bản, nguồn và SHA-256 để người duyệt đối chiếu. |
 | **Nhiều mục đích không liên quan** | — | Mọi tính năng đều phục vụ việc dịch. Đừng thêm tính năng lạc đề (chặn quảng cáo, tải video…) vào cùng tiện ích. |
 
 Lưu ý về dịch vụ dịch: TransPop dùng các điểm truy cập web **miễn phí, không chính thức** của Google/Microsoft
@@ -388,6 +415,10 @@ Lưu ý:
 
 - **Tránh thêm quyền mới.** Nếu bản cập nhật xin thêm quyền có cảnh báo, Chrome sẽ **tạm vô hiệu hóa** tiện ích cho
   tới khi người dùng đồng ý — nhiều người sẽ không bật lại.
+- Bản **1.1.0** thêm quyền `activeTab` (và lý do `WORKERS` cho offscreen, CSP `'wasm-unsafe-eval'`). `activeTab`
+  **không có cảnh báo** nên Chrome không vô hiệu hóa tiện ích khi cập nhật — nhưng trước khi gửi duyệt vẫn phải vào tab
+  **Privacy** điền ô giải thích cho `activeTab` và cập nhật ô `offscreen` (dán từ
+  [STORE_LISTING.md §5](STORE_LISTING.md#permission-justifications)), đồng thời cập nhật mô tả trong Store listing.
 - Muốn tạo bản phát hành trên GitHub: `git tag v1.0.1 && git push origin v1.0.1` → workflow
   `.github/workflows/release.yml` tự đóng gói và đính kèm file zip vào GitHub Release (tag phải trùng version
   trong manifest).
@@ -485,6 +516,10 @@ Edge cũng có API riêng (Edge Add-ons API) nếu muốn tự động hóa sau 
 
 - [ ] Đã thử Load unpacked: bong bóng (3 chế độ kích hoạt), popup, từ điển, phát âm, lịch sử, yêu thích, cài đặt,
       menu chuột phải, phím tắt `Alt+Shift+S` / `Alt+Shift+T`, giao diện sáng/tối, tiếng Anh/tiếng Việt.
+- [ ] Đã thử **ngôn ngữ giao diện** (Cài đặt → Chung → Ngôn ngữ giao diện: Tự động / English / Tiếng Việt).
+- [ ] Đã thử **dịch chữ trong ảnh**: `Alt+Shift+A` rồi kéo chọn vùng; chuột phải vào ảnh → *Translate text in image*;
+      nút "Translate screen area" trong popup; một file PDF (cửa sổ chụp dự phòng); Cài đặt → Dịch chữ trong ảnh
+      (chọn ngôn ngữ, *Xóa* dữ liệu ngôn ngữ đã tải).
 - [ ] Thử trên vài trang khác nhau (báo, Wikipedia, GitHub, trang nền tối, trang có iframe).
 - [ ] Đã thay `EXTENSION_ID` bằng ID thật (lệnh `grep` ở [mục 4](#4-liên-kết-github-và-id-tiện-ích)) — có thể làm ngay sau lần tải gói đầu tiên.
 - [ ] `version` trong manifest đúng và lớn hơn bản trước; `CHANGELOG.md` có mục cho version này.
@@ -501,9 +536,9 @@ Edge cũng có API riêng (Edge Add-ons API) nếu muốn tự động hóa sau 
 
 - [ ] Store listing: mô tả EN (+ VI), category, icon 128, ít nhất 1 (nên 5) ảnh 1280×800, small promo tile.
 - [ ] Tên, icon, ảnh **không** chứa "Google"/"Microsoft" hay logo của họ.
-- [ ] Privacy: single purpose; giải thích cho `storage`, `contextMenus`, `offscreen`, `tts` và host permissions
-      (gồm `<all_urls>` content script + 5 tên miền); remote code = No; chỉ tick "Website content"; tick đủ 3 cam
-      kết; URL chính sách.
+- [ ] Privacy: single purpose; giải thích cho `storage`, `contextMenus`, `offscreen` (AUDIO_PLAYBACK + WORKERS),
+      `tts`, `activeTab` và host permissions (gồm `<all_urls>` content script + 5 tên miền); remote code = No; chỉ
+      tick "Website content"; tick đủ 3 cam kết; URL chính sách (đã có mục dịch chữ trong ảnh).
 - [ ] Distribution: Free, Public (hoặc Unlisted để thử trước), All regions.
 - [ ] Test instructions đã điền.
 
@@ -520,3 +555,5 @@ Edge cũng có API riêng (Edge Add-ons API) nếu muốn tự động hóa sau 
 | Không thấy biểu tượng TransPop | Bấm 🧩 trên thanh công cụ → ghim TransPop. |
 | Bị từ chối vì quyền `<all_urls>` | Viết lại phần giải thích host permission rõ ràng hơn (vì sao cần chạy trên mọi trang, dữ liệu nào được đọc, khi nào gửi đi) rồi gửi lại; có thể kháng nghị kèm giải thích. |
 | Dịch lỗi hàng loạt sau một thời gian | Dịch vụ dịch không chính thức có thể đã đổi; kiểm tra `node tests/background/live-smoke.mjs`, sửa provider, phát hành bản cập nhật. |
+| Dịch chữ trong ảnh báo lỗi ngay lần đầu dùng một ngôn ngữ | Lần đầu cần tải dữ liệu ngôn ngữ từ `cdn.jsdelivr.net` — kiểm tra mạng / tường lửa / tiện ích chặn quảng cáo có chặn jsDelivr không. Sau khi tải xong, việc nhận dạng chạy được không cần mạng (dịch thì vẫn cần). |
+| Nút "Translate screen area" bị mờ / không chụp được | Chrome không cho chụp Chrome Web Store; với tệp `file://` phải bật *Allow access to file URLs* cho TransPop. Trang mở từ trước khi cài/cập nhật tiện ích sẽ dùng cửa sổ chụp dự phòng — tải lại trang để dùng khung chọn ngay trên trang. |

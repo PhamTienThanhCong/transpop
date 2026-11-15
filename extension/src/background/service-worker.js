@@ -21,6 +21,8 @@ import * as tts from './tts.js';
 import { updateBadge } from './badge.js';
 import { handleCommand, handleMenuClick, scheduleRefresh, setupContextMenus, syncMenus } from './context-menus.js';
 import { getUiMessages } from './ui-messages.js';
+import { imageTranslation } from './image-translate.js';
+import { dropCapture } from './capture.js';
 
 const WELCOME_PAGE = 'src/welcome/welcome.html';
 const OPTIONS_PAGE = 'src/options/options.html';
@@ -149,6 +151,12 @@ const handleMessage = createHandler({
   }),
   [MSG.DISABLE_SITE]: async (msg, sender) => ({ settings: await disableSite(msg.hostname || hostFromSender(sender)) }),
   [MSG.GET_UI_MESSAGES]: () => getUiMessages(), // { locale, messages | null } for the content script (§10)
+  // Image translation (§11) — see image-translate.js
+  [MSG.START_CAPTURE]: (msg, sender) => imageTranslation.handleStartCapture(msg, sender),
+  [MSG.OCR_REGION]: (msg, sender) => imageTranslation.handleOcrRegion(msg, sender),
+  [MSG.OCR_IMAGE]: (msg, sender) => imageTranslation.handleOcrImage(msg, sender),
+  [MSG.GET_CAPTURE]: (msg, sender) => imageTranslation.handleGetCapture(msg, sender),
+  [MSG.OCR_CLEAR_CACHE]: (msg, sender) => imageTranslation.handleClearCache(msg, sender),
 });
 
 /* ------------------------------------------------------------------ */
@@ -200,6 +208,7 @@ chrome.commands.onCommand.addListener((command, tab) => {
 });
 
 chrome.tabs.onActivated.addListener(() => scheduleRefresh());
+chrome.tabs.onRemoved?.addListener((tabId) => dropCapture(tabId)); // free the tab's screenshot right away
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (tab?.active && (changeInfo.status === 'complete' || changeInfo.url)) scheduleRefresh();
 });

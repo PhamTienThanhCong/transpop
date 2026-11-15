@@ -42,7 +42,7 @@ const isVendor = (p) => p.startsWith(VENDOR + path.sep);
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/') || '.';
 
 /** Permissions documented in docs/ARCHITECTURE.md §3 (each one has a Web Store justification). */
-const EXPECTED_PERMISSIONS = ['storage', 'contextMenus', 'offscreen', 'tts'];
+const EXPECTED_PERMISSIONS = ['storage', 'contextMenus', 'offscreen', 'tts', 'activeTab'];
 const EXPECTED_HOSTS = [
   'https://translate.googleapis.com/*',
   'https://translate.google.com/*',

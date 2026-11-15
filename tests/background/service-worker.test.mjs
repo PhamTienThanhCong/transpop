@@ -52,15 +52,22 @@ test('onInstalled(install): persists normalized settings, opens welcome, creates
   assert.equal(areas.sync.settings.targetLang, 'vi', 'targetLang resolved from the UI language');
   assert.equal(areas.sync.settings.secondaryLang, 'en');
   assert.ok(log.tabsCreated.includes('chrome-extension://transpop-test/src/welcome/welcome.html'));
-  assert.deepEqual([...log.menus.keys()].sort(), ['transpop-toggle-enabled', 'transpop-toggle-site', 'transpop-translate']);
+  assert.deepEqual(
+    [...log.menus.keys()].sort(),
+    ['transpop-area', 'transpop-image', 'transpop-toggle-enabled', 'transpop-toggle-site', 'transpop-translate'],
+  );
   assert.equal(log.menus.get('transpop-translate').title, 'Translate “%s”');
   assert.deepEqual(log.menus.get('transpop-translate').contexts, ['selection']);
+  assert.equal(log.menus.get('transpop-image').title, 'Translate text in image');
+  assert.deepEqual(log.menus.get('transpop-image').contexts, ['image']);
+  assert.equal(log.menus.get('transpop-area').title, 'Translate screen area…');
+  assert.deepEqual(log.menus.get('transpop-area').contexts, ['page', 'frame']);
   assert.equal(log.menus.get('transpop-toggle-site').enabled, false, 'no hostname known (no content script)');
   assert.equal(log.badge.text, '');
 
   chrome.runtime.onInstalled.dispatch({ reason: 'update' }); // re-creating must not hit duplicate ids
   await flush(20);
-  assert.equal(log.menus.size, 3);
+  assert.equal(log.menus.size, 5);
 });
 
 test('translate: settings-aware target, cache, history', async () => {
@@ -215,4 +222,105 @@ test('speak: offscreen document created once; falls back to chrome.tts when audi
   assert.equal(log.runtimeMessages.at(-1).type, 'offscreen-stop');
 
   assert.equal((await send({ type: 'speak', text: '  ' })).error.code, 'EMPTY');
+});
+
+/* ------------------------------------------------------------------ */
+/* Image translation (ARCHITECTURE §11)                                */
+/* ------------------------------------------------------------------ */
+
+/** A data: URL whose bytes are just a PNG signature + IHDR (enough for capture.js to read the size). */
+function pngDataUrl(w, h) {
+  const b = new Uint8Array(33);
+  b.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
+  new DataView(b.buffer).setUint32(16, w);
+  new DataView(b.buffer).setUint32(20, h);
+  return `data:image/png;base64,${Buffer.from(b).toString('base64')}`;
+}
+const EXT_SENDER = { id: 'transpop-test', url: 'chrome-extension://transpop-test/src/capture/capture.html?id=x' };
+const cropMessages = () => log.tabMessages.filter((m) => m.msg.type === 'start-crop');
+
+test('crop-translate command: prepare → capture → start-crop to frame 0 (content script present)', async () => {
+  behaviour.captureVisibleTab = async () => pngDataUrl(2560, 1600);
+  behaviour.tabSendMessage = async (tabId, msg) => (msg.prepare ? { ok: true, ready: true } : { ok: true, started: true });
+  const before = cropMessages().length;
+  const windows = log.windowsCreated.length;
+  chrome.commands.onCommand.dispatch('crop-translate', { id: 7, windowId: 1 });
+  await flush(10);
+  const sent = cropMessages().slice(before);
+  assert.deepEqual(sent.map((m) => m.msg), [{ type: 'start-crop', prepare: true }, { type: 'start-crop', mode: 'region' }]);
+  assert.ok(sent.every((m) => m.opts.frameId === 0));
+  assert.equal(log.windowsCreated.length, windows, 'no fallback window');
+});
+
+test('image context menu: start-crop carries srcUrl; no receiver → capture page window with the capture id', async () => {
+  behaviour.captureVisibleTab = async () => pngDataUrl(2560, 1600);
+  behaviour.tabSendMessage = async () => {
+    throw new Error('Could not establish connection. Receiving end does not exist.');
+  };
+  chrome.contextMenus.onClicked.dispatch({ menuItemId: 'transpop-image', srcUrl: 'https://example.com/a.png' }, { id: 7, windowId: 1 });
+  await flush(10);
+  const w = log.windowsCreated.at(-1);
+  assert.match(w.url, /^chrome-extension:\/\/transpop-test\/src\/capture\/capture\.html\?id=[\w-]+$/);
+  assert.equal(w.type, 'popup');
+  assert.ok(w.width <= 1280 - 40 && w.height <= 800 - 40, 'capped to the source window');
+
+  const id = decodeURIComponent(w.url.split('id=')[1]);
+  const shot = await send({ type: 'get-capture', id }, EXT_SENDER);
+  assert.equal(shot.ok, true);
+  assert.equal(shot.width, 2560);
+  assert.equal(shot.height, 1600);
+  assert.match(shot.dataUrl, /^data:image\/png;base64,/);
+  assert.equal((await send({ type: 'get-capture', id })).error.code, 'CAPTURE_FAILED', 'content scripts may not read screenshots');
+  assert.equal((await send({ type: 'get-capture', id: 'nope' }, EXT_SENDER)).error.code, 'CAPTURE_FAILED');
+
+  behaviour.tabSendMessage = async (tabId, msg) => (msg.prepare ? { ok: true, ready: true } : { ok: true, started: true });
+  chrome.contextMenus.onClicked.dispatch({ menuItemId: 'transpop-image', srcUrl: 'https://example.com/a.png' }, { id: 7, windowId: 1 });
+  await flush(10);
+  assert.deepEqual(cropMessages().at(-1).msg, { type: 'start-crop', mode: 'image', srcUrl: 'https://example.com/a.png' });
+});
+
+test('capture failure: error bubble through start-crop, or the error page when no content script', async () => {
+  behaviour.captureVisibleTab = async () => {
+    throw new Error('Cannot access a chrome:// URL');
+  };
+  behaviour.tabSendMessage = async (tabId, msg) => (msg.prepare ? { ok: true, ready: true } : { ok: true, started: true });
+  const r = await send({ type: 'start-capture', tabId: 7 }, { id: 'transpop-test', url: 'chrome-extension://transpop-test/src/popup/popup.html' });
+  assert.equal(r.error.code, 'CAPTURE_FAILED');
+  assert.deepEqual(cropMessages().at(-1).msg, { type: 'start-crop', mode: 'region', error: 'CAPTURE_FAILED' });
+
+  behaviour.tabSendMessage = async () => {
+    throw new Error('Could not establish connection. Receiving end does not exist.');
+  };
+  const windows = log.windowsCreated.length;
+  chrome.contextMenus.onClicked.dispatch({ menuItemId: 'transpop-area' }, { id: 7, windowId: 1 });
+  await flush(10);
+  assert.equal(log.windowsCreated.length, windows + 1);
+  assert.equal(log.windowsCreated.at(-1).url, 'chrome-extension://transpop-test/src/capture/capture.html?error=CAPTURE_FAILED');
+});
+
+test('ocr-region: needs the tab capture; ocr-image runs OCR and remembers changed languages', async () => {
+  const fromTab = { id: 'transpop-test', url: 'https://example.com/page', tab: { id: 42, windowId: 1 } };
+  const noCapture = await send({ type: 'ocr-region', rect: { x: 0, y: 0, width: 50, height: 20 }, viewport: { width: 1280, height: 800 } }, fromTab);
+  assert.equal(noCapture.error.code, 'CAPTURE_FAILED');
+
+  behaviour.offscreenResponse = { ok: true, ocr: { text: 'Hello', confidence: 91, langs: ['eng', 'vie'] } };
+  const r = await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10), langs: ['vie', 'eng', 'zzz'] }, EXT_SENDER);
+  assert.equal(r.ok, true);
+  assert.equal(r.ocr.text, 'Hello');
+  const msg = log.runtimeMessages.at(-1);
+  assert.equal(msg.type, 'offscreen-ocr');
+  assert.deepEqual(msg.langs, ['vie', 'eng']);
+  await flush(10);
+  assert.deepEqual(areas.sync.settings.ocrLanguages, ['vie', 'eng'], 'toolbar choice saved as the new default');
+
+  await send({ type: 'ocr-image', dataUrl: pngDataUrl(10, 10) }, EXT_SENDER);
+  assert.deepEqual(log.runtimeMessages.at(-1).langs, ['vie', 'eng'], 'no langs → settings.ocrLanguages');
+  assert.equal((await send({ type: 'ocr-image', dataUrl: 'nope' }, EXT_SENDER)).error.code, 'OCR_FAILED');
+});
+
+test('ocr-clear-cache: extension pages only', async () => {
+  behaviour.offscreenResponse = { ok: true };
+  assert.equal((await send({ type: 'ocr-clear-cache' }, EXT_SENDER)).ok, true);
+  assert.equal(log.runtimeMessages.at(-1).type, 'offscreen-ocr-clear');
+  assert.equal((await send({ type: 'ocr-clear-cache' })).ok, false);
 });

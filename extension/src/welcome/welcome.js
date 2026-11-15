@@ -414,20 +414,34 @@ function renderError(err) {
 /* Tips & actions                                                      */
 /* ================================================================== */
 
-async function renderShortcutTip() {
+async function renderShortcutTips() {
   const commands = await getCommands();
-  const command = commands.find((c) => c.name === 'translate-selection');
-  const keys = shortcutKeys(command?.shortcut);
+  const keysOf = (name) => shortcutKeys(commands.find((c) => c.name === name)?.shortcut);
+
+  const keys = keysOf('translate-selection');
   const holder = $('#tip-shortcut-keys');
   holder.replaceChildren(keys.length ? kbdGroup(keys) : el('span', { class: 'shortcut-unset', text: t('options_shortcut_not_set') }));
   $('#tip-shortcut-set').hidden = keys.length > 0;
+
+  // Image translation tip: "Press [Alt][Shift][A] and drag…" — keycaps inline in the sentence.
+  const ocrKeys = keysOf('crop-translate');
+  const desc = $('#tip-ocr-desc');
+  if (ocrKeys.length) {
+    const marker = '\u2063KEY\u2063';
+    const [before, after = ''] = t('welcome_tip_ocr_desc', marker).split(marker);
+    desc.replaceChildren(document.createTextNode(before), kbdGroup(ocrKeys), document.createTextNode(after));
+  } else {
+    desc.textContent = t('welcome_tip_ocr_desc_no_shortcut');
+  }
+  $('#tip-ocr-set').hidden = ocrKeys.length > 0;
 }
 
 function setupTips() {
-  renderShortcutTip();
+  renderShortcutTips();
   $('#tip-shortcut-set').addEventListener('click', openShortcutsPage);
+  $('#tip-ocr-set').addEventListener('click', openShortcutsPage);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') renderShortcutTip();
+    if (document.visibilityState === 'visible') renderShortcutTips();
   });
 }
 

@@ -48,5 +48,95 @@
     "en": "No translation available.",
     "vi": "Không có bản dịch.",
     "description": "Shown when the provider returned an empty translation"
+  },
+  "bubble_crop_overlay_label": {
+    "en": "Select an area to translate",
+    "vi": "Chọn vùng cần dịch",
+    "description": "Accessible name of the full-screen area-selection overlay (image translation)"
+  },
+  "bubble_crop_hint": {
+    "en": "Drag to select an area · Esc to cancel",
+    "vi": "Kéo để chọn vùng · Esc để hủy",
+    "description": "Hint in the toolbar at the top of the area-selection overlay"
+  },
+  "bubble_crop_image_missing": {
+    "en": "Couldn't find the image — drag to select it · Esc to cancel",
+    "vi": "Không tìm thấy ảnh — hãy kéo để chọn · Esc để hủy",
+    "description": "Overlay hint when \"Translate text in image\" can't locate the right-clicked image"
+  },
+  "bubble_crop_full": {
+    "en": "Use the whole visible page",
+    "vi": "Dùng toàn bộ phần trang đang hiển thị",
+    "description": "Icon button in the overlay toolbar: recognize text in the whole visible area instead of dragging"
+  },
+  "bubble_crop_langs_label": {
+    "en": "Text language (for recognition)",
+    "vi": "Ngôn ngữ của chữ (để nhận dạng)",
+    "description": "Label of the OCR language picker (languages written in the image, up to 3)"
+  },
+  "bubble_crop_lang_add": {
+    "en": "Add a text language",
+    "vi": "Thêm ngôn ngữ của chữ",
+    "description": "Dropdown that adds an OCR language (shown as a small + button)"
+  },
+  "bubble_crop_lang_remove": {
+    "en": "Remove $1",
+    "vi": "Bỏ $1",
+    "description": "Remove button on an OCR language chip; $1 = language name"
+  },
+  "bubble_crop_dialog_label": {
+    "en": "TransPop — text in image",
+    "vi": "TransPop — chữ trong ảnh",
+    "description": "Accessible name of the image-translation results bubble"
+  },
+  "bubble_crop_title": {
+    "en": "Text in image",
+    "vi": "Chữ trong ảnh",
+    "description": "Title of the image-translation results bubble"
+  },
+  "bubble_crop_recognizing": {
+    "en": "Recognizing text…",
+    "vi": "Đang nhận dạng chữ…",
+    "description": "Shown while OCR runs"
+  },
+  "bubble_crop_slow": {
+    "en": "The first time a language is used, its data (a few MB) is downloaded — this can take a moment.",
+    "vi": "Lần đầu dùng một ngôn ngữ cần tải dữ liệu của nó (vài MB) — có thể mất một lúc.",
+    "description": "Extra hint when OCR takes more than a few seconds"
+  },
+  "bubble_crop_recognized_label": {
+    "en": "Recognized text (editable)",
+    "vi": "Chữ nhận dạng được (có thể sửa)",
+    "description": "Label of the editable textarea with the OCR result"
+  },
+  "bubble_crop_low_confidence": {
+    "en": "The text may not be recognized accurately — check it and edit if needed.",
+    "vi": "Chữ có thể chưa được nhận dạng chính xác — hãy kiểm tra và sửa nếu cần.",
+    "description": "Note under the recognized text when OCR confidence is low"
+  },
+  "bubble_crop_translate_again": {
+    "en": "Translate again",
+    "vi": "Dịch lại",
+    "description": "Button: translate the (edited) recognized text"
+  },
+  "bubble_crop_translate_again_hint": {
+    "en": "Translate the edited text ($1)",
+    "vi": "Dịch đoạn chữ đã sửa ($1)",
+    "description": "Tooltip of \"Translate again\"; $1 = keyboard shortcut, e.g. Ctrl + Enter"
+  },
+  "bubble_crop_select_again": {
+    "en": "Select again",
+    "vi": "Chọn lại",
+    "description": "Button: take a new screenshot and select another area"
+  },
+  "bubble_crop_listen_text": {
+    "en": "Listen to the recognized text",
+    "vi": "Nghe chữ nhận dạng được",
+    "description": "Speaker button under the recognized text"
+  },
+  "bubble_crop_copy_text": {
+    "en": "Copy recognized text",
+    "vi": "Sao chép chữ nhận dạng được",
+    "description": "Copy button under the recognized text"
   }
 }

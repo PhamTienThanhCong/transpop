@@ -1,0 +1,47 @@
+{
+  "capture_page_title": {
+    "en": "TransPop — Translate screen area",
+    "vi": "TransPop — Dịch vùng màn hình",
+    "description": "Window title of the screenshot page (fallback when the page itself can't show the selection overlay, e.g. PDFs)"
+  },
+  "capture_heading": {
+    "en": "Translate text in a screenshot",
+    "vi": "Dịch chữ trong ảnh chụp màn hình",
+    "description": "Heading of the screenshot page"
+  },
+  "capture_hint": {
+    "en": "Drag over the screenshot to select the text you want to translate.",
+    "vi": "Kéo chuột trên ảnh chụp để chọn đoạn chữ cần dịch.",
+    "description": "Instruction above the screenshot"
+  },
+  "capture_loading": {
+    "en": "Loading screenshot…",
+    "vi": "Đang tải ảnh chụp…",
+    "description": "Shown while the screenshot loads"
+  },
+  "capture_expired": {
+    "en": "This screenshot is no longer available. Close this window and start again from the page.",
+    "vi": "Ảnh chụp này không còn nữa. Hãy đóng cửa sổ và thử lại từ trang web.",
+    "description": "The screenshot expired (kept 2 minutes) or the browser restarted"
+  },
+  "capture_restricted": {
+    "en": "Chrome doesn't allow extensions to capture some pages, such as browser pages and the Chrome Web Store.",
+    "vi": "Chrome không cho tiện ích chụp một số trang, ví dụ trang của trình duyệt và Chrome Web Store.",
+    "description": "Explanation under the capture error"
+  },
+  "capture_empty": {
+    "en": "Select an area of the screenshot — the recognized text and its translation appear here.",
+    "vi": "Hãy chọn một vùng trên ảnh chụp — chữ nhận dạng được và bản dịch sẽ hiện ở đây.",
+    "description": "Placeholder of the results panel before a selection"
+  },
+  "capture_whole": {
+    "en": "Use the whole screenshot",
+    "vi": "Dùng toàn bộ ảnh chụp",
+    "description": "Button: recognize text in the whole screenshot"
+  },
+  "capture_from": {
+    "en": "From: $1",
+    "vi": "Từ: $1",
+    "description": "Shows where the screenshot comes from; $1 = page title"
+  }
+}

@@ -57,6 +57,11 @@ export function createChromeMock({ uiLanguage = 'vi' } = {}) {
     },
     offscreenResponse: { ok: true },
     activeTab: { id: 7, windowId: 1, active: true },
+    // image translation
+    captureVisibleTab: async () => {
+      throw new Error('Cannot access contents of the page. Extension manifest must request permission to access the respective host.');
+    },
+    window: { id: 1, left: 100, top: 50, width: 1280, height: 800, type: 'normal' },
   };
 
   let offscreenOpen = false;
@@ -111,6 +116,12 @@ export function createChromeMock({ uiLanguage = 'vi' } = {}) {
     tabs: {
       onActivated: event(),
       onUpdated: event(),
+      onRemoved: event(),
+      get: async (tabId) => ({ id: tabId, windowId: 1, active: true }),
+      captureVisibleTab: async (windowId, opts) => {
+        log.captures = (log.captures || 0) + 1;
+        return behaviour.captureVisibleTab(windowId, opts);
+      },
       query: async () => (behaviour.activeTab ? [behaviour.activeTab] : []),
       create: async (props) => {
         log.tabsCreated.push(props.url);
@@ -128,6 +139,7 @@ export function createChromeMock({ uiLanguage = 'vi' } = {}) {
         log.windowsCreated.push(props);
         return { id: 5 };
       },
+      get: async () => ({ ...behaviour.window }),
     },
     action: {
       setBadgeText: async ({ text }) => {

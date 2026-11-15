@@ -402,6 +402,14 @@ Errors: `CAPTURE_FAILED`, `OCR_FAILED`, `OCR_NO_TEXT` (+ existing codes). Then t
 5. Default OCR languages: `settings.ocrLanguages` (Tesseract codes, max 3, default `['eng']`); the crop toolbar can
    override per capture (remembered as the new default). Helpers: `src/shared/ocr-languages.js`.
 
+### Contract additions (implemented)
+- `start-crop {prepare: true}` → the page hides all TransPop UI and answers `{ready: true}` *before* the background
+  captures; `start-crop {error: CODE}` shows an error bubble when capture fails.
+- `start-capture` also accepts `{mode, srcUrl}` and uses `sender.tab` when sent from a page ("Select again").
+- `get-capture` and `ocr-clear-cache` only answer extension pages.
+- Content strings for the crop UI use the `bubble_crop_*` prefix (so `get-ui-messages` already covers them).
+- Image mode falls back to drag mode with a hint when the right-clicked image can't be located (e.g. inside an iframe).
+
 ### Crop UI (content script, closed Shadow DOM)
 Full-viewport dim layer (cursor crosshair) with a hint bar on top ("Drag to select an area · Esc to cancel") and an
 OCR-language picker; drag draws a clear rectangle with a teal border + size label; min 12×12 px; Esc / right-click

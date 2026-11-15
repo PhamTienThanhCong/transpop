@@ -25,6 +25,7 @@ import { applyTheme } from '../ui/theme.js';
 import { hydrateIcons, icon } from '../ui/icons.js';
 import {
   buildTriggerCards,
+  commandLabel,
   createToast,
   el,
   errorMessage,
@@ -32,6 +33,7 @@ import {
   fillModifierSelect,
   fillUiLanguageSelect,
   getCommands,
+  hydrateExtraIcons,
   kbdGroup,
   openShortcutsPage,
   prefersReducedMotion,
@@ -39,6 +41,7 @@ import {
   setupRadioGroup,
   shortcutKeys,
 } from './ui-kit.js';
+import { createOcrPicker } from './ocr-picker.js';
 
 const root = document.documentElement;
 root.classList.add('is-loading');
@@ -47,7 +50,7 @@ applyTheme('auto');
 const $ = (sel, scope = document) => scope.querySelector(sel);
 const $$ = (sel, scope = document) => [...scope.querySelectorAll(sel)];
 
-const SECTIONS = ['general', 'trigger', 'appearance', 'bubble', 'sites', 'shortcuts', 'data', 'about'];
+const SECTIONS = ['general', 'trigger', 'appearance', 'bubble', 'ocr', 'sites', 'shortcuts', 'data', 'about'];
 const MOBILE_QUERY = '(max-width: 760px)';
 
 const state = {
@@ -57,7 +60,7 @@ const state = {
   activeSection: null,
 };
 
-/** Radio-group controllers keyed by setting name (provider, theme, triggerMode). */
+/** Controllers keyed by setting name (provider, theme, triggerMode, ocrLanguages) — each has setValue(value). */
 const controls = {};
 const showToast = createToast($('#toast'));
 // Locale-dependent formatters: created in init(), after initI18n() applied the Display-language setting.
@@ -73,6 +76,7 @@ async function init() {
   pluralRules = new Intl.PluralRules(locale);
 
   hydrateIcons();
+  hydrateExtraIcons();
   localizeDocument();
   setupLogos();
   renderMeta();
@@ -142,6 +146,12 @@ function setupControls() {
   controls.triggerMode = buildTriggerCards($('#trigger-cards'), {
     idPrefix: 'opt-trigger',
     onChange: (value) => save({ triggerMode: value }),
+  });
+
+  // Image translation: OCR languages (Tesseract codes, priority order, 1…OCR_MAX_LANGUAGES).
+  controls.ocrLanguages = createOcrPicker($('#ocr-picker'), {
+    idPrefix: 'opt-ocr',
+    onChange: (codes) => save({ ocrLanguages: codes }),
   });
 
   $('#test-voice').addEventListener('click', testVoice);
@@ -578,6 +588,7 @@ function renderSites(list = []) {
 function setupShortcuts() {
   renderShortcuts();
   $('#customize-shortcuts').addEventListener('click', openShortcutsPage);
+  $('#ocr-shortcut-set').addEventListener('click', openShortcutsPage);
   // The user may change shortcuts in another tab — refresh when we come back.
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') renderShortcuts();
@@ -587,13 +598,14 @@ function setupShortcuts() {
 async function renderShortcuts() {
   const list = $('#shortcut-list');
   const commands = await getCommands();
+  renderOcrShortcut(commands);
   if (!commands.length) {
     list.replaceChildren(el('li', { class: 'shortcut-empty', text: t('options_shortcuts_unavailable') }));
     return;
   }
   list.replaceChildren(
     ...commands.map((command) => {
-      const name = command.name === '_execute_action' ? t('options_shortcut_open_popup') : command.description || command.name;
+      const name = commandLabel(command);
       const keys = shortcutKeys(command.shortcut);
       return el(
         'li',
@@ -603,6 +615,15 @@ async function renderShortcuts() {
       );
     }),
   );
+}
+
+/** "How to start" tile in the Image translation section: the crop-translate shortcut, or a way to set one. */
+function renderOcrShortcut(commands) {
+  const keys = shortcutKeys(commands.find((c) => c.name === 'crop-translate')?.shortcut);
+  $('#ocr-shortcut').replaceChildren(
+    keys.length ? kbdGroup(keys) : el('span', { class: 'shortcut-unset', text: t('options_shortcut_not_set') }),
+  );
+  $('#ocr-shortcut-set').hidden = keys.length > 0;
 }
 
 /* ================================================================== */
@@ -626,6 +647,11 @@ function setupData() {
   setupConfirm($('#confirm-favorites'), async () => {
     await clearFavorites();
     showToast(t('options_favorites_cleared'));
+  });
+  // Image translation: delete the downloaded Tesseract language data (re-downloaded on next use).
+  setupConfirm($('#confirm-ocr-cache'), async () => {
+    await send(MSG.OCR_CLEAR_CACHE);
+    showToast(t('options_ocr_cache_cleared'));
   });
   setupConfirm($('#confirm-reset'), async () => {
     for (const key of Object.keys(pendingRange)) delete pendingRange[key];

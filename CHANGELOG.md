@@ -6,6 +6,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-11-15
+
+### Added
+
+- **Image translation (phase 1)** — translate text you can see but can't select: images, videos, scanned PDFs,
+  canvases.
+  - Start it with `Alt+Shift+A`, the right-click menu (*Translate text in image* on images, *Translate screen
+    area…* on pages) or the new *Translate screen area* button in the toolbar popup, then drag over an area.
+  - Text recognition (OCR) runs **on your device** with Tesseract.js 7 (bundled, Apache-2.0); the screenshot is
+    never uploaded. The recognized text is editable and translated in a bubble next to the area.
+  - Settings → *Image translation*: up to 3 recognition languages in priority order (39 available), and a button to
+    delete the downloaded language data. Each language's data (~1.5–3 MB) is downloaded once from jsDelivr on first
+    use and cached locally.
+  - Works where the content script can't run (Chrome's PDF viewer, tabs opened before install) through a fallback
+    capture window.
+  - New `activeTab` permission (no install warning) — used only to capture the current tab after you start image
+    translation.
+- **Display language** setting (Settings → General, and on the welcome page): follow the browser or choose English /
+  Vietnamese for the whole interface, including the bubble and the right-click menu.
+
+### Changed
+
+- New teal brand colour and a new icon (two speech bubbles).
+- Keyboard-shortcut names in Settings follow the display language.
+- Privacy policy updated for image translation (screenshots stay on your device; OCR data from jsDelivr).
+- Repository: development happens on the `dev` branch; `main` holds only the shippable extension and is generated
+  from `dev`.
+
 ## [1.0.0] — 2026-11-15
 
 First public release. 🎉
@@ -38,5 +66,6 @@ First public release. 🎉
 - **Privacy by design** — no analytics, no tracking, no ads, no remote code; text is sent only to the translation
   provider when you ask for a translation.
 
-[Unreleased]: https://github.com/PhamTienThanhCong/transpop/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/PhamTienThanhCong/transpop/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/PhamTienThanhCong/transpop/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/PhamTienThanhCong/transpop/releases/tag/v1.0.0

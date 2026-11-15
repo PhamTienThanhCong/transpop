@@ -41,6 +41,10 @@ const EXTRA_ICONS = {
   puzzle:
     '<path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/>',
   pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
+  // Image translation (screen area / text in images)
+  'scan-text':
+    '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>',
+  image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
 };
 
 const tpl = document.createElement('template');
@@ -331,17 +335,33 @@ export function createToast(node) {
 /* Keyboard shortcuts                                                  */
 /* ------------------------------------------------------------------ */
 
-/** chrome.commands.getAll(), ordered (popup, translate, toggle, others). Never throws. */
+/** chrome.commands.getAll(), ordered (popup, translate, image translation, toggle, others). Never throws. */
 export async function getCommands() {
   try {
     if (!chrome.commands?.getAll) return [];
     const list = await chrome.commands.getAll();
-    const order = ['_execute_action', 'translate-selection', 'toggle-enabled'];
+    const order = ['_execute_action', 'translate-selection', 'crop-translate', 'toggle-enabled'];
     const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length);
     return [...(list || [])].sort((a, b) => rank(a.name) - rank(b.name));
   } catch {
     return [];
   }
+}
+
+/** Our own command names → message keys, so the list follows the Display-language setting (Chrome's
+ * `description` always uses the browser language). Unknown commands fall back to Chrome's description. */
+const COMMAND_LABELS = {
+  _execute_action: 'options_shortcut_open_popup',
+  'translate-selection': 'cmdTranslateSelection',
+  'crop-translate': 'cmdCropTranslate',
+  'toggle-enabled': 'cmdToggleEnabled',
+};
+
+/** Human label for a chrome.commands entry. */
+export function commandLabel(command) {
+  const key = COMMAND_LABELS[command?.name];
+  const label = key ? t(key) : '';
+  return label && label !== key ? label : command?.description || command?.name || '';
 }
 
 /** Split a Chrome shortcut ("Alt+Shift+S" or Mac-style "⌥⇧S") into individual keys. */
