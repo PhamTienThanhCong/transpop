@@ -25,6 +25,7 @@ import { normalizeOcrLanguages } from '../shared/ocr-languages.js';
 import { getSettings, saveSettings } from '../shared/storage.js';
 import { captureTab, cropForOcr, getCapture, getCaptureForTab } from './capture.js';
 import { clearOcrCache, runOcr } from './ocr.js';
+import { injectContentScripts } from './inject.js';
 
 export const CAPTURE_PAGE = 'src/capture/capture.html';
 
@@ -153,9 +154,10 @@ export function computeErrorWindow(source) {
 }
 
 /** Query string of the capture page: `?id=<captureId>` or `?error=<CODE>`. */
-export function capturePagePath({ id, error } = {}) {
-  if (id) return `${CAPTURE_PAGE}?id=${encodeURIComponent(id)}`;
-  return `${CAPTURE_PAGE}?error=${encodeURIComponent(ERROR_CODES[error] ? error : ERROR_CODES.CAPTURE_FAILED)}`;
+export function capturePagePath({ id, error, from } = {}) {
+  const back = typeof from === 'number' && from >= 0 ? `&from=${from}` : '';
+  if (id) return `${CAPTURE_PAGE}?id=${encodeURIComponent(id)}${back}`;
+  return `${CAPTURE_PAGE}?error=${encodeURIComponent(ERROR_CODES[error] ? error : ERROR_CODES.CAPTURE_FAILED)}${back}`;
 }
 
 /** True when the message comes from one of our own pages (popup, options, capture page) — not a content script. */
@@ -185,6 +187,7 @@ export function createImageTranslation(overrides = {}) {
     getSettings,
     saveSettings,
     sendToTab,
+    injectContentScripts,
     chrome: () => globalThis.chrome,
     ...overrides,
   };
@@ -215,28 +218,27 @@ export function createImageTranslation(overrides = {}) {
     }
   }
 
-  /** Open the capture page (`{id}` = screenshot to crop, `{error}` = explain a failure) in a popup window. */
-  async function openCaptureWindow({ id, error, image }, tab) {
+  /**
+   * Open the capture page (`{id}` = screenshot to crop, `{error}` = explain a failure) in a NEW TAB right next to the
+   * source tab — only used for pages TransPop can't script (PDF viewer, chrome://, Web Store). "Back to page" on the
+   * capture page closes it and re-activates the source tab (`from`).
+   */
+  async function openCapturePage({ id, error }, tab) {
     const chromeApi = api();
-    const url = chromeApi.runtime.getURL(capturePagePath({ id, error }));
-    const source = await sourceWindow(tab?.windowId);
-    const bounds = id ? computeCaptureWindow({ image, source }) : computeErrorWindow(source);
-    const attempts = [
-      { url, type: 'popup', focused: true, ...bounds },
-      { url, type: 'popup', focused: true, width: bounds.width, height: bounds.height }, // bounds off-screen → let Chrome place it
-    ];
-    for (const props of attempts) {
-      try {
-        await chromeApi.windows.create(props);
-        return;
-      } catch (err) {
-        warn('windows.create (capture page)', err);
-      }
-    }
+    const url = chromeApi.runtime.getURL(capturePagePath({ id, error, from: tab?.id }));
+    const props = { url, active: true };
+    if (typeof tab?.index === 'number') props.index = tab.index + 1;
+    if (typeof tab?.id === 'number' && tab.id >= 0) props.openerTabId = tab.id;
+    if (typeof tab?.windowId === 'number') props.windowId = tab.windowId;
     try {
-      await chromeApi.tabs.create({ url });
+      await chromeApi.tabs.create(props);
     } catch (err) {
       warn('tabs.create (capture page)', err);
+      try {
+        await chromeApi.tabs.create({ url });
+      } catch (err2) {
+        warn('tabs.create (capture page, plain)', err2);
+      }
     }
   }
 
@@ -250,7 +252,9 @@ export function createImageTranslation(overrides = {}) {
     if (!tab || typeof tab.id !== 'number' || tab.id < 0) throw makeError(ERROR_CODES.CAPTURE_FAILED, 'No tab to capture');
     const payload =
       mode === 'image' ? { mode: 'image', ...(typeof srcUrl === 'string' && srcUrl ? { srcUrl } : {}) } : { mode: 'region' };
-    const prepared = await askTopFrame(tab.id, { prepare: true });
+    let prepared = await askTopFrame(tab.id, { prepare: true });
+    // Tab opened before install/update → inject the content script now (activeTab) and ask again.
+    if (!prepared?.ready && (await deps.injectContentScripts(tab.id))) prepared = await askTopFrame(tab.id, { prepare: true });
     const hasReceiver = !!prepared?.ready;
 
     let shot;
@@ -258,7 +262,7 @@ export function createImageTranslation(overrides = {}) {
       shot = await deps.captureTab(tab);
     } catch (err) {
       const shown = hasReceiver ? await askTopFrame(tab.id, { ...payload, error: ERROR_CODES.CAPTURE_FAILED }) : null;
-      if (!shown?.started) await openCaptureWindow({ error: ERROR_CODES.CAPTURE_FAILED }, tab);
+      if (!shown?.started) await openCapturePage({ error: ERROR_CODES.CAPTURE_FAILED }, tab);
       throw err?.code === ERROR_CODES.CAPTURE_FAILED ? err : makeError(ERROR_CODES.CAPTURE_FAILED, err?.message);
     }
 
@@ -266,7 +270,7 @@ export function createImageTranslation(overrides = {}) {
       const res = await askTopFrame(tab.id, payload);
       if (res?.started) return { started: true, fallback: false };
     }
-    await openCaptureWindow({ id: shot.id, image: shot }, tab);
+    await openCapturePage({ id: shot.id }, tab);
     return { started: true, fallback: true };
   }
 
@@ -369,7 +373,7 @@ export function createImageTranslation(overrides = {}) {
 
   return {
     startCapture,
-    openCaptureWindow,
+    openCapturePage,
     handleStartCapture,
     handleOcrRegion,
     handleOcrImage,

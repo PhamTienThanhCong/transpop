@@ -180,6 +180,10 @@
     "message": "Translate selection",
     "description": "Accessible label of the small floating TransPop button shown next to selected text"
   },
+  "capture_back": {
+    "message": "Back to page",
+    "description": "Closes the capture tab and returns to the page it was taken from"
+  },
   "capture_empty": {
     "message": "Select an area of the screenshot — the recognized text and its translation appear here.",
     "description": "Placeholder of the results panel before a selection"

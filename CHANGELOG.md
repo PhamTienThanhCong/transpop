@@ -19,15 +19,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   - Settings → *Image translation*: up to 3 recognition languages in priority order (39 available), and a button to
     delete the downloaded language data. Each language's data (~1.5–3 MB) is downloaded once from jsDelivr on first
     use and cached locally.
-  - Works where the content script can't run (Chrome's PDF viewer, tabs opened before install) through a fallback
-    capture window.
-  - New `activeTab` permission (no install warning) — used only to capture the current tab after you start image
-    translation.
+  - Also works where scripts can't run (Chrome's PDF viewer) through a capture page that opens in a tab next to
+    the page.
+  - New `activeTab` and `scripting` permissions (no install warning) — used only after you start an action: to
+    capture the current tab, and to load TransPop into a tab that was open before install.
 - **Display language** setting (Settings → General, and on the welcome page): follow the browser or choose English /
   Vietnamese for the whole interface, including the bubble and the right-click menu.
 
 ### Changed
 
+- Tabs that were open before installing/updating now work right away: explicit actions (shortcut, right-click, popup button) inject TransPop on demand. Pages TransPop can't script (PDF viewer, `chrome://`) open the capture page in a tab next to the page — never a separate window.
 - New teal brand colour and a new icon (two speech bubbles).
 - Keyboard-shortcut names in Settings follow the display language.
 - Privacy policy updated for image translation (screenshots stay on your device; OCR data from jsDelivr).
