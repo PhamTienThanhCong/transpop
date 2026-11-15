@@ -31,6 +31,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- Translation results (bubble, popup, capture page) now say **Powered by TransPop**; the translation service in use
+  is still disclosed in the store listing, the privacy policy and Settings → General.
 - Tabs that were open before installing/updating now work right away: explicit actions (shortcut, right-click, popup button) inject TransPop on demand. Pages TransPop can't script (PDF viewer, `chrome://`) open the capture page in a tab next to the page — never a separate window.
 - New teal brand colour and a new icon (two speech bubbles).
 - Keyboard-shortcut names in Settings follow the display language.

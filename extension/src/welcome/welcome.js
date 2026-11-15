@@ -389,12 +389,11 @@ function renderResult(result) {
   });
   const translationRow = el('div', { class: 'pop-translation-row' }, translation, speakButton(result.translation, result.to));
 
-  const provider = t(result.provider === 'microsoft' ? 'common_provider_microsoft' : 'common_provider_google');
   pop.replaceChildren(
     el('div', { class: 'pop-meta' }, el('span', { class: 'pop-pair', text: `${fromName} → ${toName}` }), closeButton()),
     sourceRow,
     translationRow,
-    el('div', { class: 'pop-foot', text: t('common_powered_by', provider) }),
+    el('div', { class: 'pop-foot', text: t('common_powered_by_app') }),
   );
 }
 

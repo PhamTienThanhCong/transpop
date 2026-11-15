@@ -311,13 +311,8 @@
   "common_open_full_page": {
     "message": "Mở toàn trang"
   },
-  "common_powered_by": {
-    "message": "Cung cấp bởi $P1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1"
-      }
-    }
+  "common_powered_by_app": {
+    "message": "Cung cấp bởi TransPop"
   },
   "common_provider_google": {
     "message": "Google Dịch"

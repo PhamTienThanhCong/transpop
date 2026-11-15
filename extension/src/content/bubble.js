@@ -632,7 +632,7 @@
     renderBody(s);
     const provider = r && typeof r.provider === 'string' ? r.provider : '';
     els.foot.hidden = !provider;
-    els.foot.textContent = provider ? t('common_powered_by', [t(`common_provider_${provider}`) || provider]) : '';
+    els.foot.textContent = provider ? t('common_powered_by_app') : '';
     bubbleEl.setAttribute('aria-busy', s.loading ? 'true' : 'false');
 
     if (s.revealed) {

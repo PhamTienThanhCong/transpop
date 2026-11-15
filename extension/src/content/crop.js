@@ -942,7 +942,7 @@
     else if (s.state === 'ocr-error') renderOcrError(s);
     else renderDone(s);
     const provider = s.result && typeof s.result.provider === 'string' ? s.result.provider : '';
-    e.powered.textContent = provider ? t('common_powered_by', [t(`common_provider_${provider}`) || provider]) : '';
+    e.powered.textContent = provider ? t('common_powered_by_app') : '';
     schedulePosition();
   }
 
