@@ -96,11 +96,15 @@ No analytics, no ads, no tracking. Full policy: [docs/PRIVACY.md](docs/PRIVACY.m
 
 ## Development
 
+> **Branches:** `main` is the product branch — only the extension and the essentials. All development happens on
+> [`dev`](https://github.com/PhamTienThanhCong/transpop/tree/dev), which also holds the build/test tooling, the
+> dev harness and the guides. Clone `dev` to contribute and open pull requests against `dev`.
+
 No build step, no frameworks, no npm dependencies — plain ES2022, HTML and CSS. The `extension/` folder is loaded
 unpacked and zipped as-is. You need **Node.js 22+** (for the scripts and tests) and **Chrome 116+**.
 
 ```bash
-git clone https://github.com/PhamTienThanhCong/transpop.git && cd transpop
+git clone -b dev https://github.com/PhamTienThanhCong/transpop.git && cd transpop
 npm run check      # validate manifest, file references, MV3/CSP rules, i18n keys
 npm test           # unit tests (node --test)
 ```
@@ -140,7 +144,7 @@ store-assets/              store icon, promo tiles, screenshots (+ SVG sources)
 ```
 
 The full contract — messaging, settings schema, provider details, design tokens — is in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+[docs/ARCHITECTURE.md](https://github.com/PhamTienThanhCong/transpop/blob/dev/docs/ARCHITECTURE.md).
 
 ### Translating the UI
 
@@ -151,13 +155,13 @@ UI strings live in `i18n/<area>.json` fragments:
 ```
 
 To add a language, add its code (e.g. `"fr": "Traduire"`) to the entries in every fragment, run `npm run i18n`
-and open a pull request. Missing strings fall back to English. See [CONTRIBUTING.md](CONTRIBUTING.md).
+and open a pull request. Missing strings fall back to English. See [CONTRIBUTING.md](https://github.com/PhamTienThanhCong/transpop/blob/dev/CONTRIBUTING.md).
 
 ### Releasing
 
-Step-by-step Chrome Web Store guide (Vietnamese): [docs/PUBLISHING.md](docs/PUBLISHING.md).
-Ready-to-paste listing text: [docs/STORE_LISTING.md](docs/STORE_LISTING.md).
-Pushing a tag `vX.Y.Z` builds the zip and attaches it to a GitHub Release.
+Step-by-step Chrome Web Store guide (Vietnamese): [docs/PUBLISHING.md](https://github.com/PhamTienThanhCong/transpop/blob/dev/docs/PUBLISHING.md).
+Ready-to-paste listing text: [docs/STORE_LISTING.md](https://github.com/PhamTienThanhCong/transpop/blob/dev/docs/STORE_LISTING.md).
+Pushing a tag `vX.Y.Z` on `dev` builds the zip and attaches it to a GitHub Release.
 
 ## Credits
 
@@ -185,5 +189,7 @@ ngay bên cạnh trong một bong bóng gọn gàng (giống DDict). Có cửa s
 - **Quyền riêng tư:** chỉ gửi đoạn văn bản bạn yêu cầu dịch tới dịch vụ dịch; cài đặt, lịch sử, yêu thích chỉ lưu
   trong trình duyệt; không quảng cáo, không theo dõi. Xem [chính sách](docs/PRIVACY.md#tiếng-việt).
 - **Phát hành lên Chrome Web Store:** hướng dẫn chi tiết từng bước bằng tiếng Việt tại
-  [docs/PUBLISHING.md](docs/PUBLISHING.md).
-- **Đóng góp:** xem [CONTRIBUTING.md](CONTRIBUTING.md) — mọi góp ý, báo lỗi, bản dịch giao diện đều được chào đón.
+  [docs/PUBLISHING.md](https://github.com/PhamTienThanhCong/transpop/blob/dev/docs/PUBLISHING.md).
+- **Nhánh:** `main` là bản product (chỉ extension và những file cần thiết); mọi phát triển, test và hướng dẫn nằm ở
+  nhánh [`dev`](https://github.com/PhamTienThanhCong/transpop/tree/dev).
+- **Đóng góp:** xem [CONTRIBUTING.md](https://github.com/PhamTienThanhCong/transpop/blob/dev/CONTRIBUTING.md) — mọi góp ý, báo lỗi, bản dịch giao diện đều được chào đón.

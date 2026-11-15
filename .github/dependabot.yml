@@ -5,3 +5,5 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # Workflows live only on the dev branch (main is the product branch generated from dev).
+    target-branch: dev
