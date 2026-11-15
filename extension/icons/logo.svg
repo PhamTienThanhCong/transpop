@@ -1,14 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <defs>
-    <linearGradient id="transpop-front" x1="10" y1="40" x2="80" y2="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient>
-    <mask id="transpop-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="M26 40h38a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16H44l-22 14 6-14h-2a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round"/></mask>
+    <linearGradient id="transpop-a" x1="8" y1="8" x2="74" y2="86" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/></linearGradient>
+    <mask id="transpop-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="M15 8h52a7 7 0 0 1 7 7v48a7 7 0 0 1-7 7H38L19 86l3-16h-7a7 7 0 0 1-7-7V15a7 7 0 0 1 7-7z" fill="#000" stroke="#000" stroke-width="14" stroke-linejoin="round"/></mask>
   </defs>
-  <g transform="translate(64 64) scale(1.111) translate(-64 -66)">
   <g mask="url(#transpop-cut)">
-    <path d="M64 12h38a16 16 0 0 1 16 16v36a16 16 0 0 1-16 16h-2l6 14-22-14H64a16 16 0 0 1-16-16V28a16 16 0 0 1 16-16z" fill="#C7D2FE"/>
-    <path d="M100 26v6M86 37h28M107 38c-3 9-10 15-20 20M93 38c3 9 10 15 20 20" fill="none" stroke="#3730A3" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M59 47h52a7 7 0 0 1 7 7v48a7 7 0 0 1-7 7h-4l3 13-19-13H59a7 7 0 0 1-7-7V54a7 7 0 0 1 7-7z" fill="#FFFFFF" stroke="#0F766E" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M88 70v6M73 80h30M97 81c-3 9-10 15-20 19M79 81c3 9 10 15 20 19" fill="none" stroke="#0F766E" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter"/>
   </g>
-  <path d="M26 40h38a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16H44l-22 14 6-14h-2a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="url(#transpop-front)"/>
-  <path d="M33 91 45 57 57 91M37.4 80h15.2" fill="none" stroke="#fff" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <path d="M15 8h52a7 7 0 0 1 7 7v48a7 7 0 0 1-7 7H38L19 86l3-16h-7a7 7 0 0 1-7-7V15a7 7 0 0 1 7-7z" fill="url(#transpop-a)"/>
+  <path d="M27 57 41 21 55 57M32.5 45h17" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="miter" stroke-miterlimit="10"/>
 </svg>

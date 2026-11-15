@@ -140,7 +140,7 @@
   color: #f87171;
 }
 .toast[data-type='info'] .icon {
-  color: #a5b4fc;
+  color: #5eead4;
 }
 :root[data-theme='dark'] .toast .icon {
   color: #16a34a; /* dark theme → light toast */
@@ -149,7 +149,7 @@
   color: #dc2626;
 }
 :root[data-theme='dark'] .toast[data-type='info'] .icon {
-  color: #4f46e5;
+  color: #0f766e;
 }
 
 /* ---------- Trigger-mode cards ---------- */

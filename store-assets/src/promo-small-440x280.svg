@@ -2,12 +2,12 @@
   <!-- TransPop — Chrome Web Store small promo tile (440×280). Render: bash store-assets/render.sh -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="440" y2="280" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#6366F1"/>
-      <stop offset="1" stop-color="#8B5CF6"/>
+      <stop offset="0" stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#0E7490"/>
     </linearGradient>
     <linearGradient id="lg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#6366F1"/>
-      <stop offset="1" stop-color="#8B5CF6"/>
+      <stop offset="0" stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#0E7490"/>
     </linearGradient>
     <radialGradient id="glow" cx="380" cy="40" r="260" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF" stop-opacity=".22"/>
@@ -16,14 +16,14 @@
     <filter id="shadow" x="-40%" y="-40%" width="180%" height="200%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="9"/>
       <feOffset dy="8" result="b"/>
-      <feFlood flood-color="#1E1B4B" flood-opacity=".38"/>
+      <feFlood flood-color="#042F2E" flood-opacity=".38"/>
       <feComposite in2="b" operator="in"/>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <filter id="shadow-sm" x="-40%" y="-40%" width="180%" height="200%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
       <feOffset dy="4" result="b"/>
-      <feFlood flood-color="#1E1B4B" flood-opacity=".35"/>
+      <feFlood flood-color="#042F2E" flood-opacity=".35"/>
       <feComposite in2="b" operator="in"/>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
@@ -37,8 +37,8 @@
 
   <!-- logo: white app tile + TransPop icon (extension/icons/logo.svg) -->
   <g transform="translate(30 50) scale(.5)" filter="url(#shadow-sm)">
-    <path fill="#FFFFFF" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="5" d="M64 0C118 0 128 10 128 64S118 128 64 128 0 118 0 64 10 0 64 0Z"/>
-    <g transform="translate(14 14) scale(.78125)"><defs><linearGradient id="transpop-front-s" x1="10" y1="40" x2="80" y2="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient><mask id="transpop-cut-s" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="M26 40h38a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16H44l-22 14 6-14h-2a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round"/></mask></defs><g transform="translate(64 64) scale(1.111) translate(-64 -66)"><g mask="url(#transpop-cut-s)"><path d="M64 12h38a16 16 0 0 1 16 16v36a16 16 0 0 1-16 16h-2l6 14-22-14H64a16 16 0 0 1-16-16V28a16 16 0 0 1 16-16z" fill="#C7D2FE"/><path d="M100 26v6M86 37h28M107 38c-3 9-10 15-20 20M93 38c3 9 10 15 20 20" fill="none" stroke="#3730A3" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/></g><path d="M26 40h38a16 16 0 0 1 16 16v34a16 16 0 0 1-16 16H44l-22 14 6-14h-2a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16z" fill="url(#transpop-front-s)"/><path d="M33 91 45 57 57 91M37.4 80h15.2" fill="none" stroke="#fff" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+    <path fill="#FFFFFF" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="5" d="M26 0h76a26 26 0 0 1 26 26v76a26 26 0 0 1-26 26H26A26 26 0 0 1 0 102V26A26 26 0 0 1 26 0z"/>
+    <g transform="translate(14 14) scale(.78125)"><defs><linearGradient id="transpop-a-s" x1="8" y1="8" x2="74" y2="86" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/></linearGradient><mask id="transpop-cut-s" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128"><rect width="128" height="128" fill="#fff"/><path d="M15 8h52a7 7 0 0 1 7 7v48a7 7 0 0 1-7 7H38L19 86l3-16h-7a7 7 0 0 1-7-7V15a7 7 0 0 1 7-7z" fill="#000" stroke="#000" stroke-width="14" stroke-linejoin="round"/></mask></defs><g mask="url(#transpop-cut-s)"><path d="M59 47h52a7 7 0 0 1 7 7v48a7 7 0 0 1-7 7h-4l3 13-19-13H59a7 7 0 0 1-7-7V54a7 7 0 0 1 7-7z" fill="#FFFFFF" stroke="#0F766E" stroke-width="6" stroke-linejoin="round"/><path d="M88 70v6M73 80h30M97 81c-3 9-10 15-20 19M79 81c3 9 10 15 20 19" fill="none" stroke="#0F766E" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter"/></g><path d="M15 8h52a7 7 0 0 1 7 7v48a7 7 0 0 1-7 7H38L19 86l3-16h-7a7 7 0 0 1-7-7V15a7 7 0 0 1 7-7z" fill="url(#transpop-a-s)"/><path d="M27 57 41 21 55 57M32.5 45h17" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="miter" stroke-miterlimit="10"/></g>
   </g>
 
   <!-- wordmark + tagline -->
@@ -52,7 +52,7 @@
   <g font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="16">
     <text x="300" y="66" text-anchor="end" fill="#FFFFFF" fill-opacity=".78">It was</text>
     <rect x="305" y="49" width="70" height="23" rx="3" fill="#FFFFFF" fill-opacity=".95"/>
-    <text x="340" y="66" text-anchor="middle" fill="#4338CA" font-weight="600">obvious</text>
+    <text x="340" y="66" text-anchor="middle" fill="#115E59" font-weight="600">obvious</text>
     <g fill="#FFFFFF">
       <rect x="303" y="45" width="2.5" height="29" rx="1.25"/>
       <circle cx="304.25" cy="44" r="3.6"/>
@@ -70,15 +70,15 @@
     <text x="278" y="120" font-size="15" font-weight="700" fill="#0F172A">obvious</text>
     <text x="278" y="138" font-size="12" fill="#94A3B8">/ˈɒbviəs/</text>
     <!-- speaker (Lucide "volume-2", ISC) -->
-    <g transform="translate(378 104) scale(.75)" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(378 104) scale(.75)" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
       <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
       <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
     </g>
     <line x1="278" y1="151" x2="388" y2="151" stroke="#E5E7EF"/>
-    <text x="278" y="179" font-size="21" font-weight="700" fill="#4F46E5">hiển nhiên</text>
-    <rect x="278" y="192" width="30" height="16" rx="8" fill="#EEF2FF"/>
-    <text x="293" y="204" font-size="9.5" font-weight="700" fill="#4F46E5" text-anchor="middle">ADJ</text>
+    <text x="278" y="179" font-size="21" font-weight="700" fill="#0F766E">hiển nhiên</text>
+    <rect x="278" y="192" width="30" height="16" rx="8" fill="#F0FDFA"/>
+    <text x="293" y="204" font-size="9.5" font-weight="700" fill="#0F766E" text-anchor="middle">ADJ</text>
     <text x="314" y="204" font-size="12" fill="#475569">rõ ràng</text>
   </g>
 </svg>

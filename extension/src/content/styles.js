@@ -14,11 +14,11 @@
 
   const DARK_TOKENS = `
     color-scheme: dark;
-    --g-brand-1: #818cf8;
-    --g-brand-2: #a78bfa;
-    --g-primary: #818cf8;
-    --g-primary-hover: #a5b4fc;
-    --g-primary-soft: rgba(129, 140, 248, 0.14);
+    --g-brand-1: #2dd4bf;
+    --g-brand-2: #22d3ee;
+    --g-primary: #2dd4bf;
+    --g-primary-hover: #5eead4;
+    --g-primary-soft: rgba(45, 212, 191, 0.14);
     --g-surface: #171a23;
     --g-surface-2: #1e2230;
     --g-surface-3: #262b3b;
@@ -30,8 +30,8 @@
     --g-star: #fbbf24;
     --g-danger: #f87171;
     --g-success: #4ade80;
-    --g-selection: rgba(129, 140, 248, 0.35);
-    --g-focus-ring: 0 0 0 3px rgba(129, 140, 248, 0.45);
+    --g-selection: rgba(45, 212, 191, 0.35);
+    --g-focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.45);
     --g-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
     --g-trigger-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 6px 16px rgba(0, 0, 0, 0.45);
   `;
@@ -54,11 +54,11 @@
 
 .g-root {
   color-scheme: light;
-  --g-brand-1: #6366f1;
-  --g-brand-2: #8b5cf6;
-  --g-primary: #4f46e5;
-  --g-primary-hover: #4338ca;
-  --g-primary-soft: #eef2ff;
+  --g-brand-1: #0d9488;
+  --g-brand-2: #0e7490;
+  --g-primary: #0f766e;
+  --g-primary-hover: #115e59;
+  --g-primary-soft: #f0fdfa;
   --g-surface: #ffffff;
   --g-surface-2: #f6f7fb;
   --g-surface-3: #eef0f6;
@@ -70,10 +70,10 @@
   --g-star: #f59e0b;
   --g-danger: #dc2626;
   --g-success: #16a34a;
-  --g-selection: rgba(99, 102, 241, 0.22);
-  --g-focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.35);
+  --g-selection: rgba(13, 148, 136, 0.22);
+  --g-focus-ring: 0 0 0 3px rgba(13, 148, 136, 0.35);
   --g-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.06);
-  --g-trigger-shadow: 0 6px 16px rgba(79, 70, 229, 0.32), 0 1px 3px rgba(15, 23, 42, 0.2);
+  --g-trigger-shadow: 0 6px 16px rgba(15, 118, 110, 0.32), 0 1px 3px rgba(15, 23, 42, 0.2);
   --g-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --g-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --g-fs: 14px;
@@ -148,7 +148,7 @@
 .g-trigger.is-visible { opacity: 1; transform: scale(1); }
 .g-trigger.is-visible:hover { transform: scale(1.08); }
 .g-trigger.is-visible:active { transform: scale(0.95); }
-.g-trigger:focus-visible { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.55), var(--g-trigger-shadow); }
+.g-trigger:focus-visible { box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.55), var(--g-trigger-shadow); }
 .g-trigger svg { display: block; width: 24px; height: 24px; }
 
 /* ---------------- Bubble ---------------- */

@@ -276,11 +276,11 @@ The content-script bubble lives in a **Shadow DOM** and cannot use `tokens.css`:
 
 | Token | Light | Dark |
 |---|---|---|
-| `--brand-1` (gradient start) | `#6366F1` | `#818CF8` |
-| `--brand-2` (gradient end) | `#8B5CF6` | `#A78BFA` |
-| `--primary` | `#4F46E5` | `#818CF8` |
-| `--primary-hover` | `#4338CA` | `#A5B4FC` |
-| `--primary-soft` (tinted bg) | `#EEF2FF` | `rgba(129,140,248,.14)` |
+| `--brand-1` (gradient start) | `#0D9488` | `#2DD4BF` |
+| `--brand-2` (gradient end) | `#0E7490` | `#22D3EE` |
+| `--primary` | `#0F766E` | `#2DD4BF` |
+| `--primary-hover` | `#115E59` | `#5EEAD4` |
+| `--primary-soft` (tinted bg) | `#F0FDFA` | `rgba(45, 212, 191,.14)` |
 | `--bg` | `#FFFFFF` | `#0F1117` |
 | `--surface` | `#FFFFFF` | `#171A23` |
 | `--surface-2` (subtle fill) | `#F6F7FB` | `#1E2230` |
@@ -296,7 +296,7 @@ The content-script bubble lives in a **Shadow DOM** and cannot use `tokens.css`:
 | `--font` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif` | |
 
 Visual language (from the DDict reference, but our own identity): clean white cards, 1px borders, generous
-padding, soft shadows, indigo→violet brand gradient used sparingly (logo, primary buttons, active states),
+padding, soft shadows, teal brand color (gradient teal-600→cyan-700) used sparingly (logo, primary buttons, active states),
 speaker / star / gear / close icon buttons (32px hit area, 18px glyph), muted small labels for language
 names and parts of speech, star turns `--star` when favorited. Icons: stroke style, 1.75–2px stroke,
 `currentColor` (Lucide-like). Use `icon(name)` from `src/ui/icons.js` on extension pages.
