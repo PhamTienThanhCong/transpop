@@ -51,7 +51,8 @@
 
 | | |
 |---|---|
-| ![Translation bubble on an English article](store-assets/screenshots/01-bubble.png) | ![TransPop button next to a selection](store-assets/screenshots/02-icon-trigger.png) |
+| ![Translation bubble on an English article](store-assets/screenshots/01-bubble.png) | ![Text in an image recognized and translated](store-assets/screenshots/06-image-translation.png) |
+| ![Drag to select a screen area to translate](store-assets/screenshots/07-crop-area.png) | ![TransPop button next to a selection](store-assets/screenshots/02-icon-trigger.png) |
 | ![Translator popup with dictionary](store-assets/screenshots/03-popup-dictionary.png) | ![History and favorites](store-assets/screenshots/04-history-favorites.png) |
 | ![Settings page](store-assets/screenshots/05-settings.png) | |
 

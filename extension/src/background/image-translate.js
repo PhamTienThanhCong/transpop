@@ -64,32 +64,90 @@ const LIST_ITEM = /^\s*(?:[-–—•·*▪◦]|\d{1,3}[.)]|[a-zA-Z][.)])\s+/;
  * written without spaces), a trailing hyphen is joined without a space, blank lines (paragraphs) and list items are kept.
  * Pure; exported for tests.
  */
-export function reflowOcrText(text, lang) {
+export function reflowOcrText(text, lang, lines) {
   const source = String(text || '').replace(/\r\n?/g, '\n');
   const glue = NO_SPACE_JOIN.has(lang) ? '' : ' ';
+  const layout = lineLayout(source, lines);
+  let index = 0; // position among non-empty text lines (matches `lines` when layout is known)
   return source
     .split(/\n\s*\n+/)
     .map((para) => {
-      const lines = para.split('\n').map((l) => l.trim()).filter(Boolean);
+      const rows = para.split('\n').map((l) => l.trim()).filter(Boolean);
       let out = '';
-      for (const line of lines) {
+      rows.forEach((line, k) => {
+        const i = index + k;
         if (!out) out = line;
         else if (LIST_ITEM.test(line)) out += `\n${line}`;
+        // Known layout: a visual wrap only when the previous line is left-aligned with this one and (nearly) full —
+        // centred or short lines (signs, menus, titles, poems) keep their line breaks.
+        else if (layout && !layout.wraps(i - 1)) out += `\n${line}`;
         // A trailing hyphen on the web is usually a real compound ("long-" + "term"): join without a space, keep it.
         else if (/[A-Za-zÀ-ÿ]-$/.test(out) && /^[a-zà-ÿ]/.test(line)) out += line;
         // Decide per boundary: mixed-language results (e.g. chi_sim+eng) have no single `lang` hint.
         else out += NO_SPACE_CHAR.test(out.slice(-1)) || NO_SPACE_CHAR.test(line[0]) ? line : glue + line;
-      }
+      });
+      index += rows.length;
       return out;
     })
     .filter(Boolean)
     .join('\n\n');
 }
 
+/**
+ * Line geometry from OcrResult.lines (bboxes in image pixels), when it lines up with the text's non-empty lines.
+ * `wraps(i)` → true when line i looks like a visual wrap into line i+1: left edges aligned (± 4% of the widest line)
+ * and line i at least 85% as wide as the widest line — never inside a centred block (signs, posters). Null when unknown (callers fall back to text-only rules).
+ */
+function lineLayout(source, lines) {
+  if (!Array.isArray(lines) || lines.length < 2) return null;
+  const textRows = source.split('\n').map((l) => l.trim()).filter(Boolean);
+  const boxes = lines.filter((l) => l && typeof l.text === 'string' && l.text.trim() && l.bbox);
+  if (boxes.length !== textRows.length) return null;
+  const geo = boxes.map(({ bbox }) => ({ x0: Number(bbox.x0), x1: Number(bbox.x1) }));
+  if (geo.some((g) => !Number.isFinite(g.x0) || !Number.isFinite(g.x1) || g.x1 <= g.x0)) return null;
+  const maxWidth = Math.max(...geo.map((g) => g.x1 - g.x0));
+  const tolerance = Math.max(4, maxWidth * 0.04);
+  // Centred block (signs, posters, titles): left edges differ but the line centres line up → keep every break.
+  const lefts = geo.map((g) => g.x0);
+  const centres = geo.map((g) => (g.x0 + g.x1) / 2);
+  const spread = (xs) => Math.max(...xs) - Math.min(...xs);
+  const centred = spread(lefts) > tolerance * 2 && spread(centres) <= tolerance * 2;
+  return {
+    wraps(i) {
+      if (centred) return false;
+      const a = geo[i];
+      const b = geo[i + 1];
+      if (!a || !b) return true;
+      return Math.abs(a.x0 - b.x0) <= tolerance && a.x1 - a.x0 >= maxWidth * 0.85;
+    },
+  };
+}
+
+/**
+ * Drop OCR noise lines — specks, frame corners, pins or borders read as "、 lc", "|", "—" — i.e. low-confidence lines
+ * with at most 3 letters. Only when `lines` lines up with the text's non-empty lines; otherwise returns the input.
+ * Pure; exported for tests.
+ */
+export function dropNoiseLines(text, lines) {
+  const source = String(text || '');
+  if (!Array.isArray(lines) || !lines.length) return { text: source, lines };
+  const rows = source.split('\n');
+  const nonEmpty = rows.filter((r) => r.trim());
+  const usable = lines.filter((l) => l && typeof l.text === 'string' && l.text.trim());
+  if (usable.length !== nonEmpty.length) return { text: source, lines };
+  const letters = (s) => (s.match(/\p{L}|\p{N}/gu) || []).length;
+  const keep = usable.map((l, i) => !(Number(l.confidence) < 70 && letters(nonEmpty[i]) <= 3));
+  if (keep.every(Boolean)) return { text: source, lines };
+  let k = -1;
+  const kept = rows.filter((r) => !r.trim() || keep[++k]);
+  return { text: kept.join('\n').replace(/^\n+|\n+$/g, ''), lines: usable.filter((_, i) => keep[i]) };
+}
+
 /** Attach the re-flowed text (keeping the raw lines for reference). */
 function withReflow(ocr) {
   if (!ocr || typeof ocr.text !== 'string') return ocr;
-  return { ...ocr, rawText: ocr.text, text: reflowOcrText(ocr.text, ocr.lang) };
+  const clean = dropNoiseLines(ocr.text, ocr.lines);
+  return { ...ocr, rawText: ocr.text, lines: clean.lines, text: reflowOcrText(clean.text, ocr.lang, clean.lines) };
 }
 
 /**

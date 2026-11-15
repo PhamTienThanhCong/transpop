@@ -31,6 +31,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- Image translation: line breaks of signs, menus and centred text are kept (only left-aligned wrapped paragraphs
+  are joined), low-confidence specks (frame corners, pins) are dropped, and the result bubble sits beside a large
+  selected area when there's no room above or below. New screenshots of image translation.
 - Translation results (bubble, popup, capture page) now say **Powered by TransPop**; the translation service in use
   is still disclosed in the store listing, the privacy policy and Settings → General.
 - Tabs that were open before installing/updating now work right away: explicit actions (shortcut, right-click, popup button) inject TransPop on demand. Pages TransPop can't script (PDF viewer, `chrome://`) open the capture page in a tab next to the page — never a separate window.
