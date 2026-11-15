@@ -207,13 +207,24 @@
   -webkit-line-clamp: 3;
   overflow: hidden;
 }
-.g-src:not(.is-clamped) {
-  max-height: min(30vh, 180px);
+/* Source + phonetic share one block: collapsed by default, scrolls as one when expanded (never pushes the
+   translation out of view). */
+.g-src-body { min-width: 0; }
+.g-src-wrap.is-expanded .g-src-body {
+  max-height: min(26vh, 168px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--g-border-strong) transparent;
+  padding-inline-end: 4px;
 }
+.g-src-wrap:not(.is-expanded) .g-phon {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.g-src-wrap.is-long:not(.is-expanded) .g-phon { -webkit-line-clamp: 1; }
 .g-src-toggle {
   display: inline-flex;
   align-items: center;
@@ -316,7 +327,7 @@
 /* Body */
 .g-body {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: min(96px, 24vh); /* the translation always keeps some room */
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;

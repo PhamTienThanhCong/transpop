@@ -376,7 +376,7 @@
       'div',
       { class: 'g-head' },
       els.speakSrc,
-      h('div', { class: 'g-src-wrap' }, els.src, els.srcToggle, els.phon),
+      (els.srcWrap = h('div', { class: 'g-src-wrap' }, (els.srcBody = h('div', { class: 'g-src-body' }, els.src, els.phon)), els.srcToggle)),
       h('div', { class: 'g-head-actions' }, els.star, els.gear, els.close),
     );
     els.head.addEventListener('pointerdown', onHeadPointerDown);
@@ -613,6 +613,7 @@
     if (r && r.from && r.from !== 'auto') els.src.setAttribute('lang', G.lang.bcp47(r.from));
     else els.src.removeAttribute('lang');
     els.src.classList.toggle('is-clamped', !s.srcExpanded);
+    els.srcWrap.classList.toggle('is-expanded', !!s.srcExpanded);
     const phon = r && st.showPhonetic && typeof r.phonetic === 'string' ? r.phonetic.trim() : '';
     els.phon.hidden = !phon;
     els.phon.textContent = phon ? formatPhonetic(phon, srcText) : '';
@@ -851,7 +852,12 @@
       return;
     }
     els.src.classList.add('is-clamped');
-    els.srcToggle.hidden = !(els.src.scrollHeight > els.src.clientHeight + 1);
+    els.srcWrap.classList.remove('is-expanded');
+    const srcOverflows = els.src.scrollHeight > els.src.clientHeight + 1;
+    // Long source → the phonetic collapses to a single line too (it is often longer than the text itself).
+    els.srcWrap.classList.toggle('is-long', srcOverflows);
+    const phonOverflows = !els.phon.hidden && els.phon.scrollHeight > els.phon.clientHeight + 1;
+    els.srcToggle.hidden = !(srcOverflows || phonOverflows);
   }
 
   function toggleSource() {
@@ -859,6 +865,8 @@
     if (!s) return;
     s.srcExpanded = !s.srcExpanded;
     els.src.classList.toggle('is-clamped', !s.srcExpanded);
+    els.srcWrap.classList.toggle('is-expanded', s.srcExpanded);
+    if (!s.srcExpanded) els.srcBody.scrollTop = 0;
     els.srcToggle.setAttribute('aria-expanded', String(s.srcExpanded));
     els.srcToggleLabel.textContent = t(s.srcExpanded ? 'bubble_collapse_source' : 'bubble_expand_source');
     schedulePosition();
