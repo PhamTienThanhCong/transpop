@@ -376,7 +376,7 @@ function renderResult(result) {
   els.outTranslit.textContent = translit;
   els.outTranslit.hidden = !translit;
 
-  renderPowered(result.provider);
+  renderPowered();
   setOutputActionsEnabled(true);
   updateLabels();
   updateSwapState();
@@ -428,9 +428,8 @@ function setOutputActionsEnabled(on) {
   els.btnStar.disabled = !on;
 }
 
-function renderPowered(provider = state.settings?.provider) {
-  const name = t(provider === 'microsoft' ? 'common_provider_microsoft' : 'common_provider_google');
-  els.powered.textContent = t('common_powered_by', name);
+function renderPowered() {
+  els.powered.textContent = t('common_powered_by_app');
 }
 
 function updateLabels() {

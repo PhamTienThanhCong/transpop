@@ -372,14 +372,9 @@
   "common_open_full_page": {
     "message": "Open in full page"
   },
-  "common_powered_by": {
-    "message": "Powered by $P1$",
-    "description": "$1 = provider name",
-    "placeholders": {
-      "p1": {
-        "content": "$1"
-      }
-    }
+  "common_powered_by_app": {
+    "message": "Powered by TransPop",
+    "description": "Footer of every translation result (bubble, popup, capture page)"
   },
   "common_provider_google": {
     "message": "Google Translate"

@@ -345,7 +345,7 @@ function setPhase(phase) {
 function renderPowered() {
   const provider = state.phase === 'result' && state.result?.provider;
   els.powered.hidden = !provider;
-  els.powered.textContent = provider ? t('common_powered_by', t(`common_provider_${provider}`) || provider) : '';
+  els.powered.textContent = provider ? t('common_powered_by_app') : '';
 }
 
 async function recognize() {

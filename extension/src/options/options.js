@@ -348,7 +348,7 @@ function updatePreview(s) {
   preview.definitions.hidden = !s.showDefinitions;
   preview.examples.hidden = !s.showExamples;
   preview.pair.textContent = `${getLanguageName('en')} → ${getLanguageName('vi')}`;
-  preview.provider.textContent = t(s.provider === 'microsoft' ? 'common_provider_microsoft' : 'common_provider_google');
+  preview.provider.textContent = 'TransPop';
 }
 
 /* ---------- Voice test ---------- */

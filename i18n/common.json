@@ -136,11 +136,6 @@
     "en": "Open in full page",
     "vi": "Mở toàn trang"
   },
-  "common_powered_by": {
-    "en": "Powered by $1",
-    "vi": "Cung cấp bởi $1",
-    "description": "$1 = provider name"
-  },
   "common_provider_google": {
     "en": "Google Translate",
     "vi": "Google Dịch"
@@ -188,5 +183,10 @@
   "common_error_OCR_NO_TEXT": {
     "en": "No text found in the selected area.",
     "vi": "Không tìm thấy chữ trong vùng đã chọn."
+  },
+  "common_powered_by_app": {
+    "en": "Powered by TransPop",
+    "vi": "Cung cấp bởi TransPop",
+    "description": "Footer of every translation result (bubble, popup, capture page)"
   }
 }
