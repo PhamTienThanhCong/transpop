@@ -3,6 +3,8 @@
  *
  *  - selection: "Translate “%s”" → asks the content script in that frame to show the bubble; if nothing is
  *    listening (restricted page, tab opened before install, PDF viewer…) opens the popup in a small window.
+ *  - image: "Translate text in image" and page: "Translate screen area…" → image translation (image-translate.js),
+ *    same flow as the `crop-translate` command (Alt+Shift+A).
  *  - action (toolbar icon): "Turn off/on on <host>" and "Pause/Resume TransPop everywhere", titles kept in sync.
  *
  * Without the `tabs` permission `tab.url` is usually unavailable, so the current hostname comes from
@@ -13,9 +15,12 @@ import { sendToTab } from '../shared/messaging.js';
 import { getSettings, isSiteDisabled, normalizeHostname, saveSettings } from '../shared/storage.js';
 // Menu titles follow the Display-language setting: t() in this file IS bgT() (await ensureUiMessages() first).
 import { bgT as t, ensureUiMessages } from './ui-messages.js';
+import { imageTranslation } from './image-translate.js';
 
 export const MENU = Object.freeze({
   TRANSLATE: 'transpop-translate',
+  IMAGE: 'transpop-image',
+  AREA: 'transpop-area',
   TOGGLE_SITE: 'transpop-toggle-site',
   TOGGLE_ENABLED: 'transpop-toggle-enabled',
 });
@@ -67,6 +72,9 @@ export function setupContextMenus() {
       menusUiLanguage = (await ensureUiMessages()).lang;
       await removeAllMenus();
       await createMenu({ id: MENU.TRANSLATE, title: t('bg_ctx_translate'), contexts: ['selection'] });
+      await createMenu({ id: MENU.IMAGE, title: t('bg_ctx_image'), contexts: ['image'] });
+      // Not on selections / links / images (they have their own items): only a plain right-click on the page.
+      await createMenu({ id: MENU.AREA, title: t('bg_ctx_area'), contexts: ['page', 'frame'] });
       await createMenu({ id: MENU.TOGGLE_SITE, title: t('bg_ctx_site_unavailable'), contexts: ['action'], enabled: false });
       await createMenu({ id: MENU.TOGGLE_ENABLED, title: t('bg_ctx_pause'), contexts: ['action'] });
     });
@@ -215,6 +223,12 @@ export async function handleMenuClick(info, tab) {
   switch (info.menuItemId) {
     case MENU.TRANSLATE:
       return translateSelectionFromMenu(info, tab);
+    case MENU.IMAGE:
+      await imageTranslation.startCapture(await tabOrActive(tab), { mode: 'image', srcUrl: info.srcUrl });
+      return undefined;
+    case MENU.AREA:
+      await imageTranslation.startCapture(await tabOrActive(tab), { mode: 'region' });
+      return undefined;
     case MENU.TOGGLE_SITE: {
       const host = await hostnameForTab(tab, info.pageUrl);
       if (host) await toggleSite(host);
@@ -229,10 +243,17 @@ export async function handleMenuClick(info, tab) {
   }
 }
 
+const isRealTab = (tab) => !!tab && typeof tab.id === 'number' && tab.id >= 0;
+const tabOrActive = async (tab) => (isRealTab(tab) ? tab : getActiveTab());
+
 /** Keyboard commands from the manifest. */
 export async function handleCommand(command, tab) {
   if (command === 'toggle-enabled') {
     await toggleEnabled();
+    return;
+  }
+  if (command === 'crop-translate') {
+    await imageTranslation.startCapture(await tabOrActive(tab), { mode: 'region' });
     return;
   }
   if (command !== 'translate-selection') return;

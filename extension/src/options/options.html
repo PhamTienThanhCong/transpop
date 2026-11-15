@@ -36,6 +36,9 @@
             <a class="nav-link" href="#bubble" data-section="bubble">
               <i data-icon="message-square" data-icon-size="16"></i><span data-i18n="options_nav_bubble">Bubble content</span>
             </a>
+            <a class="nav-link" href="#ocr" data-section="ocr">
+              <i data-extra-icon="scan-text" data-icon-size="16"></i><span data-i18n="options_nav_ocr">Image translation</span>
+            </a>
             <a class="nav-link" href="#sites" data-section="sites">
               <i data-icon="globe" data-icon-size="16"></i><span data-i18n="options_nav_sites">Sites</span>
             </a>
@@ -281,6 +284,71 @@
                   <button type="button" class="btn btn-sm" id="test-voice">
                     <i data-icon="volume" data-icon-size="16"></i><span data-i18n="options_test_voice">Test voice</span>
                   </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ------------------------ Image translation ---------------------- -->
+          <section class="section" id="ocr" aria-labelledby="ocr-title">
+            <header class="section-header">
+              <h2 class="section-title" id="ocr-title" tabindex="-1" data-i18n="options_nav_ocr">Image translation</h2>
+              <p class="section-desc" data-i18n="options_ocr_desc">Translate text inside images, videos and scanned PDFs — any area of the screen.</p>
+            </header>
+            <div class="card">
+              <div class="card-block">
+                <span class="block-label" id="ocr-ways-label" data-i18n="options_ocr_ways_label">How to start</span>
+                <ul class="ocr-ways" aria-labelledby="ocr-ways-label">
+                  <li class="ocr-way">
+                    <span class="ocr-way-icon"><i data-icon="keyboard" data-icon-size="18"></i></span>
+                    <span class="ocr-way-title" data-i18n="options_ocr_way_shortcut_title">Keyboard shortcut</span>
+                    <span class="ocr-way-keys" id="ocr-shortcut"></span>
+                    <span class="ocr-way-desc" data-i18n="options_ocr_way_shortcut_desc">Then drag over the text you want to translate.</span>
+                    <button type="button" class="link-btn" id="ocr-shortcut-set" hidden>
+                      <span data-i18n="welcome_tip_shortcut_set">Set a shortcut</span><i data-icon="external-link" data-icon-size="13"></i>
+                    </button>
+                  </li>
+                  <li class="ocr-way">
+                    <span class="ocr-way-icon"><i data-extra-icon="image" data-icon-size="18"></i></span>
+                    <span class="ocr-way-title" data-i18n="options_ocr_way_menu_title">Right-click</span>
+                    <span class="ocr-way-desc" data-i18n="options_ocr_way_menu_desc">On an image: “Translate text in image”. Anywhere else: “Translate screen area…”.</span>
+                  </li>
+                  <li class="ocr-way">
+                    <span class="ocr-way-icon"><i data-extra-icon="scan-text" data-icon-size="18"></i></span>
+                    <span class="ocr-way-title" data-i18n="options_ocr_way_popup_title">Toolbar popup</span>
+                    <span class="ocr-way-desc" data-i18n="options_ocr_way_popup_desc">Open TransPop and click “Translate screen area” at the top.</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="card-block">
+                <div class="block-head">
+                  <span class="row-title" id="ocr-langs-label" data-i18n="options_ocr_langs_title">Text languages</span>
+                  <p class="row-desc" id="ocr-langs-desc" data-i18n="options_ocr_langs_desc">The languages written in your images, in order of priority.</p>
+                </div>
+                <div id="ocr-picker" aria-labelledby="ocr-langs-label" aria-describedby="ocr-langs-desc"></div>
+              </div>
+              <div class="row row--info">
+                <span class="row-icon"><i data-icon="shield" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" data-i18n="options_ocr_local_title">Downloaded once, read on your device</span>
+                  <p class="row-desc" data-i18n="options_ocr_local_desc">Each language needs a one-time download of about 1.5–3 MB, stored in this browser. Your images never leave your device.</p>
+                </div>
+              </div>
+              <div class="row row--wrap">
+                <span class="row-icon"><i data-icon="database" data-icon-size="18"></i></span>
+                <div class="row-text">
+                  <span class="row-title" id="ocr-cache-label" data-i18n="options_ocr_cache_title">Downloaded language data</span>
+                  <p class="row-desc" data-i18n="options_ocr_cache_desc">Free up space. It is downloaded again the next time you need it.</p>
+                </div>
+                <div class="row-control confirm" id="confirm-ocr-cache">
+                  <button type="button" class="btn btn-sm" data-confirm-trigger aria-describedby="ocr-cache-label">
+                    <i data-icon="trash" data-icon-size="16"></i><span data-i18n="common_clear">Clear</span>
+                  </button>
+                  <div class="confirm-actions" data-confirm-actions hidden>
+                    <span class="confirm-prompt" data-i18n="options_confirm_prompt">Are you sure?</span>
+                    <button type="button" class="btn btn-sm btn-ghost" data-confirm-cancel><span data-i18n="common_cancel">Cancel</span></button>
+                    <button type="button" class="btn btn-sm btn-danger-solid" data-confirm-ok><span data-i18n="options_ocr_cache_confirm">Delete data</span></button>
+                  </div>
                 </div>
               </div>
             </div>

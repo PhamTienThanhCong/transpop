@@ -22,7 +22,7 @@ import {
 } from '../shared/storage.js';
 import { applyTheme } from '../ui/theme.js';
 import { hydrateIcons } from '../ui/icons.js';
-import { $, readPref, setIcon, setLabel, showToast, sleep, withTimeout, writePref } from './dom.js';
+import { $, localIcon, readPref, setIcon, setLabel, showToast, sleep, withTimeout, writePref } from './dom.js';
 import { renderDetails } from './details.js';
 import { createLibrary } from './library.js';
 
@@ -37,6 +37,9 @@ const SELECTION_TIMEOUT_MS = 600;
 const COPY_FEEDBACK_MS = 1500;
 const MAX_LEN = LIMITS.MAX_TEXT_LENGTH;
 const DETAILS_PREF_KEY = 'transpop:popup:detailsCollapsed';
+const CAPTURE_TIMEOUT_MS = 2500; // close the popup anyway if the background takes longer (e.g. fallback window)
+/** Pages where Chrome never allows captureVisibleTab, even with activeTab (store pages). */
+const NO_CAPTURE_URL = /^https:\/\/(?:chromewebstore\.google\.com\/|chrome\.google\.com\/webstore|microsoftedge\.microsoft\.com\/addons)/i;
 
 const params = new URLSearchParams(location.search);
 const VIEW = ['tab', 'window'].includes(params.get('view')) ? params.get('view') : 'popup';
@@ -48,6 +51,7 @@ applyTheme('auto'); // follow the OS until settings arrive (avoids a light flash
 /* ------------------------------------------------------------------ */
 
 hydrateIcons(document);
+$('btn-capture').append(localIcon('scan-text')); // not in the shared icon set (yet)
 await initI18n(); // Display language (ARCHITECTURE §10) — before any t(), language list or Intl formatter
 localizeDocument(document);
 
@@ -55,6 +59,7 @@ const els = {
   main: $('main'),
   brandMark: $('brand-mark'),
   brandLogo: $('brand-logo'),
+  btnCapture: $('btn-capture'),
   btnLibrary: $('btn-library'),
   btnExpand: $('btn-expand'),
   btnSettings: $('btn-settings'),
@@ -171,6 +176,8 @@ function setupStaticUi() {
   els.kbdMod.textContent = /mac|iphone|ipad/i.test(platform) ? '⌘' : 'Ctrl';
 
   if (VIEW === 'tab') document.title = t('popup_page_title');
+
+  els.btnCapture.hidden = VIEW !== 'popup';
 
   const collapsed = readPref(DETAILS_PREF_KEY, false) === true;
   els.detailsToggle.setAttribute('aria-expanded', String(!collapsed));
@@ -749,17 +756,91 @@ function resolveSource(saved) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Active tab (selection + hostname)                                   */
+/* Active tab (selection + hostname + screen capture)                  */
 /* ------------------------------------------------------------------ */
+
+let activeTabPromise = null;
+
+/** The tab the toolbar popup was opened on (memoized), or null. Its `url` is visible thanks to activeTab. */
+function getActiveTab() {
+  activeTabPromise ||= chrome.tabs
+    .query({ active: true, currentWindow: true })
+    .then(([tab]) => (tab && typeof tab.id === 'number' && tab.id >= 0 ? tab : null))
+    .catch(() => null);
+  return activeTabPromise;
+}
 
 async function querySelection() {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab || typeof tab.id !== 'number' || tab.id < 0) return null;
+    const tab = await getActiveTab();
+    if (!tab) return null;
     return await sendToTab(tab.id, MSG.GET_SELECTION); // null on restricted pages / no content script
   } catch {
     return null;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Translate screen area (image translation, ARCHITECTURE §11)         */
+/* ------------------------------------------------------------------ */
+
+/** Tooltip with the current shortcut, and disable the button where Chrome can't capture the page. */
+async function setupCaptureButton() {
+  if (VIEW !== 'popup') return;
+  try {
+    const commands = (await chrome.commands?.getAll?.()) || [];
+    const shortcut = commands.find((c) => c.name === 'crop-translate')?.shortcut;
+    if (shortcut) els.btnCapture.title = t('popup_capture_shortcut', shortcut); // aria-label keeps the plain name
+  } catch {
+    /* ignore — the plain label is already set */
+  }
+
+  const tab = await getActiveTab();
+  const url = typeof tab?.url === 'string' ? tab.url : ''; // empty when unknown → let the background decide
+  let blocked = '';
+  if (NO_CAPTURE_URL.test(url)) {
+    blocked = t('popup_capture_unavailable');
+  } else if (/^file:/i.test(url)) {
+    try {
+      if (chrome.extension?.isAllowedFileSchemeAccess && !(await chrome.extension.isAllowedFileSchemeAccess())) {
+        blocked = t('popup_capture_file_access');
+      }
+    } catch {
+      /* unknown → keep enabled */
+    }
+  }
+  if (blocked) {
+    els.btnCapture.disabled = true;
+    els.btnCapture.title = blocked;
+    els.btnCapture.setAttribute('aria-label', `${t('popup_capture')} — ${blocked}`);
+  }
+}
+
+/** Ask the background to capture the active tab and start the crop overlay there, then get out of the way. */
+async function startCapture() {
+  if (VIEW !== 'popup' || els.btnCapture.disabled) return;
+  els.btnCapture.disabled = true;
+  els.btnCapture.classList.add('is-active');
+  const saving = saveStateNow();
+  const tab = await getActiveTab();
+  const error = await Promise.race([
+    send(MSG.START_CAPTURE, tab ? { tabId: tab.id } : {}).then(
+      () => null,
+      (err) => err || new Error('UNKNOWN'),
+    ),
+    sleep(CAPTURE_TIMEOUT_MS).then(() => null),
+  ]);
+  await saving;
+  if (!error) {
+    window.close();
+    return;
+  }
+  console.warn('[TransPop] start-capture failed:', error);
+  els.btnCapture.disabled = false;
+  els.btnCapture.classList.remove('is-active');
+  // "No response" / unknown failures are shown as a capture failure — the more useful message here.
+  const code = ERROR_CODES[error.code] && error.code !== ERROR_CODES.UNKNOWN ? error.code : ERROR_CODES.CAPTURE_FAILED;
+  showToast(t(`common_error_${code}`), 3200);
 }
 
 /* ------------------------------------------------------------------ */
@@ -799,6 +880,7 @@ function bindEvents() {
     writePref(DETAILS_PREF_KEY, !expanded);
   });
 
+  els.btnCapture.addEventListener('click', startCapture);
   els.btnLibrary.addEventListener('click', () => (library.isOpen() ? showTranslator() : showLibrary()));
   els.btnExpand.addEventListener('click', async () => {
     await saveStateNow();
@@ -919,6 +1001,7 @@ async function init() {
 
 setupStaticUi();
 bindEvents();
+setupCaptureButton().catch(() => {});
 focusInput();
 init().catch((err) => {
   console.error('[TransPop] Popup failed to initialise:', err);

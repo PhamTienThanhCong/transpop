@@ -1,10 +1,10 @@
 /*
- * TransPop content script — core (file 1/6).
+ * TransPop content script — core (file 1/7).
  *
  * Content scripts are CLASSIC scripts (no `import`). All TransPop content files share ONE namespace
  * object, `globalThis.__transpopContent` (the isolated world's global, invisible to the page).
  * Load order (manifest `content_scripts[0].js`):
- *   core.js → languages.js → styles.js → icons.js → bubble.js → content.js
+ *   core.js → languages.js → styles.js → icons.js → bubble.js → crop.js → content.js
  *
  * This file: double-injection guard, duplicated constants, lifecycle (listener/timer registry +
  * teardown when the extension context is invalidated), messaging, i18n, and PURE helpers
@@ -43,6 +43,10 @@
     GET_SELECTION: 'get-selection',
     PING: 'ping',
     GET_UI_MESSAGES: 'get-ui-messages',
+    // image translation (ARCHITECTURE §11)
+    START_CROP: 'start-crop',
+    START_CAPTURE: 'start-capture',
+    OCR_REGION: 'ocr-region',
   });
 
   const LIMITS = Object.freeze({
@@ -52,7 +56,10 @@
     FONT_SIZE_MAX: 20,
   });
 
-  const ERROR_CODES = Object.freeze(['EMPTY', 'TOO_LONG', 'NETWORK', 'RATE_LIMITED', 'PROVIDER_ERROR', 'UNSUPPORTED_LANG', 'UNKNOWN']);
+  const ERROR_CODES = Object.freeze([
+    'EMPTY', 'TOO_LONG', 'NETWORK', 'RATE_LIMITED', 'PROVIDER_ERROR', 'UNSUPPORTED_LANG', 'UNKNOWN',
+    'CAPTURE_FAILED', 'OCR_FAILED', 'OCR_NO_TEXT',
+  ]);
 
   /** Fallback used until (or if) `get-settings` answers. Mirrors DEFAULT_SETTINGS. */
   const DEFAULT_SETTINGS = Object.freeze({
@@ -76,6 +83,7 @@
     saveHistory: true,
     closeOnClickOutside: true,
     uiLanguage: 'auto',
+    ocrLanguages: ['eng'],
   });
 
   const G = {

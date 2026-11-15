@@ -412,7 +412,7 @@ body {
 }
 .tips-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 .tip {
@@ -459,28 +459,6 @@ body {
   color: var(--muted);
   font-size: 12.5px;
   font-weight: 500;
-}
-
-.link-btn {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 5px;
-  margin-top: 10px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--primary);
-  font-size: 13px;
-  font-weight: 550;
-  cursor: pointer;
-}
-.link-btn:hover {
-  text-decoration: underline;
-}
-.link-btn .icon {
-  width: 13px;
-  height: 13px;
 }
 
 /* Mini Chrome toolbar (pin tip) */
@@ -557,6 +535,80 @@ body {
   height: 5px;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+/* Mini screenshot with a crop selection (image-translation tip) */
+.mini-shot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: 176px;
+  height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.mini-shot-photo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--muted);
+}
+.mini-shot-photo .icon {
+  width: 18px;
+  height: 18px;
+}
+.mini-shot-lines {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 7px;
+}
+.mini-shot-line {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--text) 16%, transparent);
+}
+.mini-shot-line--short {
+  width: 62%;
+}
+.mini-crop {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  inset-inline-start: 54px;
+  inset-inline-end: 6px;
+  border: 1.5px dashed var(--primary);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--brand-1) 12%, transparent);
+}
+.mini-crop-cursor {
+  position: absolute;
+  bottom: -2px;
+  inset-inline-end: -4px;
+  display: inline-flex;
+  color: var(--text);
+  filter: drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface));
+}
+.mini-crop-cursor .icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5;
+}
+.tip-desc .kbd-group {
+  vertical-align: 1px;
+}
+.tip-desc .kbd {
+  height: 20px;
+  font-size: 11.5px;
 }
 
 /* ============================== Actions ============================== */

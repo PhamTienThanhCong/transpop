@@ -1,5 +1,5 @@
 /*
- * TransPop content script — icons (file 4/6).
+ * TransPop content script — icons (file 4/7).
  */
 (() => {
   'use strict';
@@ -48,6 +48,14 @@
     alert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
     refresh:
       '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+    // Image translation (crop.js). `plus` / `languages` match src/ui/icons.js; `scan-text` / `maximize` are Lucide too.
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    languages:
+      '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+    'scan-text':
+      '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>',
+    maximize:
+      '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
   };
 
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -116,8 +124,14 @@
     return cache.get(key).cloneNode(true);
   }
 
-  /** Cloned logo SVG. */
-  function logo() {
+  let logoSeq = 0;
+
+  /**
+   * Cloned logo SVG. `unique: true` suffixes its ids (gradient, mask) and the url(#…) references to them: with several
+   * logos in one shadow root, url(#id) resolves to the FIRST element with that id — e.g. the hidden trigger's, and
+   * paint servers inside a display:none SVG don't render.
+   */
+  function logo({ unique = false } = {}) {
     if (!cache.has('logo')) {
       const svg = buildSvg(LOGO_SVG);
       if (svg) {
@@ -126,8 +140,19 @@
       }
       cache.set('logo', svg);
     }
-    const svg = cache.get('logo');
-    return svg ? svg.cloneNode(true) : document.createElementNS(SVG_NS, 'svg');
+    const cached = cache.get('logo');
+    if (!cached) return document.createElementNS(SVG_NS, 'svg');
+    const svg = cached.cloneNode(true);
+    if (unique) {
+      const suffix = `-u${++logoSeq}`;
+      for (const el of [svg, ...svg.querySelectorAll('*')]) {
+        for (const attr of [...el.attributes]) {
+          if (attr.name === 'id') el.setAttribute('id', attr.value + suffix);
+          else if (attr.value.includes('url(#')) el.setAttribute(attr.name, attr.value.replace(/url\(#([\w-]+)\)/g, `url(#$1${suffix})`));
+        }
+      }
+    }
+    return svg;
   }
 
   G.icons = { icon, logo, buildSvg };

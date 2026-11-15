@@ -1,5 +1,5 @@
 /*
- * TransPop content script — controller (file 6/6, loaded last).
+ * TransPop content script — controller (file 7/7, loaded last).
  * Settings, passive triggers (icon / auto / hotkey), selection reading, messages from the
  * background/popup. All page listeners are passive + capture and never preventDefault /
  * stopPropagation. Nothing is built in the page until the first trigger.
@@ -84,11 +84,13 @@
     if (!G.checkAlive()) return;
     settingsLoaded = false;
     if (uiLanguageOf(changes.settings.oldValue) !== uiLanguageOf(changes.settings.newValue)) loadUiMessages();
-    if (!ui.isActive()) return; // lazily re-fetched on the next interaction
+    const cropActive = !!(G.crop && G.crop.isActive());
+    if (!ui.isActive() && !cropActive) return; // lazily re-fetched on the next interaction
     G.getSettings().then(
       (st) => {
         if (ui.triggerVisible() && (st.triggerMode !== 'icon' || !passiveAllowed(st))) ui.hideTrigger();
         ui.refresh();
+        if (G.crop) G.crop.refresh();
       },
       () => {},
     );
@@ -214,7 +216,7 @@
   let checkTimer = 0;
   let autoTimer = 0;
   let gestureSeq = 0; // bumped on every mousedown → stale async checks are dropped
-  let lastContextMenu = null; // { x, y, at }
+  let lastContextMenu = null; // { x, y, at, target: WeakRef<Element> | null }
 
   const modFlags = (e) => ({ shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey });
 
@@ -292,6 +294,7 @@
     down = e.button === 0 ? { x: e.clientX, y: e.clientY } : null;
     ui.hideTrigger();
     if (ui.bubbleVisible() && G.settings.closeOnClickOutside) ui.close();
+    if (G.crop && G.crop.resultsVisible() && G.settings.closeOnClickOutside) G.crop.close();
   }
 
   function onMouseUp(e) {
@@ -314,6 +317,7 @@
     if (!G.checkAlive()) return;
     if (e.key === 'Escape') {
       if (modDown) modDown.alone = false;
+      if (G.crop && G.crop.isActive()) G.crop.dismiss(); // crop overlay / image-translation results
       if (ui.isActive()) ui.dismiss(); // also when focus is inside the bubble (target = our host)
       return;
     }
@@ -355,8 +359,33 @@
 
   function onContextMenu(e) {
     if (ui.isOurs(e.target)) return;
-    lastContextMenu = { x: e.clientX, y: e.clientY, at: performance.now() };
+    // The innermost target (inside open shadow roots too): "Translate text in image" needs the right-clicked <img>.
+    let target = e.target;
+    try {
+      const path = e.composedPath();
+      if (path && path[0] && path[0].nodeType === 1) target = path[0];
+    } catch {
+      /* ignore */
+    }
+    let ref = null;
+    try {
+      ref = target && target.nodeType === 1 ? new WeakRef(target) : null;
+    } catch {
+      ref = null;
+    }
+    lastContextMenu = { x: e.clientX, y: e.clientY, at: performance.now(), target: ref };
   }
+
+  /** The element last right-clicked in this frame (at most `maxAge` ms ago), or null. Used by crop.js (image mode). */
+  G.lastContextTarget = (maxAge = 60000) => {
+    const cm = lastContextMenu;
+    if (!cm || !cm.target || performance.now() - cm.at > maxAge) return null;
+    try {
+      return cm.target.deref() || null;
+    } catch {
+      return null;
+    }
+  };
 
   function onWindowBlur() {
     modDown = null;
@@ -442,6 +471,28 @@
         }
         case MSG.SHOW_TRANSLATION:
           return handleShowTranslation(msg, sendResponse);
+        case MSG.START_CROP: {
+          // Image translation (ARCHITECTURE §11) — top frame only; explicit request, so it ignores enabled/disabledSites.
+          if (!G.IS_TOP || !G.crop) return false;
+          if (msg.prepare) {
+            // Before the screenshot: hide our UI so it is never captured, then answer.
+            G.crop.prepare().then(() => {
+              try {
+                sendResponse({ ok: true, ready: true });
+              } catch {
+                /* port closed */
+              }
+            });
+            return true;
+          }
+          const started = G.crop.start({
+            mode: msg.mode === 'image' ? 'image' : 'region',
+            srcUrl: typeof msg.srcUrl === 'string' ? msg.srcUrl : '',
+            error: typeof msg.error === 'string' ? msg.error : null,
+          });
+          sendResponse({ ok: true, started });
+          return false;
+        }
         default:
           return false;
       }

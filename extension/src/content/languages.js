@@ -1,5 +1,5 @@
 /*
- * TransPop content script — languages (file 2/6).
+ * TransPop content script — languages (file 2/7).
  * Language codes + English names, localized display names, <select> options.
  * Names use G.uiLocale() — the Display-language setting when set, else the browser language — and the
  * caches below are keyed by locale, so a display-language change needs no invalidation.

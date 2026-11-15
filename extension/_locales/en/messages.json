@@ -11,6 +11,14 @@
     "message": "OFF",
     "description": "Toolbar badge while in-page translation is paused (max 4 characters)"
   },
+  "bg_ctx_area": {
+    "message": "Translate screen area…",
+    "description": "Context menu item on pages: drag to select an area of the screen, its text is recognized and translated"
+  },
+  "bg_ctx_image": {
+    "message": "Translate text in image",
+    "description": "Context menu item on images: recognizes the text in the image (OCR) and translates it"
+  },
   "bg_ctx_pause": {
     "message": "Pause TransPop everywhere",
     "description": "Toolbar icon context menu: turn off in-page translation globally"
@@ -53,6 +61,88 @@
     "message": "Copy translation",
     "description": "Copy button under the translation"
   },
+  "bubble_crop_copy_text": {
+    "message": "Copy recognized text",
+    "description": "Copy button under the recognized text"
+  },
+  "bubble_crop_dialog_label": {
+    "message": "TransPop — text in image",
+    "description": "Accessible name of the image-translation results bubble"
+  },
+  "bubble_crop_full": {
+    "message": "Use the whole visible page",
+    "description": "Icon button in the overlay toolbar: recognize text in the whole visible area instead of dragging"
+  },
+  "bubble_crop_hint": {
+    "message": "Drag to select an area · Esc to cancel",
+    "description": "Hint in the toolbar at the top of the area-selection overlay"
+  },
+  "bubble_crop_image_missing": {
+    "message": "Couldn't find the image — drag to select it · Esc to cancel",
+    "description": "Overlay hint when \"Translate text in image\" can't locate the right-clicked image"
+  },
+  "bubble_crop_lang_add": {
+    "message": "Add a text language",
+    "description": "Dropdown that adds an OCR language (shown as a small + button)"
+  },
+  "bubble_crop_lang_remove": {
+    "message": "Remove $P1$",
+    "description": "Remove button on an OCR language chip; $1 = language name",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bubble_crop_langs_label": {
+    "message": "Text language (for recognition)",
+    "description": "Label of the OCR language picker (languages written in the image, up to 3)"
+  },
+  "bubble_crop_listen_text": {
+    "message": "Listen to the recognized text",
+    "description": "Speaker button under the recognized text"
+  },
+  "bubble_crop_low_confidence": {
+    "message": "The text may not be recognized accurately — check it and edit if needed.",
+    "description": "Note under the recognized text when OCR confidence is low"
+  },
+  "bubble_crop_overlay_label": {
+    "message": "Select an area to translate",
+    "description": "Accessible name of the full-screen area-selection overlay (image translation)"
+  },
+  "bubble_crop_recognized_label": {
+    "message": "Recognized text (editable)",
+    "description": "Label of the editable textarea with the OCR result"
+  },
+  "bubble_crop_recognizing": {
+    "message": "Recognizing text…",
+    "description": "Shown while OCR runs"
+  },
+  "bubble_crop_select_again": {
+    "message": "Select again",
+    "description": "Button: take a new screenshot and select another area"
+  },
+  "bubble_crop_slow": {
+    "message": "The first time a language is used, its data (a few MB) is downloaded — this can take a moment.",
+    "description": "Extra hint when OCR takes more than a few seconds"
+  },
+  "bubble_crop_title": {
+    "message": "Text in image",
+    "description": "Title of the image-translation results bubble"
+  },
+  "bubble_crop_translate_again": {
+    "message": "Translate again",
+    "description": "Button: translate the (edited) recognized text"
+  },
+  "bubble_crop_translate_again_hint": {
+    "message": "Translate the edited text ($P1$)",
+    "description": "Tooltip of \"Translate again\"; $1 = keyboard shortcut, e.g. Ctrl + Enter",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "bubble_dialog_label": {
     "message": "TransPop translation",
     "description": "Accessible name of the translation bubble (role=dialog)"
@@ -89,6 +179,47 @@
   "bubble_trigger_label": {
     "message": "Translate selection",
     "description": "Accessible label of the small floating TransPop button shown next to selected text"
+  },
+  "capture_empty": {
+    "message": "Select an area of the screenshot — the recognized text and its translation appear here.",
+    "description": "Placeholder of the results panel before a selection"
+  },
+  "capture_expired": {
+    "message": "This screenshot is no longer available. Close this window and start again from the page.",
+    "description": "The screenshot expired (kept 2 minutes) or the browser restarted"
+  },
+  "capture_from": {
+    "message": "From: $P1$",
+    "description": "Shows where the screenshot comes from; $1 = page title",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "capture_heading": {
+    "message": "Translate text in a screenshot",
+    "description": "Heading of the screenshot page"
+  },
+  "capture_hint": {
+    "message": "Drag over the screenshot to select the text you want to translate.",
+    "description": "Instruction above the screenshot"
+  },
+  "capture_loading": {
+    "message": "Loading screenshot…",
+    "description": "Shown while the screenshot loads"
+  },
+  "capture_page_title": {
+    "message": "TransPop — Translate screen area",
+    "description": "Window title of the screenshot page (fallback when the page itself can't show the selection overlay, e.g. PDFs)"
+  },
+  "capture_restricted": {
+    "message": "Chrome doesn't allow extensions to capture some pages, such as browser pages and the Chrome Web Store.",
+    "description": "Explanation under the capture error"
+  },
+  "capture_whole": {
+    "message": "Use the whole screenshot",
+    "description": "Button: recognize text in the whole screenshot"
   },
   "cmdCropTranslate": {
     "message": "Translate text in an image or screen area",
@@ -444,6 +575,10 @@
     "message": "Settings sections",
     "description": "aria-label of the settings navigation"
   },
+  "options_nav_ocr": {
+    "message": "Image translation",
+    "description": "Settings section: translate text inside images / a screen area (OCR)"
+  },
   "options_nav_shortcuts": {
     "message": "Keyboard shortcuts"
   },
@@ -453,6 +588,123 @@
   "options_nav_trigger": {
     "message": "Trigger",
     "description": "Section: how the bubble is triggered"
+  },
+  "options_ocr_cache_cleared": {
+    "message": "Downloaded language data deleted"
+  },
+  "options_ocr_cache_confirm": {
+    "message": "Delete data",
+    "description": "Confirm button for deleting downloaded OCR language data"
+  },
+  "options_ocr_cache_desc": {
+    "message": "Free up space. It's downloaded again the next time you need it."
+  },
+  "options_ocr_cache_title": {
+    "message": "Downloaded language data"
+  },
+  "options_ocr_count": {
+    "message": "$P1$ of $P2$ selected",
+    "description": "$1 = selected count, $2 = maximum",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "options_ocr_desc": {
+    "message": "Translate text inside images, videos and scanned PDFs — any area of the screen.",
+    "description": "Image translation section description"
+  },
+  "options_ocr_langs_desc": {
+    "message": "The languages written in your images, in order of priority — up to 3. Fewer languages give faster, more accurate results."
+  },
+  "options_ocr_langs_title": {
+    "message": "Text languages",
+    "description": "OCR languages picker title"
+  },
+  "options_ocr_limit": {
+    "message": "You can choose up to $P1$ languages. Remove one to add another.",
+    "description": "$1 = maximum number of OCR languages",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_list_label": {
+    "message": "Languages for text recognition",
+    "description": "aria-label of the OCR language checkbox list"
+  },
+  "options_ocr_local_desc": {
+    "message": "Each language needs a one-time download of about 1.5–3 MB the first time you use it, then it's stored in this browser. Your images are processed on your device and never uploaded — only the recognized text is sent for translation."
+  },
+  "options_ocr_local_title": {
+    "message": "Downloaded once, read on your device"
+  },
+  "options_ocr_min": {
+    "message": "At least one language is needed."
+  },
+  "options_ocr_move_up": {
+    "message": "Give $P1$ higher priority",
+    "description": "Button on a selected language chip. $1 = language name",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_no_match": {
+    "message": "No language matches “$P1$”.",
+    "description": "$1 = search query",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_remove": {
+    "message": "Remove $P1$",
+    "description": "Button on a selected language chip. $1 = language name",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_search_placeholder": {
+    "message": "Search languages"
+  },
+  "options_ocr_selected_label": {
+    "message": "Selected languages, in priority order",
+    "description": "aria-label of the selected OCR language chips"
+  },
+  "options_ocr_way_menu_desc": {
+    "message": "On an image: “Translate text in image”. Anywhere else: “Translate screen area…”.",
+    "description": "Quotes the context-menu item titles (keep them identical to the menu)"
+  },
+  "options_ocr_way_menu_title": {
+    "message": "Right-click"
+  },
+  "options_ocr_way_popup_desc": {
+    "message": "Open TransPop and click “Translate screen area” at the top.",
+    "description": "Quotes the popup button label popup_capture"
+  },
+  "options_ocr_way_popup_title": {
+    "message": "Toolbar popup"
+  },
+  "options_ocr_way_shortcut_desc": {
+    "message": "Then drag over the text you want to translate.",
+    "description": "Shown under the crop-translate shortcut keys"
+  },
+  "options_ocr_way_shortcut_title": {
+    "message": "Keyboard shortcut"
+  },
+  "options_ocr_ways_label": {
+    "message": "How to start",
+    "description": "Label above the three ways to start image translation"
   },
   "options_preview_alt": {
     "message": "Preview of the translation bubble"
@@ -468,7 +720,7 @@
     "message": "Read the privacy policy"
   },
   "options_privacy_text": {
-    "message": "TransPop sends the text you choose to translate to the selected translation service. No accounts, no tracking, no analytics."
+    "message": "TransPop sends only the text you choose to translate to the selected translation service. Images are read on your device and never uploaded. No accounts, no tracking, no analytics."
   },
   "options_privacy_title": {
     "message": "Your privacy"
@@ -697,6 +949,27 @@
   "popup_back": {
     "message": "Back to translator",
     "description": "Back button in the History & Favorites view"
+  },
+  "popup_capture": {
+    "message": "Translate screen area",
+    "description": "Header button: select an area of the current tab and translate the text in it (OCR)"
+  },
+  "popup_capture_file_access": {
+    "message": "To use it on local files, turn on “Allow access to file URLs” for TransPop in chrome://extensions",
+    "description": "Tooltip when the button is disabled on a file:// page without file access"
+  },
+  "popup_capture_shortcut": {
+    "message": "Translate screen area ($P1$)",
+    "description": "Tooltip of the header button. $1 = keyboard shortcut, e.g. Alt+Shift+A",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_capture_unavailable": {
+    "message": "Chrome doesn't allow capturing this page",
+    "description": "Tooltip when the button is disabled (e.g. Chrome Web Store pages)"
   },
   "popup_char_count": {
     "message": "$P1$ of $P2$ characters",
@@ -940,6 +1213,22 @@
   },
   "welcome_tip_menu_title": {
     "message": "Right-click to translate"
+  },
+  "welcome_tip_ocr_desc": {
+    "message": "Press $P1$ and drag over any part of the screen, or right-click an image and choose “Translate text in image”.",
+    "description": "$1 = keyboard shortcut keys (rendered as keycaps). Quotes the image context-menu item",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "welcome_tip_ocr_desc_no_shortcut": {
+    "message": "Right-click an image and choose “Translate text in image”, or click “Translate screen area” in the TransPop popup.",
+    "description": "Used when the crop-translate shortcut is not set"
+  },
+  "welcome_tip_ocr_title": {
+    "message": "Translate text in images"
   },
   "welcome_tip_pin_desc": {
     "message": "Click the puzzle icon in Chrome's toolbar, then the pin next to TransPop."

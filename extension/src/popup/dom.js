@@ -29,6 +29,45 @@ export function h(tag, props = null, ...children) {
   return el;
 }
 
+/* Icons that are not (yet) in the shared set (src/ui/icons.js) — Lucide (ISC), built with DOM APIs. */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const LOCAL_ICONS = {
+  'scan-text': [
+    'M3 7V5a2 2 0 0 1 2-2h2',
+    'M17 3h2a2 2 0 0 1 2 2v2',
+    'M21 17v2a2 2 0 0 1-2 2h-2',
+    'M7 21H5a2 2 0 0 1-2-2v-2',
+    'M7 8h8',
+    'M7 12h10',
+    'M7 16h6',
+  ],
+};
+
+/** SVGElement for a popup-local stroke icon (same markup conventions as icon() in src/ui/icons.js). */
+export function localIcon(name, size = 18) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  const attrs = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': 2,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+    class: `icon icon-${name}`,
+    'aria-hidden': 'true',
+    focusable: 'false',
+  };
+  for (const [key, value] of Object.entries(attrs)) svg.setAttribute(key, String(value));
+  for (const d of LOCAL_ICONS[name] || []) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+
 /** Accessible name + tooltip for an icon button. */
 export function setLabel(el, label) {
   el.setAttribute('aria-label', label);

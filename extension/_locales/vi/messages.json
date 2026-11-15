@@ -8,6 +8,12 @@
   "bg_badge_off": {
     "message": "TẮT"
   },
+  "bg_ctx_area": {
+    "message": "Dịch vùng màn hình…"
+  },
+  "bg_ctx_image": {
+    "message": "Dịch chữ trong ảnh"
+  },
   "bg_ctx_pause": {
     "message": "Tạm dừng TransPop trên mọi trang"
   },
@@ -42,6 +48,70 @@
   "bubble_copy_translation": {
     "message": "Sao chép bản dịch"
   },
+  "bubble_crop_copy_text": {
+    "message": "Sao chép chữ nhận dạng được"
+  },
+  "bubble_crop_dialog_label": {
+    "message": "TransPop — chữ trong ảnh"
+  },
+  "bubble_crop_full": {
+    "message": "Dùng toàn bộ phần trang đang hiển thị"
+  },
+  "bubble_crop_hint": {
+    "message": "Kéo để chọn vùng · Esc để hủy"
+  },
+  "bubble_crop_image_missing": {
+    "message": "Không tìm thấy ảnh — hãy kéo để chọn · Esc để hủy"
+  },
+  "bubble_crop_lang_add": {
+    "message": "Thêm ngôn ngữ của chữ"
+  },
+  "bubble_crop_lang_remove": {
+    "message": "Bỏ $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "bubble_crop_langs_label": {
+    "message": "Ngôn ngữ của chữ (để nhận dạng)"
+  },
+  "bubble_crop_listen_text": {
+    "message": "Nghe chữ nhận dạng được"
+  },
+  "bubble_crop_low_confidence": {
+    "message": "Chữ có thể chưa được nhận dạng chính xác — hãy kiểm tra và sửa nếu cần."
+  },
+  "bubble_crop_overlay_label": {
+    "message": "Chọn vùng cần dịch"
+  },
+  "bubble_crop_recognized_label": {
+    "message": "Chữ nhận dạng được (có thể sửa)"
+  },
+  "bubble_crop_recognizing": {
+    "message": "Đang nhận dạng chữ…"
+  },
+  "bubble_crop_select_again": {
+    "message": "Chọn lại"
+  },
+  "bubble_crop_slow": {
+    "message": "Lần đầu dùng một ngôn ngữ cần tải dữ liệu của nó (vài MB) — có thể mất một lúc."
+  },
+  "bubble_crop_title": {
+    "message": "Chữ trong ảnh"
+  },
+  "bubble_crop_translate_again": {
+    "message": "Dịch lại"
+  },
+  "bubble_crop_translate_again_hint": {
+    "message": "Dịch đoạn chữ đã sửa ($P1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
   "bubble_dialog_label": {
     "message": "Bản dịch TransPop"
   },
@@ -70,6 +140,38 @@
   },
   "bubble_trigger_label": {
     "message": "Dịch đoạn đã chọn"
+  },
+  "capture_empty": {
+    "message": "Hãy chọn một vùng trên ảnh chụp — chữ nhận dạng được và bản dịch sẽ hiện ở đây."
+  },
+  "capture_expired": {
+    "message": "Ảnh chụp này không còn nữa. Hãy đóng cửa sổ và thử lại từ trang web."
+  },
+  "capture_from": {
+    "message": "Từ: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "capture_heading": {
+    "message": "Dịch chữ trong ảnh chụp màn hình"
+  },
+  "capture_hint": {
+    "message": "Kéo chuột trên ảnh chụp để chọn đoạn chữ cần dịch."
+  },
+  "capture_loading": {
+    "message": "Đang tải ảnh chụp…"
+  },
+  "capture_page_title": {
+    "message": "TransPop — Dịch vùng màn hình"
+  },
+  "capture_restricted": {
+    "message": "Chrome không cho tiện ích chụp một số trang, ví dụ trang của trình duyệt và Chrome Web Store."
+  },
+  "capture_whole": {
+    "message": "Dùng toàn bộ ảnh chụp"
   },
   "cmdCropTranslate": {
     "message": "Dịch chữ trong ảnh hoặc vùng màn hình"
@@ -410,6 +512,9 @@
   "options_nav_label": {
     "message": "Các mục cài đặt"
   },
+  "options_nav_ocr": {
+    "message": "Dịch chữ trong ảnh"
+  },
   "options_nav_shortcuts": {
     "message": "Phím tắt"
   },
@@ -418,6 +523,109 @@
   },
   "options_nav_trigger": {
     "message": "Cách kích hoạt"
+  },
+  "options_ocr_cache_cleared": {
+    "message": "Đã xóa dữ liệu ngôn ngữ đã tải"
+  },
+  "options_ocr_cache_confirm": {
+    "message": "Xóa dữ liệu"
+  },
+  "options_ocr_cache_desc": {
+    "message": "Giải phóng dung lượng. Dữ liệu sẽ được tải lại khi bạn cần dùng."
+  },
+  "options_ocr_cache_title": {
+    "message": "Dữ liệu ngôn ngữ đã tải"
+  },
+  "options_ocr_count": {
+    "message": "Đã chọn $P1$/$P2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "options_ocr_desc": {
+    "message": "Dịch chữ nằm trong ảnh, video, PDF dạng ảnh — bất kỳ vùng nào trên màn hình."
+  },
+  "options_ocr_langs_desc": {
+    "message": "Ngôn ngữ của chữ trong ảnh, theo thứ tự ưu tiên — tối đa 3. Chọn càng ít, nhận dạng càng nhanh và chính xác."
+  },
+  "options_ocr_langs_title": {
+    "message": "Ngôn ngữ của chữ trong ảnh"
+  },
+  "options_ocr_limit": {
+    "message": "Bạn chọn được tối đa $P1$ ngôn ngữ. Hãy bỏ bớt một ngôn ngữ để thêm ngôn ngữ khác.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_list_label": {
+    "message": "Ngôn ngữ nhận dạng chữ"
+  },
+  "options_ocr_local_desc": {
+    "message": "Mỗi ngôn ngữ cần tải dữ liệu một lần (khoảng 1,5–3 MB) ở lần dùng đầu tiên, sau đó được lưu trong trình duyệt. Ảnh được xử lý ngay trên máy bạn và không bao giờ được tải lên — chỉ phần chữ nhận dạng được mới được gửi đi để dịch."
+  },
+  "options_ocr_local_title": {
+    "message": "Tải một lần, nhận dạng ngay trên máy"
+  },
+  "options_ocr_min": {
+    "message": "Cần chọn ít nhất một ngôn ngữ."
+  },
+  "options_ocr_move_up": {
+    "message": "Ưu tiên $P1$ hơn",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_no_match": {
+    "message": "Không có ngôn ngữ nào khớp với “$P1$”.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_remove": {
+    "message": "Bỏ $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_ocr_search_placeholder": {
+    "message": "Tìm ngôn ngữ"
+  },
+  "options_ocr_selected_label": {
+    "message": "Ngôn ngữ đã chọn, theo thứ tự ưu tiên"
+  },
+  "options_ocr_way_menu_desc": {
+    "message": "Trên ảnh: “Dịch chữ trong ảnh”. Chỗ khác: “Dịch vùng màn hình…”."
+  },
+  "options_ocr_way_menu_title": {
+    "message": "Chuột phải"
+  },
+  "options_ocr_way_popup_desc": {
+    "message": "Mở TransPop rồi bấm “Dịch vùng màn hình” ở phía trên."
+  },
+  "options_ocr_way_popup_title": {
+    "message": "Cửa sổ TransPop"
+  },
+  "options_ocr_way_shortcut_desc": {
+    "message": "Sau đó kéo chuột chọn vùng chữ cần dịch."
+  },
+  "options_ocr_way_shortcut_title": {
+    "message": "Phím tắt"
+  },
+  "options_ocr_ways_label": {
+    "message": "Cách bắt đầu"
   },
   "options_preview_alt": {
     "message": "Xem trước khung dịch"
@@ -432,7 +640,7 @@
     "message": "Đọc chính sách quyền riêng tư"
   },
   "options_privacy_text": {
-    "message": "TransPop chỉ gửi văn bản bạn chọn dịch tới dịch vụ dịch đã chọn. Không tài khoản, không theo dõi, không thu thập số liệu."
+    "message": "TransPop chỉ gửi văn bản bạn chọn dịch tới dịch vụ dịch đã chọn. Ảnh được đọc ngay trên máy bạn, không bao giờ được tải lên. Không tài khoản, không theo dõi, không thu thập số liệu."
   },
   "options_privacy_title": {
     "message": "Quyền riêng tư của bạn"
@@ -643,6 +851,23 @@
   "popup_back": {
     "message": "Quay lại trình dịch"
   },
+  "popup_capture": {
+    "message": "Dịch vùng màn hình"
+  },
+  "popup_capture_file_access": {
+    "message": "Để dùng với tệp trên máy, hãy bật “Cho phép truy cập vào URL của tệp” cho TransPop trong chrome://extensions"
+  },
+  "popup_capture_shortcut": {
+    "message": "Dịch vùng màn hình ($P1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_capture_unavailable": {
+    "message": "Chrome không cho phép chụp trang này"
+  },
   "popup_char_count": {
     "message": "$P1$ / $P2$ ký tự",
     "placeholders": {
@@ -847,6 +1072,20 @@
   },
   "welcome_tip_menu_title": {
     "message": "Dịch bằng chuột phải"
+  },
+  "welcome_tip_ocr_desc": {
+    "message": "Nhấn $P1$ rồi kéo chọn vùng bất kỳ trên màn hình, hoặc nhấp chuột phải vào ảnh và chọn “Dịch chữ trong ảnh”.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "welcome_tip_ocr_desc_no_shortcut": {
+    "message": "Nhấp chuột phải vào ảnh và chọn “Dịch chữ trong ảnh”, hoặc bấm “Dịch vùng màn hình” trong cửa sổ TransPop."
+  },
+  "welcome_tip_ocr_title": {
+    "message": "Dịch chữ trong ảnh"
   },
   "welcome_tip_pin_desc": {
     "message": "Nhấp vào biểu tượng mảnh ghép trên thanh công cụ Chrome, rồi nhấn nút ghim cạnh TransPop."
